@@ -1,0 +1,11 @@
+#!/bin/bash
+
+case $BLOCK_BUTTON in
+	1) notify-send "Song" "$(mpc status)" ;;
+	3) mpc toggle ;;
+	4) mpc prev ;;
+	5) mpc next ;;
+esac
+
+[ "$(mpc status | sed -n 2p | awk '{print $1}')" = "[playing]" ] &&
+	printf "%.45s" "$(mpc current -f "ﴁ%artist%%title%%album%")"

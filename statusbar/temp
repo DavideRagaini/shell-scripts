@@ -1,0 +1,8 @@
+#!/bin/sh
+
+GPU="$(sensors | awk '/temp1:/ {print $2}' | sed 's/+//g; s/.0//g')"
+CPU="$(sensors | awk '/Core 0:/ {print $3}' | sed 's/+//g; s/.0°C//g')"
+
+printf "%s:%s" "$CPU" "$GPU"
+
+

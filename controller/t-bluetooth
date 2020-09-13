@@ -1,0 +1,12 @@
+#!/usr/bin/env sh
+
+case $(rfkill | awk '/1 bluetooth/ {print $4}') in
+	blocked)
+		rfkill unblock bluetooth
+		notify-send " Bluetooth on";;
+	unblocked)
+        	rfkill block bluetooth
+		notify-send " Bluetooth off"
+esac
+
+pkill -RTMIN+12 dwmblocks

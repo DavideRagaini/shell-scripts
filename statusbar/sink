@@ -1,0 +1,3 @@
+#!/bin/sh
+
+pactl list sinks | grep -E 'Sink #|Description' | sed 's/Description: //g; s/\t//g' | fmt -w 200 | sed ':b;s/Sink #/\n/2;tb; s/Sink #//g' | awk '{print $1 " " $2}' | grep "$(pactl list short sinks | grep RUNNING | awk '{print $1}') "

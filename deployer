@@ -1,0 +1,98 @@
+#!/bin/sh
+
+LOCAL="$HOME/.local/"
+CONFIG="$HOME/.config"
+
+checkdirs() {
+    [ ! -d "$HOME/.local" ] && mkdir "$HOME/.local"
+    [ ! -d "$HOME/.config" ] && mkdir "$HOME/.config"
+    [ ! -d "$LOCAL/src" ] && mkdir "$HOME/src"
+    [ ! -d "$LOCAL/bin" ] && mkdir "$HOME/bin"
+    # [ ! -d "$LOCAL/config" ] && mkdir "$HOME/config"
+}
+
+fetchrepos() {
+  REPO="https://github.com/DavideRagaini"
+  git clone "$REPO/shellscripts.git"
+  git clone "$REPO/nvim.git"
+  git clone --recurse-submodules "$REPO/dotfiles.git"
+  cd src || exit
+  git clone "$REPO/dwm.git"
+  git clone "$REPO/dmenu.git"
+  git clone "$REPO/dwmblocks.git"
+}
+
+stower() {
+  cd "$LOCAL" || exit
+  stow shellscripts -t "$LOCAL/bin"
+  stow dotfiles -t "$HOME/.config"
+  stow nvim -t "$HOME/.config"
+}
+
+deploydev() {
+    [ -z "$DEPLOY_DEVICE" ] && echo "DEPLOY_DEVICE not set" && exit
+  cd "$CONFIG/dunst" && ln -s "$DEPLOY_DEVICE" dunstrc
+    [ ! -d "$LOCAL/config" ] && mkdir "$HOME/config"
+  cd "$CONFIG" && ln -s xprofile/"$DEPLOY_DEVICE" xprofile
+  cd "$CONFIG" && ln -s XresourcesDir/"$DEPLOY_DEVICE" Xresources
+  cd "$CONFIG/zzz" && ln -s "$DEPLOY_DEVICE-onresume" onresume && ln -s "$DEPLOY_DEVICE-onsuspend" onsuspend
+  cd "$CONFIG/gtk-3.0" && ln -s "$DEPLOY_DEVICE/bookmarks" bookmarks && ln -s "$DEPLOY_DEVICE/colors.css" colors.css && ln -s "$DEPLOY_DEVICE/gtk.css" gtk.css && ln -s "$DEPLOY_DEVICE/settings.ini" settings.ini
+
+}
+
+case "$1" in
+  stower)
+    stower ;;
+  first)
+    checkdirs
+    fetchrepos
+    stower
+    deploydev ;;
+  repo)
+    fetchrepos ;;
+  link)
+    stower
+    deploydev ;;
+esac
+
+# scratch_deployer() {
+#   cd "$LOCAL"
+#   git clone $REPO/shellscripts.git
+#   mkdir bin && stow shellscripts -t "$LOCAL/bin"
+
+#   mkdir src && cd src
+#   git clone $REPO/dwm.git
+#   cd "$LOCAL/src/dwm" && sudo make clean install
+#   git clone $REPO/dwmblocks.git
+#   cd "$LOCAL/src/dwmblocks" && sudo make clean install
+#   git clone $REPO/dmenu.git
+#   cd "$LOCAL/src/dmenu" && sudo make clean install
+
+#   # cd $HOME/.config
+#   cd "$LOCAL" && mkdir config && cd config
+#   git clone --recurse-submodules "$REPO/dotfiles.git"
+#   git clone "$REPO/nvim.git"
+#   stow dotfiles -t "$HOME/.config"
+#   stow nvim -t "$HOME/.config"
+
+#   [ -z $DEPLOY_DEVICE ] && echo "DEPLOY_DEVICE not set" && exit
+#   cd "$CONFIG/dunst" && ln -s "$DEPLOY_DEVICE" dunstrc
+#     [ ! -d "$LOCAL/config" ] && mkdir "$HOME/config"
+#   cd "$CONFIG" && ln -s xprofile/"$DEPLOY_DEVICE" xprofile
+#   cd "$CONFIG" && ln -s XresourcesDir/"$DEPLOY_DEVICE" Xresources
+#   cd "$CONFIG/zzz" && ln -s "$DEPLOY_DEVICE-onresume" onresume && ln -s "$DEPLOY_DEVICE-onsuspend" onsuspend
+#   cd "$CONFIG/gtk-3.0" && ln -s "$DEPLOY_DEVICE/bookmarks" && ln -s "$DEPLOY_DEVICE/colors.css" && ln -s "$DEPLOY_DEVICE/gtk.css" && ln -s "$DEPLOY_DEVICE/settings.ini"
+# }
+
+
+# targets="\
+# dunts
+# gtk-2.0
+# gtk-3.0
+# xprofile
+# XresourcesDir
+# zzz"
+# while read -r line; do
+# 	[ -z "$line" ] && continue
+# #   cd $line && ln -s 
+# done

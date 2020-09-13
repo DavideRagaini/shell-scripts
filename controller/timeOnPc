@@ -1,0 +1,45 @@
+#!/bin/sh
+
+if [ -z "$1" ]
+then
+	cmds="\
+	lock
+	reboot
+	refresh_dwm
+	refresh_dwmblocks
+	suspend
+	hibernate
+	leave
+	shutdown
+	"
+	choice="$(printf "%s" "$cmds" | cut -d'	' -f 2 | dmenu)"
+else
+	choice="$1"
+fi
+
+DEST=~/.local/uptime
+case "$choice" in
+	start)
+		printf "Start: %s" "$(date)\n$(cat $DEST)" > $DEST ;;
+		#cd ~/void && git pull;;
+	shutdown)
+		#cd ~/void && git push
+		printf "Shutdown %s" "\n\t$(uptime -s) -> $(uptime -p)\\n$(cat $DEST)" > $DEST && prompt 'Shutdown?' 'sudo -A shutdown -h now' ;;
+	suspend)
+		printf "Suspend %s" "\n$(cat $DEST)" > $DEST && prompt 'Suspend?' 'sudo zzz';;
+	hibernate)
+		printf "Hibernate %s" "\n$(cat $DEST)" > $DEST && prompt 'Hibernate?' 'sudo ZZZ';;
+	resume)
+		printf "Resume %s" "\n$(cat $DEST)" > $DEST ;;
+	reboot)
+		printf "Reboot %s" "\n\t$(uptime -s) -> $(uptime -p)\n$(cat $DEST)" > $DEST && prompt 'Reboot?' 'sudo -A shutdown -r now' ;;
+	lock)
+		lock ;;
+	leave)
+		kill -TERM "$(pidof -s dwm)" ;;
+	refresh_dwm)
+		kill -HUP "$(pidof -s dwm)" ;;
+	refresh_dwmblocks)
+		killall -q dwmblocks
+		setsid dwmblocks & ;;
+esac

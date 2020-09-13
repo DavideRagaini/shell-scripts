@@ -1,0 +1,10 @@
+#!/bin/sh
+
+case $1 in
+	*pdf|*djvu) setsid "$READER" "$1" & ;;
+	*mkv|*web|*mp4|*avi) setsid mpv "$1" ;;
+	*mp3|*flac|*opus|*mp3?source*) setsid mpv "$1" ;;
+	*png|*jpg|*jpeg|*gif) setsid sxiv "$1" & ;;
+	*) setsid "$BROWSER" "$1" & ;;
+esac
+

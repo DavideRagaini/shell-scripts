@@ -1,0 +1,11 @@
+#!/usr/bin/env sh
+
+# cd $HOME/Data/Storage/Podcast/Raw || echo Directory not found
+SPEED="${1:-1.5}"
+mkdir SpeedUp
+for i in *.mp3
+    do
+        ffmpeg -i "$i" -filter:a "atempo=$SPEED" -vn "SpeedUp/${i%.*}x$SPEED.mp3"
+        done
+
+figlet Conversion Completed!

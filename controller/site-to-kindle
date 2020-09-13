@@ -1,0 +1,8 @@
+#!/bin/sh
+
+clip=$(xclip -o -selection clipboard)
+cd ~/Storage/Ebooks/Raw || exit 0
+wget -r -np -nc -k -c "$clip"
+notify-send "Site downloaded in ~/S/E/R"
+echo Site downloaded in ~/S/E/R
+

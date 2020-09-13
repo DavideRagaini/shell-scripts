@@ -1,0 +1,110 @@
+#!/bin/sh
+
+# set -x
+if [ -z "$1" ]
+then
+cmds="\
+history	history
+play from clipboard	playclip
+aplay	aplay
+playlists	playlist
+lectures	lect
+select from queue	qselect
+queue from clipboard	queueclip
+play all queue	qplay"
+	choice="$(echo "$cmds" | cut -d'	' -f 1 | dmenu -l 10)" || exit
+	chosen=$(echo "$cmds" | grep "^$choice	" | cut -d '	' -f2-)
+	# [ "$chosen" = "play" ] && 2="$(dmenu -i -p "Insert url")" || exit
+	# [ "$chosen" = "queue" ] && 2="$(dmenu -i -p "Insert url")" || exit
+else
+	chosen="$1"
+fi
+
+case "$chosen" in
+# PRIMARIO
+	play)
+		echo "$(youtube-dl --get-title "$2")\t"$2"\n$(cat "$HOME/.cache/mpv/history")" > "$HOME/.cache/mpv/history" && mpv "$2" ;;
+
+	playclip)
+		url="$(xclip -o -selection clipboard)"
+		name="$(youtube-dl --get-title "$url")"
+		echo ""$name"\t"$url"\n$(cat "$HOME/.cache/mpv/history")" > "$HOME/.cache/mpv/history"
+		mpv "$url" ;;
+
+	history)
+		HIST="$(cat "$HOME/.cache/mpv/history")"
+		echo "$HIST" |
+		grep -P "^$(echo "$HIST" |
+		grep "https:" |
+		sed 's/\t.*//g' |
+		dmenu -i -l 20 |
+		awk '{print $1}')\s" |
+		sed 's/.*\t//' |
+		xargs -r mpv || exit 1 ;;
+
+# QUEUE
+	queueclip)
+		url="$(xclip -o -selection clipboard)"
+		name="$(youtube-dl --get-title "$url")"
+		echo ""$name"\t"$url"\n$(cat "$HOME/.cache/mpv/queue")" > "$HOME/.cache/mpv/queue" ;;
+
+	queue)
+		echo "$(youtube-dl --get-title "$2")\t"$2"" >> "$HOME/.cache/mpv/queue" || notify-send "Failed to queue" ;;
+
+	qplay)
+		QUEUE="$HOME/.cache/mpv/queue"
+		while read -r line; do
+			[ -z "$line" ] && continue
+			list="$(echo "$line" | grep "https:")"
+			name=$(echo "$list" | sed 's/\t.*//')
+			url=$(echo "$list" | sed 's/.*\t//')
+			echo ""$name"\t"$url"\n$(cat "$HOME/.cache/mpv/history")" > "$HOME/.cache/mpv/history"
+			mpv "$url" || exit 0
+		done < "$QUEUE"
+		echo > "$QUEUE" ;;
+
+	qselect)
+		list="$("$(cat "$HOME/.cache/mpv/queue")" | grep "https:")"
+		name=$(echo "$list" | sed 's/\t.*//')
+		url=$(echo "$list" | sed 's/.*\t//')
+		echo ""$name"\t"$url"\n$(cat "$HOME/.cache/mpv/history")" > "$HOME/.cache/mpv/history"
+		mpv "$url"|| exit 0 ;;
+
+#PLAYLIST
+	addtoplaylist)
+		PLAYLISTS="$HOME/.cache/mpv/playlists"
+		CHOSEN="$(find "$PLAYLISTS" -type f)"
+		CHOSEN="$(echo "$CHOSEN" | cut -d'/' -f7 | sed 's/\n//g' | dmenu -i -l 20)" || exit
+		echo "$2" >> "$PLAYLISTS/$CHOSEN" ;;
+		# echo "$(youtube-dl --get-title "$2")\t"$2"\n$(cat "$PLAYLISTS/$CHOSEN")" > "$PLAYLISTS/$CHOSEN" ;;
+
+	playlist)
+		PLAYLISTS="$HOME/.cache/mpv/playlists"
+		CHOSEN="$(find "$PLAYLISTS" -type f)"
+		CHOSEN="$(echo "$CHOSEN" | cut -d'/' -f7 | sed 's/\n//g' | dmenu -i -l 20)" || exit
+		LIST="$(cat $PLAYLISTS/$CHOSEN)"
+		mpv --playlist="$LIST" ;;
+		# echo "$LIST" |
+		# grep -P "^$(echo "$LIST" |
+		# grep "https:" |
+		# sed 's/\t.*//g' |
+		# dmenu -i -l 20 |
+		# awk '{print $1}')\s" |
+		# sed 's/.*\t//' |
+		# xargs -r mpv || exit 1 ;;
+		# while read -r line; do
+		# 	[ -z "$line" ] && continue
+		# 	# list="$(echo "$line" | grep "https:")"
+		# 	url=$(echo "$line" | grep "https://" | sed 's/.*\t//')
+		# 	mpv "$url"|| exit 0
+		# done < "$PLAYLISTS/$CHOSEN" ;;
+
+	lect)
+		LECTURES="$HOME/Storage/Videos/Lectures"
+		CHOSEN=$(ls "$LECTURES" | dmenu -i -l 20) || exit
+		mpv "$LECTURES/$CHOSEN" ;;
+
+	aplay)
+		url="$(xclip -o -selection clipboard)"
+		mpv "$url" ;;
+esac
