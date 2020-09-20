@@ -1,7 +1,0 @@
-#!/usr/bin/env sh
-
-DEST="$HOME/.config/screenlayout/$1"
-chosen="$(ls "$DEST" | dmenu -i -p "Select video output:")"
-$DEST/$chosen
-
-# pkill -RTMIN+8 dwmblocks

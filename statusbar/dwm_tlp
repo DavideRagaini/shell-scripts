@@ -1,6 +1,0 @@
-#!/usr/bin/env sh
-
-case "$(sudo tlp-stat -s | grep Mode | awk '{print $3}')" in
-	battery)  printf "" ;;
-	AC) printf "";;
-esac

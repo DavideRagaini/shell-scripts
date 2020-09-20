@@ -1,8 +1,0 @@
-#!/bin/sh
-
-printf "CPU:\t\t%s\nRam & Swap:\t%s\nnvGPU:\t\t%s\nTemp:\t\t%s\nNetwork:\t%s" \
-	"$(cpu)" \
-	"$(free -h | awk '{print $3}' | fmt | sed 's/free//1;s/ //1')" \
-	"$(nvgpu)" \
-	"$(sensors | grep Package | awk '{print $4}')" \
-	"$(nettraf)"

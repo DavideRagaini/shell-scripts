@@ -1,5 +1,0 @@
-#!/bin/sh
-
-DEST="$HOME/Storage/Pictures/"
-cd "$DEST" || exit 0
-wget "$1"

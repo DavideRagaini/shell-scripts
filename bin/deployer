@@ -25,7 +25,7 @@ fetchrepos() {
 stower() {
   cd "$LOCAL" || exit
   stow shell-scripts -v -t "$LOCAL/bin"
-  stow dotfiles -v -t "$HOME/.config" --ignore=".git"
+  stow dotfiles -v -t "$HOME/.config" #--ignore=".git"
   stow nvim -v -t "$HOME/.config"
 }
 
