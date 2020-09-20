@@ -1,0 +1,4 @@
+#!/bin/sh
+
+setsid -f spt &
+spotify

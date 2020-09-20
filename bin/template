@@ -1,0 +1,5 @@
+#!/bin/sh
+
+cp ~/.local/bin/TEMPLATE $1
+echo Template to $1
+$EDITOR $1

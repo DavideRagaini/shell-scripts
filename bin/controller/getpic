@@ -1,0 +1,4 @@
+#!/bin/sh
+
+cd "${XDG_PICTURES_DIR:-$HOME/Storage/Pictures}" || exit 0
+wget "$1"

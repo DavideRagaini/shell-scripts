@@ -1,0 +1,13 @@
+#!/bin/sh
+
+instances="$(playerctl -l | grep mpv)"
+
+for i in $instances
+do
+	playerctl -p "$i" play-pause
+done
+
+# for i in $(ls /tmp/mpvSockets/*); do
+	# echo '{ "command": ["set_property", "pause", true] }' | socat - "$i";
+# done
+

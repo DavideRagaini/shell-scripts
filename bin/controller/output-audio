@@ -1,0 +1,29 @@
+#!/bin/sh
+
+NAMES=$(pactl list sinks | grep -E 'Name|Description|Active Port' | sed 's/Description: /->/g; s/\t//g' | fmt -w 1000 | sed ':b;s/Name:/\n/g;tb; s/Name: //g; s/Active Port:/On/g')
+
+CHOSEN=$(echo "$NAMES" | sed -n -e 's/^.*->//p' | dmenu -i -l 10 -p "Sink:") || exit
+
+if [ -n "$CHOSEN" ]
+then
+	OUTPUT=$(echo "$NAMES" | grep "$CHOSEN")
+	OUTPUT=${OUTPUT%% ->*}
+	# echo "$OUTPUT"
+
+	pacmd set-default-sink "$OUTPUT"
+	pacmd list-sink-inputs | awk '/index:/{print $2}' | xargs -r -I{} pacmd move-sink-input {} "$OUTPUT"
+	pkill -RTMIN+7 dwmblocks
+	pkill -RTMIN+10 dwmblocks
+fi
+
+# NAMES=$(pactl list sinks | grep -E 'Sink|Description' | sed 's/Description: //g; s/\t/-> /g' | fmt -w 200 | sed ':b;s/Sink #/\n/2;tb; s/Sink #//g')
+# CHOSEN=$(printf "%s" "$NAMES" | sed 's/^.*$ //p' | dmenu -i -l 10 -p "Sink:"|| exit 0) #"Select sink to output:"
+# OUTPUT=$(echo "$CHOSEN" | awk '{print $1}' )
+
+
+# sinks=$(pactl list short sinks)
+# chosen=$(printf "$sinks" | awk '{print $2}' | rev | sed -e 's/\.[^\.]*$//' | rev | dmenu -i -l 10 -p "Select output:" || exit 0)
+# out=$(echo "$sinks" | grep "$chosen" | awk '{print $1}')
+
+# pacmd set-default-sink $out || notify-send "Failed setting default sink"
+# pacmd list-sink-inputs | awk '/index:/{print $2}' | xargs -r -I{} pacmd move-sink-input {} $out || notify-send "Failed switching inputs"

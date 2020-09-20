@@ -1,0 +1,18 @@
+#!/bin/sh
+
+case $1 in
+	video)
+		youtube-dl -ic --add-metadata --playlist-start="$3" --playlist-end="$4" "$2" || youtube-dl -ic --add-metadata --playlist-start="$2" "$3" || youtube-dl -ic --add-metadata "$2" ;;
+
+	audio)
+		youtube-dl --add-metadata -ic --extract-audio --audio-format mp3 --audio-quality 0 --playlist-start="$2" --playlist-end="$3" "$4" || youtube-dl --add-metadata -ic --extract-audio --audio-format mp3 --audio-quality 0 --playlist-start="$2" "$3" || youtube-dl --add-metadata -ic --extract-audio --audio-format mp3 --audio-quality 0 "$2" ;;
+
+	bestaudio) #youtube-dl --add-metadata -ic -x -f bestaudio/best --audio-quality 0 "$2" ;;
+		youtube-dl --add-metadata -ic --extract-audio -f bestaudio/best --audio-quality 0 --playlist-start="$2" --playlist-end="$3" "$4" || youtube-dl --add-metadata -ic --extract-audio -f bestaudio/best --audio-quality 0 --playlist-start="$2" "$3" || youtube-dl --add-metadata -ic --extract-audio -f bestaudio/best --audio-quality 0 "$2" ;;
+
+	*)
+		notify-send "Video or Audio?" ;;
+esac
+
+figlet "Completed" | lolcat
+notify-send "Download Completed"

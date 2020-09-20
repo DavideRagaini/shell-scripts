@@ -1,0 +1,11 @@
+#!/bin/sh
+
+CURRENT=$(xrandr | head -1 | awk '{print $8 $9 $10}')
+
+case "$CURRENT" in
+	5760x2160,) printf "B";;
+	1920x1080,) printf "S";;
+	3840x2160,) printf "M";;
+	*) printf "A"
+esac
+

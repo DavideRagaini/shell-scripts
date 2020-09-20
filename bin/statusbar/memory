@@ -1,0 +1,11 @@
+#!/usr/bin/env sh
+
+case $BLOCK_BUTTON in
+	1) notify-send "🧠 Memory hogs" "$(ps axch -o cmd:15,%mem --sort=-%mem | head)" ;;
+	3) notify-send "Currently in:" "$(sudo tlp-stat -s | grep Mode | sed 's/^.*=//g')" ;;
+esac
+
+free -h | awk '/^Mem:/ {print $3}'
+#TEMP=$(sensors | awk '/Core 0:/ {print $3}')
+#MEM=$(free -h | awk '/^Mem:/ {print $3}')
+#printf "%s %s" "$TEMP" "$MEM"

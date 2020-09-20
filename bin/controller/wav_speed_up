@@ -1,0 +1,19 @@
+#!/bin/sh
+
+[ -d SpeededUps ] || mkdir SpeededUps
+[ -d SpeededUps/wavs ] || mkdir SpeededUps/wavs
+[ -d SpeededUps/mp3s ] || mkdir SpeededUps/mp3s
+
+SPEED="${1:-1.5}"
+VOLUME="${1:-3}"
+
+
+for i in *.wav
+    do
+        echo $i
+        sonic -s "$SPEED" -v "$VOLUME" -n -q -c "$i" "SpeededUps/wavs/${i%.*}-x$SPEED.wav"
+        ffmpeg -i "SpeededUps/wavs/${i%.*}-x$SPEED.wav" -f mp3 "SpeededUps/mp3s/${i%.*}-x$SPEED.mp3" 
+        # ffmpeg -i "$i" -filter:a "atempo=2.0" -c:a libmp3lame -q:a 0 "/home/raghyz/Music/Double/${i%.*}-x2.mp3"
+    done
+
+figlet Conversion Completed! | lolcat

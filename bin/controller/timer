@@ -1,0 +1,20 @@
+#!/bin/sh
+
+# oclock -fg "#E6E6E6" -bg "#2F0B3A" -jewel "magenta" &
+# hour=$( echo "$1" | cut -d':' -f1 )
+# minute=$( echo "$1" | cut -d':' -f2 | cut -d'.' -f1 )
+# seconds=$( echo "$1" | cut -d'.' -f2 )
+hour="${1%:*}"
+m="${1#*:}"
+minute="${m%.*}"
+seconds="${1#*.}"
+echo "$hour $minute $seconds"
+date
+sleep $(( hour*3600 + minute*60 + seconds ))
+# blink &
+# blink_pid=$!
+# echo "$blink_pid"
+# echo now should be killed
+# blink_pid="$(echo $!)"
+mpv --no-config "$HOME/Storage/Videos/20170728-The Hirsch Effekt - INUKSHUK (Official Video).mkv"
+kill "$blink_pid"

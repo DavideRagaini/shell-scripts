@@ -1,0 +1,12 @@
+#!/usr/bin/env sh
+
+case "$(nmcli radio "$1" | awk '/led/ {print}')" in
+	enabled)
+		nmcli radio wifi off
+		notify-send " WLAN off";;
+	disabled)
+		nmcli radio wifi on
+		notify-send " WLAN on";;
+esac
+
+pkill -RTMIN+16 dwmblocks
