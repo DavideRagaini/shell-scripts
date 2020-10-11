@@ -15,7 +15,7 @@ while [ -n "$(pidof spotify)" ]
 do
 	old="$(cat "$sptstb")"
 	if [ "$(playerctl -p spotify status)" = "Playing" ]; then
-		current="$(playerctl -p spotify metadata --format "ﴁ{{artist}}阮{{title}}{{album}}")"
+		current="$(playerctl -p spotify metadata --format "阮{{title}}ﴁ{{artist}}{{album}}")"
 		[ "$current" != "$old" ] &&
 			printf "%.45s" "$current" > "$sptstb" &&
 			pkill -RTMIN+12 dwmblocks
