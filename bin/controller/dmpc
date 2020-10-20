@@ -20,4 +20,4 @@ case "$1" in
 	prev) prev ;;
 esac
 
-pkill -RTMIN+11 dwmblocks
+# pkill -RTMIN+11 dwmblocks

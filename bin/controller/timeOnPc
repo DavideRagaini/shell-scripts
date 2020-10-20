@@ -4,12 +4,12 @@ if [ -z "$1" ]
 then
 	cmds="\
 	lock
+	dwm
+	dwmblocks
+	leave
 	reboot
-	refresh_dwm
-	refresh_dwmblocks
 	suspend
 	hibernate
-	leave
 	shutdown
 	"
 	choice="$(printf "%s" "$cmds" | cut -d'	' -f 2 | dmenu)"
@@ -37,9 +37,9 @@ case "$choice" in
 		lock ;;
 	leave)
 		kill -TERM "$(pidof -s dwm)" ;;
-	refresh_dwm)
+	dwm)
 		kill -HUP "$(pidof -s dwm)" ;;
-	refresh_dwmblocks)
+	dwmblocks)
 		killall -q dwmblocks
 		setsid dwmblocks & ;;
 esac

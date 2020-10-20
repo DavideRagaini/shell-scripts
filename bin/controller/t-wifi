@@ -1,10 +1,10 @@
 #!/bin/sh
 
-case "$(nmcli radio "$1" | awk '/led/ {print}')" in
-	enabled)
+case "$(wifi | awk '{print $3}')" in
+	on)
 		wifi off
 		notify-send " WLAN off";;
-	disabled)
+	off)
 		wifi on
 		notify-send " WLAN on";;
 esac
