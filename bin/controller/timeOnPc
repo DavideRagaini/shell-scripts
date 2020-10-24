@@ -36,9 +36,9 @@ case "$choice" in
 	lock)
 		lock ;;
 	leave)
-		kill -TERM "$(pidof -s dwm)" ;;
+		kill -TERM "$(pgrep -u $USER "\bdwm$")" ;;
 	dwm)
-		kill -HUP "$(pidof -s dwm)" ;;
+		kill -HUP "$(pgrep -u $USER "\bdwm$")" ;;
 	dwmblocks)
 		killall -q dwmblocks
 		setsid dwmblocks & ;;
