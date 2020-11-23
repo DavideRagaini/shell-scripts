@@ -1,7 +1,6 @@
 #!/bin/sh
 
-# set -x
-instances="$(playerctl -a -i spotify metadata --format "{{playerName}} -> {{status}}  {{title}} - {{artist}} {{album}}" | sed 's/Playing/奈/ ; s/Paused//')"
+instances="$(playerctl -a -i spotify metadata --format "{{playerName}} -> {{status}}  {{title}} - {{artist}} {{album}}" | sed 's/Playing/奈/ ; s/Paused//' | nl -w2 -s' ')"
 
 [ -z "$instances" ] && exit
 [ "$(echo "$instances" | wc -l)" -eq 1 ] && playerctl -p "$(echo "$instances" | awk '{print $1}')" play-pause && exit
@@ -15,3 +14,18 @@ else
     player="$(playerctl -l | dmenu -l 5)"
     playerctl -p "$player" play-pause
 fi
+
+# instances="$(mpris-ctl info '%play_status %player_name : %track_name - %album_name - %artist_name' | sed 's/Paused//; s/Playing//' | nl -w2 -s' ')"
+
+# [ -z "$instances" ] && exit
+# [ "$(echo "$instances" | wc -l)" -eq 1 ] && mpris-ctl --player "$(echo "$instances" | awk '{print $3}')" pp && exit
+
+# chosen="$(printf "%s" "$instances" | dmenu -l 7)"
+# howmany=$(echo "$instances" | grep -c "$("$chosen" | awk '{print $3}')")
+# if [ "$howmany" -eq 1 ]
+# then
+    # mpris-ctl --player "$($howmany | awk '{print $3}')" pp
+# else
+    # player="$(mpris-ctl list | dmenu -l 5)"
+    # mpris-ctl --player "$player" pp
+# fi

@@ -1,4 +1,6 @@
 #!/bin/sh
 
-setsid -f spt &
-spotify
+[ $(pidof spotifyd) ] ||
+	spotifyd
+
+spotify-tui

@@ -1,23 +1,21 @@
 #!/bin/sh
 
-# set -x
-if [ -z "$(pidof spotify)" ] || [ ! "$(playerctl -l)" ]
+if [ -z "$(pidof spotifyd)" ] && [ "$(playerctl -l | grep spotifyd)" ]
 then
-	toggle() { mpc --host=127.0.0.1 --port=6600 toggle ; }
-	next() { mpc --host=127.0.0.1 --port=6600 next ; }
-	prev() { mpc --host=127.0.0.1 --port=6600 prev ; }
-
+	case "$1" in
+	toggle) mpc --host=127.0.0.1 --port=6600 toggle ;;
+	next) mpc --host=127.0.0.1 --port=6600 next ;;
+	prev) mpc --host=127.0.0.1 --port=6600 prev ;;
+	seekf) mpc --host=127.0.0.1 --port=6600 seekthrough 10 ;;
+	seekp) mpc --host=127.0.0.1 --port=6600 seekthrough -10 ;;
+	esac
 else
 	mpc pause
-	toggle() { playerctl -p spotify play-pause ; }
-	next() { playerctl -p spotify next ; }
-	prev() { playerctl -p spotify previous ; }
+	case "$1" in
+	toggle) playerctl -p spotifyd play-pause ;;
+	next) playerctl -p spotifyd next ;;
+	prev) playerctl -p spotifyd previous ;;
+	seekf) playerctl -p spotifyd position 10+ ;;
+	seekp) playerctl -p spotifyd position 10- ;;
+	esac
 fi
-
-case "$1" in
-	toggle) toggle ;;
-	next) next ;;
-	prev) prev ;;
-esac
-
-# pkill -RTMIN+11 dwmblocks
