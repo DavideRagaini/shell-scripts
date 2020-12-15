@@ -1,6 +1,6 @@
 #!/bin/sh
 
-if [ -z "$(pidof spotifyd)" ] && [ "$(playerctl -l | grep spotifyd)" ]
+if [ -z "$(pidof spotifyd)" ] # || [ -z "$(playerctl -l | grep spotifyd)" ]
 then
 	case "$1" in
 	toggle) mpc --host=127.0.0.1 --port=6600 toggle ;;

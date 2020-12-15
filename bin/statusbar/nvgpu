@@ -3,6 +3,7 @@
 case $BLOCK_BUTTON in
     1) setsid "$TERMINAL" -e nvidia-smi ;;
     3) notify-send "GPU Info" "$(nvidia-smi)" ;;
+    6) "$TERMINAL" -e "$EDITOR" "$0" ;;
 esac
 
 MEMORY=$(nvidia-smi -q -d MEMORY | grep Used | head -n 1 | awk '{print $3$4}')

@@ -5,6 +5,7 @@ case $BLOCK_BUTTON in
 	3) mpc toggle ;;
 	4) mpc prev ;;
 	5) mpc next ;;
+	6) "$TERMINAL" -e "$EDITOR" "$0" ;;
 esac
 
 [ "$(mpc status | sed -n 2p | awk '{print $1}')" = "[playing]" ] &&

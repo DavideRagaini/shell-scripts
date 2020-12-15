@@ -2,9 +2,10 @@
 
 case $BLOCK_BUTTON in
 	1) notify-send "Song" "$(playerctl -p spotifyd metadata --format "ﴁ {{artist}} 阮 {{title}}  {{album}}")" ;;
-	3) playerctl play-pause ;;
-	4) playerctl next ;;
-	5) playerctl previuos ;;
+	3) playerctl -p spotifyd play-pause ;;
+	4) playerctl -p spotifyd next ;;
+	5) playerctl -p spotifyd previuos ;;
+	6) "$TERMINAL" -e "$EDITOR" "$0" ;;
 esac
 
 [ "$(playerctl -p spotifyd status)" = "Playing" ] &&
