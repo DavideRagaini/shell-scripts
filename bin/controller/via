@@ -1,0 +1,76 @@
+#!/bin/bash
+
+via-feed() {
+	cache="$HOME/.cache/via"
+
+	if [[ "$1" == "-r" ]] || [[ ! -e "$cache" ]]; then
+		cat "$HOME/.config/via/shortcuts" > "$cache"
+		cat "$HOME/.config/via/websites" >> "$cache"
+		find "$HOME" -mindepth 1 \( -name ".*" -o -path "$HOME/code/*" \) -prune -o -print | sort >> "$cache"
+	fi
+
+	cat "$cache"
+	}
+
+via-open() {
+	while read arg; do
+		# first try matching by filename or pathname
+		case "${arg,,}" in
+			http*)
+				$BROWSER "$arg" &
+				;;
+			[^/]*) # doesn't start with '/'
+				sh -c "$arg"
+				;;
+			*.txt)
+				$TERMINAL $EDITOR "$arg" &
+				;;
+			*.pdf | *.epub)
+				$READER "$arg" &
+				;;
+			*.mp3)
+				$TERMINAL mpg123 -opulse "$arg" &
+				;;
+			# *.od[tsp]|*.doc|*.docx|*.ppt|*.pptx|*.xls|*.xlsx)
+				# libreoffice "$arg" &
+				# ;;
+			*)
+				# then try matching by mimetype
+				mimetype=$(file -Lb --mime-type "$arg")
+				case "$mimetype" in
+					text/html)
+						$BROWSER "$arg" &
+						;;
+					text/* | inode/x-empty | message/rfc822)
+						$TERMINAL $EDITOR "$arg" &
+						;;
+					inode/directory)
+						cd "$arg"
+						$TERMINAL -e tmux &
+						cd -
+						;;
+					image/*)
+						sxiv "$arg" &
+						;;
+					*)
+						exit 1
+						;;
+				esac
+				;;
+		esac
+	done
+	}
+
+PATH="$HOME/.config/via:$PATH"
+
+case "$1" in
+	-r)  # rebuild cache first
+		via-feed -r | dmenu -i -l 15 | via-open
+		;;
+	-ro) # rebuild cache only
+		via-feed -r >/dev/null
+		;;
+	*)
+		via-feed | dmenu -i -l 15 | via-open
+		;;
+esac
