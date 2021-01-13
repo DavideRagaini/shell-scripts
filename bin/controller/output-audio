@@ -7,7 +7,7 @@ CHOSEN=$(echo "$NAMES" | sed -n -e 's/^.*->//p' | dmenu -i -l 10 -p "Sink:") || 
 if [ -n "$CHOSEN" ]
 then
 	OUTPUT=$(echo "$NAMES" | grep "$CHOSEN")
-	OUTPUT=${OUTPUT%% ->*}
+	OUTPUT=${OUTPUT%% -\>*}
 	# echo "$OUTPUT"
 
 	pacmd set-default-sink "$OUTPUT"
