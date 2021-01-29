@@ -1,0 +1,15 @@
+#!/bin/sh
+
+notify-send -i "$HOME/.config/Icons/splash.png" "Hi" "My name is Slim Shady" 
+case "$1" in
+	on)
+		[ -e /etc/hosts ] || sudo ln -s /etc/hosts.b /etc/hosts && notify-send "Blacklist Set" ;;
+	yon)
+		[ -e /etc/hosts ] ||
+				sudo ln -s /etc/hosts.b /etc/hosts
+
+		 [ -z $(grep '0.0.0.0	www.youtube.com' /etc/hosts) ] &&
+				sudo printf '0.0.0.0	youtube.com\n0.0.0.0	www.youtube.com' >> /etc/hosts ;;
+	yoff)
+		sudo sed -i 's/0.0.0.0	youtube.com//g; s/0.0.0.0	www.youtube.com//g' /etc/hosts ;;
+esac

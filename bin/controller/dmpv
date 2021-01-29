@@ -1,0 +1,104 @@
+#!/bin/sh
+
+set -x
+if [ -z "$@" ]; then
+CMDS="\
+queue
+enqueue
+enqueue & play
+lectures
+add to playlist
+local
+last
+aplay"
+	CHOSEN="$(echo "$CMDS" | dmenu -l 10)" || exit
+else
+	CHOSEN="$1"
+fi
+
+case "$CHOSEN" in
+	enqueue)
+		[ -z "$2"] &&
+			URL="$(xclip -o -selection clipboard)" ||
+			URL="$2"
+		echo "$(youtube-dl --get-title "$URL")\t"$URL"" >> "$HOME/.config/mpv/queue" || notify-send "Failed to queue" ;;
+
+	queue)
+		QUEUE="$(cat "$HOME/.config/mpv/queue")"
+		URL="$(echo "$QUEUE" |
+		grep -P "^$(echo "$QUEUE" |
+		grep "https:" |
+		sed 's/\t.*//g' |
+		dmenu -i -l 20 |
+		awk '{print $1}')\s" |
+		sed 's/.*\t//')"
+		echo "$URL" > "$HOME/.config/mpv/last"
+		mpv "$URL"
+		;;
+
+	'enqueue & play')
+		[ -z "$2"] &&
+			URL="$(xclip -o -selection clipboard)" ||
+			URL="$2"
+		echo "$(youtube-dl --get-title "$URL")\t"$URL"" >> "$HOME/.config/mpv/queue" || notify-send "Failed to queue"
+		echo "$URL" > "$HOME/.config/mpv/last"
+		mpv "$URL"
+		;;
+
+	# playlists)
+		# PLAYLISTS="$HOME/.config/mpv/playlists"
+		# CHOSEN="$(find "$PLAYLISTS" -type f)"
+		# CHOSEN="$(echo "$CHOSEN" | cut -d'/' -f7 | sed 's/\n//g' | dmenu -i -l 20)" || exit
+		# LIST="$(cat $PLAYLISTS/$CHOSEN)"
+		# mpv --playlist="$LIST" ;;
+
+	'add to playlist')
+		PLAYLIST="$(dmenu -P -p "Name of the playlist?")"
+		[ -z "$2"] &&
+			URL="$(xclip -o -selection clipboard)" ||
+			URL="$2"
+		echo "$PLAYLIST:$(youtube-dl --get-title "$URL")\t"$URL"" >> "$HOME/.config/mpv/queue" || notify-send "Failed to queue" ;;
+		# PLAYLISTS="$HOME/.config/mpv/playlists"
+		# CHOSEN="$(find "$PLAYLISTS" -type f)"
+		# CHOSEN="$(echo "$CHOSEN" | cut -d'/' -f7 | sed 's/\n//g' | dmenu -i -l 20)" || exit
+		# [ -z "$2"] &&
+			# "$(xclip -o -selection clipboard)\n" >> "$PLAYLISTS/$CHOSEN" ||
+			# echo "$2" >> "$PLAYLISTS/$CHOSEN" ;;
+
+	# 'new playlist')
+		# PLAYLISTS="$HOME/.config/mpv/playlists"
+		# NAME="$(dmenu -P -p "Chose the name of the playlist")"
+		# touch "$PLAYLISTS/$NAME"
+		# [ -z "$2"] &&
+			# "$(xclip -o -selection clipboard)\n" >> "$PLAYLISTS/$CHOSEN" ||
+			# echo "$2" >> "$PLAYLISTS/$CHOSEN" ;;
+
+	lectures)
+		LECTURES="$HOME/Storage/Videos/Lectures"
+		CHOSEN=$(ls "$LECTURES" | dmenu -i -l 20) || exit
+		echo "$LECTURES/$CHOSEN" > "$HOME/.config/mpv/last"
+		mpv "$LECTURES/$CHOSEN" ;;
+
+	local)
+		set -x 
+		GENER="$HOME/Storage/Videos/"
+		DIR=$(ls "$GENER" | dmenu -i -l 20) || exit
+		if [ -d $GENER$DIR ]; then
+			CHOSEN=$(ls "$GENER$DIR" | dmenu -i -l 20) || exit
+			echo "$GENER$DIR/$CHOSEN" > "$HOME/.config/mpv/last"
+			mpv "$GENER$DIR/$CHOSEN"
+		else
+			echo "$GENER$DIR" > "$HOME/.config/mpv/last"
+			mpv "$GENER$DIR"
+		fi ;;
+
+	last)
+		mpv "$(cat $HOME/.config/mpv/last)"
+		;;
+
+	aplay)
+		URL="$(xclip -o -selection clipboard)"
+		echo "$URL" > "$HOME/.config/mpv/last"
+		mpv "$URL" ;;
+
+esac

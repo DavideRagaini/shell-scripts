@@ -1,6 +1,5 @@
 #!/bin/sh
 
-# set -x
 # [ -z "$@" ] && @="play-pause"
 instances="$(playerctl -a -i spotifyd metadata --format "{{playerName}} -> {{status}}  {{title}} - {{artist}} {{album}}" | sed 's/Playing/奈/ ; s/Paused//' | nl -w2 -s' ')"
 
@@ -9,7 +8,7 @@ instances="$(playerctl -a -i spotifyd metadata --format "{{playerName}} -> {{sta
 # [ "$(echo "$instances" | wc -l)" -eq 1 ] && playerctl -p "$(echo "$instances" | awk '{print $2}')" play-pause && exit
 
 chosen="$(echo "$instances" | dmenu -l 5)" || exit
-howmany=$(echo "$instances" | grep -c "$(echo "$chosen" | awk '{print $1}')")
+howmany=$(echo "$instances" | grep -c "$(echo "$chosen" | awk '{print $2}')")
 if [ $howmany -eq 1 ]
 then
     #  If there are more players elegible

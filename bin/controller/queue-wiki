@@ -1,0 +1,12 @@
+#!/bin/sh
+
+URL="$(xclip -o)"
+TITLE="$(wget -qO- "$URL" |
+	gawk -v IGNORECASE=1 -v RS='</title' 'RT{gsub(/.*<title[^>]*>/,"");print;exit}')"
+# notify-send -u critical "Queuing this link" "$TITLE\n$URL"
+
+BASE="$HOME/.local/src/wiki/journal"
+FILES="$(find $BASE -maxdepth 2 -type f | sed 's/^.*journal//g')"
+CHOSEN="$(echo "$FILES" | dmenu -i -l 15)" || exit
+
+printf "[%s](%s)\n" "$TITLE" "$URL" >> "$BASE$CHOSEN"

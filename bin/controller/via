@@ -25,17 +25,17 @@ via-open() {
 			*.txt)
 				$TERMINAL $EDITOR "$arg" &
 				;;
-			*.pdf | *.epub)
+			*.pdf | *.epub | *.djvu | *.cbz)
 				$READER "$arg" &
 				;;
-			*.mp3)
+			*.mp3 | *.flac)
 				$TERMINAL mpg123 -opulse "$arg" &
 				;;
 			# *.od[tsp]|*.doc|*.docx|*.ppt|*.pptx|*.xls|*.xlsx)
 				# libreoffice "$arg" &
 				# ;;
 			*)
-				# then try matching by mimetype
+				# then try  by mimetype
 				mimetype=$(file -Lb --mime-type "$arg")
 				case "$mimetype" in
 					text/html)
