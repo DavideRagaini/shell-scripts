@@ -9,4 +9,4 @@ case $BLOCK_BUTTON in
 esac
 
 [ "$(playerctl -p spotifyd status)" = "Playing" ] &&
-	printf "%.45s" "$(playerctl -p spotifyd metadata --format "阮{{title}}ﴁ{{artist}}{{album}}")"
+	printf "%s" "$(playerctl -p spotifyd metadata --format "阮{{title}}ﴁ{{artist}}{{album}}")"

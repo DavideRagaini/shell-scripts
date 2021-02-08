@@ -71,6 +71,6 @@ case "$1" in
 		via-feed -r >/dev/null
 		;;
 	*)
-		via-feed | dmenu -i -l 15 | via-open
+		via-feed | sed 's/\/home\/davide/~/g' | dmenu -i -l 15 | sed 's/~/\/home\/davide/g' | via-open
 		;;
 esac
