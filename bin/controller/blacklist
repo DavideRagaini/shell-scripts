@@ -1,9 +1,8 @@
 #!/bin/sh
 
-notify-send -i "$HOME/.config/Icons/splash.png" "Hi" "My name is Slim Shady" 
 case "$1" in
 	on)
-		[ -e /etc/hosts ] || sudo ln -s /etc/hosts.b /etc/hosts && notify-send "Blacklist Set" ;;
+		[ -e /etc/hosts ] || (sudo ln -s /etc/hosts.b /etc/hosts && notify-send "Blacklist Set") ;;
 	yon)
 		[ -e /etc/hosts ] ||
 				sudo ln -s /etc/hosts.b /etc/hosts
