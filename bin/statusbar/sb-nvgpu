@@ -11,4 +11,4 @@ UTILIZATION=$(nvidia-smi -q -d UTILIZATION | grep Gpu | head -n 1 | awk '{print 
 CLOCK=$(nvidia-smi -q -d CLOCK | grep Graphics | head -n 1 | awk '{print $3}')
 TEMP=$(nvidia-smi -q -d TEMPERATURE | grep 'GPU Current' | awk '{print $5}')
 # <++>=$(nvidia-smi -q -d <++> | grep <++> | head -n 1 | awk '{print $3}')
-printf "%s @%s %s %s©" "$UTILIZATION%" "$CLOCK" "$MEMORY" "$TEMP"
+printf "%s%s%s@%s©" "$UTILIZATION%" "$MEMORY" "$CLOCK" "$TEMP"
