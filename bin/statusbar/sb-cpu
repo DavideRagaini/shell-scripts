@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/bin/sh
 
 case $BLOCK_BUTTON in
 	1) notify-send "🖥 CPU hogs" "$(ps axch -o cmd:15,%cpu --sort=-%cpu | head)" ;;
@@ -7,7 +7,8 @@ case $BLOCK_BUTTON in
 	6) "$TERMINAL" -e "$EDITOR" "$0" ;;
 esac
 
-CLOCK=$(lscpu | grep CPU\ MHz | awk '{print $3}' | cut -d'.' -f1)
-LOAD=$(top -bn1 | grep load | awk '{printf "%.2f\t\t\n", $(NF-2)}' | sed 's/\t//g')
+CLOCK=$(lscpu | awk '/CPU MHz/ {print $3}' | cut -d'.' -f1)
+LOAD=$(top -bn1 | awk '/load/ {sub(",","",$11); print $11}')
+
 
 printf "%s @%s" "$LOAD" "$CLOCK"
