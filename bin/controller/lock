@@ -1,3 +1,0 @@
-#!/bin/sh
-
-i3lock -eft -c 1d2021 -i ~/.config/lockscreen

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 case $BLOCK_BUTTON in
 	1) notify-send "Song" "$(mpc status)" ;;
@@ -9,4 +9,4 @@ case $BLOCK_BUTTON in
 esac
 
 [ "$(mpc status | sed -n 2p | awk '{print $1}')" = "[playing]" ] &&
-	printf "%s" "$(mpc current -f "ﴁ%artist%%title%%album%")"
+	printf " %s" "$(mpc current -f "ﴁ %artist%  %title%  %album%")"
