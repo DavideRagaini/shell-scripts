@@ -3,10 +3,11 @@
 case "$(wifi | awk '{print $3}')" in
 	on)
 		wifi off
-		notify-send " WLAN off";;
+		notify-send " WLAN off" ;;
 	off)
 		wifi on
-		notify-send " WLAN on";;
+		notify-send " WLAN on"
+		sleep 15 ;;
 esac
 
 pkill -RTMIN+16 dwmblocks

@@ -9,4 +9,4 @@ case $(rfkill | awk '/1 bluetooth/ {print $4}') in
 		notify-send " Bluetooth off"
 esac
 
-pkill -RTMIN+12 dwmblocks
+pkill -RTMIN+7 dwmblocks

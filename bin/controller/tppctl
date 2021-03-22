@@ -4,8 +4,7 @@
 instances="$(playerctl -a -i spotifyd metadata --format "{{playerName}} -> {{status}}  {{title}} - {{artist}} {{album}}" | sed 's/Playing/奈/ ; s/Paused//' | nl -w2 -s' ')"
 
 # Just one istance of whatever player 
-[ "$(echo "$instances" | wc -l)" -eq 1 ] && playerctl -p "$(echo $instances | awk '{print $2}')" "$@" && exit
-# [ "$(echo "$instances" | wc -l)" -eq 1 ] && playerctl -p "$(echo "$instances" | awk '{print $2}')" play-pause && exit
+[ "$(echo "$instances" | wc -l)" -eq 1 ] && playerctl -p "$(echo "$instances" | awk '{print $2}')" play-pause && exit
 
 chosen="$(echo "$instances" | dmenu -l 5)" || exit
 howmany=$(echo "$instances" | grep -c "$(echo "$chosen" | awk '{print $2}')")
@@ -16,7 +15,6 @@ then
 else
     # If there is more then 1 instances of the same player
     player="$(playerctl -l | dmenu -l 5)"
-    # playerctl -p "$player" play-pause
-    playerctl -p "$player" "$@"
+    playerctl -p "$player" play-pause
 fi
 
