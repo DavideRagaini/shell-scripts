@@ -4,13 +4,19 @@ via-feed() {
 	cache="$HOME/.cache/via"
 
 	if [[ "$1" == "-r" ]] || [[ ! -e "$cache" ]]; then
-		cat "$HOME/.config/via/shortcuts" > "$cache"
-		cat "$HOME/.config/via/websites" >> "$cache"
+		# cat "$HOME/.config/via/shortcuts" > "$cache"
+		# cat "$HOME/.config/via/websites" >> "$cache"
 		find "$HOME" -mindepth 1 \( -name ".*" -o -path "$HOME/code/*" \) -prune -o -print | sort >> "$cache"
 	fi
 
 	cat "$cache"
 	}
+
+select-feed() {
+			sed 's/\/home\/davide/~/g' |
+			dmenu -i -l 15 |
+			sed 's/~/\/home\/davide/g'
+	  }
 
 via-open() {
 	while read arg; do
@@ -65,12 +71,16 @@ PATH="$HOME/.config/via:$PATH"
 
 case "$1" in
 	-r)  # rebuild cache first
-		via-feed -r | dmenu -i -l 15 | via-open
+		via-feed -r |
+		select-feed |
+		via-open
 		;;
 	-ro) # rebuild cache only
 		via-feed -r >/dev/null
 		;;
 	*)
-		via-feed | sed 's/\/home\/davide/~/g' | dmenu -i -l 15 | sed 's/~/\/home\/davide/g' | via-open
+		via-feed |
+			select-feed |
+			via-open
 		;;
 esac

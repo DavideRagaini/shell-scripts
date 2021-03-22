@@ -3,7 +3,7 @@
 PATH_TO_VIDEOS="${XDG_VIDEOS_DIR:-$HOME/Storage/Videos}"
 FILE=$(readlink -f "$1")
 
-readlink "$PATH_TO_VIDEOS/eDVP"
 rm "$PATH_TO_VIDEOS/eDVP"
-echo "$1 --> $PATH_TO_VIDEOS/eDVP"
+# echo "$1 --> $PATH_TO_VIDEOS/eDVP"
 ln -s "$FILE" "$PATH_TO_VIDEOS/eDVP"
+notify-send "eDVP set to " "$(readlink "$PATH_TO_VIDEOS/eDVP" | cut -d / -f8)"
