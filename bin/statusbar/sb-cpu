@@ -7,8 +7,9 @@ case $BLOCK_BUTTON in
 	6) "$TERMINAL" -e "$EDITOR" "$0" ;;
 esac
 
-CLOCK=$(lscpu | awk '/CPU MHz/ {print $3}' | cut -d'.' -f1)
-LOAD=$(top -bn1 | awk '/load/ {sub(",","",$11); print $11}')
+CLOCK="$(lscpu | awk '/CPU MHz/ {print $3}' | cut -d'.' -f1)"
+# LOAD=$(top -bn1 | awk '/load/ {sub(",","",$11); print $11}')
+LOAD="$(cut -d ' ' -f1 /proc/loadavg)"
 
 
 printf "%s @%s" "$LOAD" "$CLOCK"

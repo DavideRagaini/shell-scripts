@@ -38,7 +38,7 @@ echo "$stats" | while read -r row; do
 done
 echo "$stats" > "$cache"
 
-CLOCK=$(lscpu | grep CPU\ MHz | awk '{print $3}' | cut -d'.' -f1)
-LOAD=$(top -bn1 | grep load | awk '{printf "%.2f\t\t\n", $(NF-2)}' | sed 's/\t//g')
+CLOCK="$(lscpu | grep CPU\ MHz | awk '{print $3}' | cut -d'.' -f1)"
+LOAD="$(cut -d ' ' -f1 /proc/loadavg)"
 
 printf "%s @%s" "$LOAD" "$CLOCK"

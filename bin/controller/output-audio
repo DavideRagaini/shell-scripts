@@ -5,7 +5,6 @@ NAMES=$(pactl list sinks | grep -E 'Name|State|Description|Active Port' | sed 's
 if [ $(echo $NAMES | wc -l) -lt 3 ]; then
 	OUTPUT="$(printf "%s" "$NAMES" | grep "SUSPENDED")"
 else
-	exit
 	CHOSEN=$(echo "$NAMES" | sed -n -e 's/^.*->//p' | dmenu -i -l 10 -p "Sink:") || exit
 	OUTPUT=$(echo "$NAMES" | grep "$CHOSEN")
 fi

@@ -1,8 +1,8 @@
 #!/bin/sh
 
 HOSTS="${XDG_DATA_HOME:-$HOME/.local/share}/hosts"
-BLOCKED="youtube.com
-twitch.tv"
+BLOCKED="twitch.tv"
+# youtube.com
 
 set_hosts() {
 		[ -e /etc/hosts ] ||
@@ -56,7 +56,7 @@ case "$1" in
 		;;
 
 	*)
-		echo 'Somethig Wrong!'
+		echo 'Something Wrong!'
 		;;
 esac
 

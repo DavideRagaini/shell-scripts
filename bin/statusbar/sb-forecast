@@ -1,6 +1,5 @@
 #!/bin/sh
 
-set -x
 # Displays todays precipication chance (☔) ad daily low (🥶) and high (🌞).
 # Usually intended for the statusbar.
 
