@@ -4,14 +4,14 @@ if [ -z "$1" ]; then
 CMDS="\
 queue
 enqueue
-enqueue & play
+enqueue&play
 lectures
-add to playlist
+add_playlist
 local
 last
 last_lecture
 aplay
-edit queue"
+edit_queue"
 
 	CHOSEN="$(echo "$CMDS" | dmenu -l 10)" || exit
 else
@@ -69,14 +69,14 @@ case "$CHOSEN" in
 		open_mpv
 		;;
 
-	'enqueue & play')
+	enqueue&play)
 		verify_clipboard
 		add_to "$QUEUE" "$PATH_QUEUE"
 		save_to "$PATH_LAST"
 		open_mpv
 		;;
 
-	'add to playlist')
+	add_playlist)
 		verify_clipboard
 		PLAYLIST="$(dmenu -P -p "Name of the playlist?"):"
 		add_to "$QUEUE" "$PATH_QUEUE" "$PLAYLIST"
@@ -119,6 +119,6 @@ case "$CHOSEN" in
 		open_mpv
 		;;
 
-	'edit queue')
+	edit_queue)
 		$TERMINAL -e nvim ~/.config/mpv/queue
 esac
