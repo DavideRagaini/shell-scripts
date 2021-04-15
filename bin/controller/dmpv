@@ -70,7 +70,7 @@ case "$CHOSEN" in
 		open_mpv
 		;;
 
-	enqueue&play)
+	'enqueue&play')
 		verify_clipboard
 		add_to "$QUEUE" "$PATH_QUEUE"
 		save_to "$PATH_LAST"
