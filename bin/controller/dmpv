@@ -42,7 +42,6 @@ search_from() {
 
 add_to() {
 	[ -z "$3" ] && PLAYLIST=""
-	BACKUP="$HOME/.config/mpv/queue.bk"
 	echo "$1" > "$BACKUP"
 	TITLE="$(youtube-dl --get-title "$URL")"
 	printf "%s%s\t%s\n%s" "$PLAYLIST" "$TITLE" "$URL" "$1" > "$2" ||

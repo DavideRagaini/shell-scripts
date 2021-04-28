@@ -10,6 +10,7 @@ then
 	reboot
 	suspend
 	hibernate
+	display
 	shutdown
 	"
 	choice="$(printf "%s" "$cmds" | cut -d'	' -f 2 | dmenu)"
@@ -42,4 +43,6 @@ case "$choice" in
 	dwmblocks)
 		killall -q dwmblocks
 		setsid dwmblocks & ;;
+	display)
+		xset dpms force off ;;
 esac
