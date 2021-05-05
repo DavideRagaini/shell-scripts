@@ -12,6 +12,8 @@ fi
 OUTPUT=${OUTPUT## SUSPENDED}
 OUTPUT=${OUTPUT%% -\>*}
 
-pacmd set-default-sink "$OUTPUT"
-pacmd list-sink-inputs | awk '/index:/{print $2}' | xargs -r -I{} pacmd move-sink-input {} "$OUTPUT"
-pkill -RTMIN+7 dwmblocks
+pactl set-default-sink $OUTPUT
+INPUTS=$(pactl list short sink-inputs | awk '{print $1}')
+pactl move-sink-input $INPUTS $OUTPUT
+
+pkill -RTMIN+7 dwmblocks && pkill -RTMIN+10 dwmblocks
