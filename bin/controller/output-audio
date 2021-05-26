@@ -9,11 +9,14 @@ else
 	OUTPUT=$(echo "$NAMES" | grep "$CHOSEN")
 fi
 
-OUTPUT=${OUTPUT## SUSPENDED}
-OUTPUT=${OUTPUT%% -\>*}
+OUTPUT="${OUTPUT## SUSPENDED}"
+OUTPUT="${OUTPUT%% -\>*}"
+# OUTPUT=${OUTPUT##*()}
+# OUTPUT="${OUTPUT%%*( )}"
 
 pactl set-default-sink $OUTPUT
-INPUTS=$(pactl list short sink-inputs | awk '{print $1}')
-pactl move-sink-input $INPUTS $OUTPUT
+# Pulseaudio
+# INPUTS=$(pactl list short sink-inputs | awk '{print $1}')
+# pactl move-sink-input $INPUTS $OUTPUT
 
-pkill -RTMIN+7 dwmblocks && pkill -RTMIN+10 dwmblocks
+pkill -RTMIN+7 dwmblocks && sleep 1 && pkill -RTMIN+10 dwmblocks
