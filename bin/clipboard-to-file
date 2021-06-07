@@ -1,0 +1,6 @@
+#!/bin/sh
+
+FILE="$HOME/clipboard-to-file"
+[ ! -f $FILE ] && touch $FILE
+URL="$(xclip -selection clipboard -o)"
+printf "%s\n" "$URL" >> $FILE && notify-send "Added to file" "$URL"

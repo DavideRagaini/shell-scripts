@@ -1,0 +1,12 @@
+#!/bin/sh
+
+SESSION="lf"
+
+[ -z "$(tmux has-session -t $SESSION)" ] &&
+	{
+		tmux new-session -d -s $SESSION
+		tmux rename-window -t $SESSION:0 'main'
+		tmux send-keys -t 'main' 'lfcd' C-m
+	}
+
+tmux attach-session -t $SESSION:0

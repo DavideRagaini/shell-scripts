@@ -1,8 +1,14 @@
 #!/bin/sh
 
-if [ $(pidof spotifyd) ]
-then
-	spotify-tui
-else
-	ncmpcpp
-fi
+choice="$(echo "spotify\nlocal" | fzf)"
+
+case $choice in
+	spotify)
+		[ -z $(pidof spotifyd) ] &&
+			spotifyd
+		spotify-tui
+		;;
+	local)
+		ncmpcpp
+		;;
+esac
