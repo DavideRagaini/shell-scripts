@@ -20,13 +20,12 @@ sync_repos() {
 }
 
 case "$1" in
-    all)
-        sync_repos "$repos"
-        ;;
-    mains)
-        sync_repos dotfiles shell-scripts
-        ;;
-    sync)
-        sync_repos "$@"
-        ;;
+	all)
+		sync_repos "$repos" ;;
+	mains)
+		sync_repos dotfiles shell-scripts ;;
+	sync)
+		sync_repos "$@" ;;
+	*)
+		echo "sync what?" ;;
 esac
