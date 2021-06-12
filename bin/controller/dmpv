@@ -1,8 +1,7 @@
 #!/bin/sh
 
-set -x
 if [ -z "$1" ]; then
-CMDS="\
+	CMDS="\
 queue
 enqueue
 enqueue&play
@@ -25,100 +24,101 @@ PATH_LAST="$HOME/.config/mpv/last"
 URL=""
 
 verify_clipboard() {
-			[ -z "$2" ] &&
-				URL="$(xclip -o -selection clipboard)" ||
-				URL="$2"
+	[ -z "$2" ] &&
+		URL="$(xclip -o -selection clipboard)" ||
+		URL="$2"
 }
 
 search_from() {
-		URL="$(echo "$1" |
+	URL="$(echo "$1" |
 		grep -P "^$(echo "$1" |
-		grep "https:" |
-		sed 's/\t.*//g' |
-		dmenu -i -l 20 |
-		awk '{print $1}')\s" |
+			grep "https:" |
+			sed 's/\t.*//g' |
+			dmenu -i -l 20 |
+			awk '{print $1}')\s" |
 		sed 's/.*\t//')"
 }
 
 add_to() {
 	[ -z "$3" ] && PLAYLIST=""
-	echo "$1" > "$BACKUP"
+	echo "$1" >"$BACKUP"
 	TITLE="$(youtube-dl --get-title "$URL")"
-	printf "%s%s\t%s\n%s" "$PLAYLIST" "$TITLE" "$URL" "$1" > "$2" ||
+	printf "%s%s\t%s\n%s" "$PLAYLIST" "$TITLE" "$URL" "$1" >"$2" ||
 		notify-send "Failed to queue"
 }
 
 save_to() {
-	echo "$URL" > "$1"
+	echo "$URL" >"$1"
 }
 
 open_mpv() {
-	mpv "$URL"
+	mpv --geometry=256x144+1660+910 --no-terminal "$URL"
 }
 
 case "$CHOSEN" in
 
-	enqueue)
-		verify_clipboard
-		add_to "$QUEUE" "$PATH_QUEUE"
-		;;
+enqueue)
+	verify_clipboard
+	add_to "$QUEUE" "$PATH_QUEUE"
+	;;
 
-	queue)
-		search_from "$QUEUE"
+queue)
+	search_from "$QUEUE"
+	save_to "$PATH_LAST"
+	open_mpv
+	;;
+
+'enqueue&play')
+	verify_clipboard
+	add_to "$QUEUE" "$PATH_QUEUE"
+	save_to "$PATH_LAST"
+	open_mpv
+	;;
+
+add_playlist)
+	verify_clipboard
+	PLAYLIST="$(dmenu -P -p "Name of the playlist?"):"
+	add_to "$QUEUE" "$PATH_QUEUE" "$PLAYLIST"
+	;;
+
+lectures)
+	LECTURES="$HOME/Storage/Videos/Lectures"
+	CHOSEN="$(find "$LECTURES" -maxdepth 1 -type d | cut -d'/' -f7 | dmenu -i -l 20)" || exit
+	URL="$LECTURES/$CHOSEN"
+	save_to "$PATH_LAST"
+	open_mpv
+	;;
+
+local)
+	GENER="$HOME/Storage/Videos/"
+	DIR=$(find "$GENER" -maxdepth 1 -type d | cut -d'/' -f6 | dmenu -i -l 20) || exit
+	if [ -d "$GENER$DIR" ]; then
+		CHOSEN=$(find "$GENER$DIR" | cut -d'/' -f8 | dmenu -i -l 20) || exit
+		URL="$GENER$DIR/$CHOSEN"
 		save_to "$PATH_LAST"
 		open_mpv
-		;;
-
-	'enqueue&play')
-		verify_clipboard
-		add_to "$QUEUE" "$PATH_QUEUE"
+	else
+		URL="$GENER$DIR"
 		save_to "$PATH_LAST"
 		open_mpv
-		;;
+	fi
+	;;
 
-	add_playlist)
-		verify_clipboard
-		PLAYLIST="$(dmenu -P -p "Name of the playlist?"):"
-		add_to "$QUEUE" "$PATH_QUEUE" "$PLAYLIST"
-		;;
+last)
+	mpv "$(cat "$PATH_LAST")"
+	;;
 
-	lectures)
-		LECTURES="$HOME/Storage/Videos/Lectures"
-		CHOSEN="$(find "$LECTURES" -maxdepth 1 -type d | cut -d'/' -f7 | dmenu -i -l 20)" || exit
-		URL="$LECTURES/$CHOSEN"
-		save_to "$PATH_LAST"
-		open_mpv
-		;;
+last_lecture)
+	mpv "$HOME/Storage/Videos/Lectures/doing"
+	;;
 
-	local)
-		GENER="$HOME/Storage/Videos/"
-		DIR=$(find "$GENER" -maxdepth 1 -type d | cut -d'/' -f6 | dmenu -i -l 20) || exit
-		if [ -d "$GENER$DIR" ]; then
-			CHOSEN=$(find "$GENER$DIR" | cut -d'/' -f8 | dmenu -i -l 20) || exit
-			URL="$GENER$DIR/$CHOSEN"
-			save_to "$PATH_LAST"
-			open_mpv
-		else
-			URL="$GENER$DIR"
-			save_to "$PATH_LAST"
-			open_mpv
-		fi
-		;;
+aplay)
+	verify_clipboard
+	save_to "$PATH_LAST"
+	open_mpv
+	;;
 
-	last)
-		mpv "$(cat "$PATH_LAST")"
-		;;
-
-	last_lecture)
-		mpv "$HOME/Storage/Videos/Lectures/doing"
-		;;
-
-	aplay)
-		verify_clipboard
-		save_to "$PATH_LAST"
-		open_mpv
-		;;
-
-	edit_queue)
-		$TERMINAL -e nvim ~/.config/mpv/queue
+edit_queue)
+	$TERMINAL -e nvim ~/.config/mpv/queue
+	;;
 esac
