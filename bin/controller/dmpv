@@ -18,16 +18,14 @@ else
 	CHOSEN="$1"
 fi
 
+VIDEOS_FOLDER="${XDG_CONFIG_HOME:-$HOME/Storage/Videos}"
 PATH_QUEUE="$HOME/.config/mpv/queue"
-QUEUE="$(cat "$PATH_QUEUE")"
 PATH_LAST="$HOME/.config/mpv/last"
-URL=""
 
-verify_clipboard() {
-	[ -z "$2" ] &&
-		URL="$(xclip -o -selection clipboard)" ||
-		URL="$2"
-}
+[ -n "$2" ] &&
+	printf "%s" "$2" | grep -Eo '(http|https)://[^/"]+' &&
+	URL="$2" ||
+	URL="$(xclip -o -selection clipboard)"
 
 search_from() {
 	URL="$(echo "$1" |
@@ -52,37 +50,38 @@ save_to() {
 }
 
 open_mpv() {
+	notify-send "Working on it" "$URL"
 	mpv --geometry=256x144+1660+910 --no-terminal "$URL"
 }
 
 case "$CHOSEN" in
-
 enqueue)
-	verify_clipboard
+	QUEUE="$(cat "$PATH_QUEUE")"
 	add_to "$QUEUE" "$PATH_QUEUE"
 	;;
 
 queue)
+	QUEUE="$(cat "$PATH_QUEUE")"
 	search_from "$QUEUE"
 	save_to "$PATH_LAST"
 	open_mpv
 	;;
 
 'enqueue&play')
-	verify_clipboard
+	QUEUE="$(cat "$PATH_QUEUE")"
 	add_to "$QUEUE" "$PATH_QUEUE"
 	save_to "$PATH_LAST"
 	open_mpv
 	;;
 
 add_playlist)
-	verify_clipboard
 	PLAYLIST="$(dmenu -P -p "Name of the playlist?"):"
+	QUEUE="$(cat "$PATH_QUEUE")"
 	add_to "$QUEUE" "$PATH_QUEUE" "$PLAYLIST"
 	;;
 
 lectures)
-	LECTURES="$HOME/Storage/Videos/Lectures"
+	LECTURES="$VIDEOS_FOLDER/Lectures"
 	CHOSEN="$(find "$LECTURES" -maxdepth 1 -type d | cut -d'/' -f7 | dmenu -i -l 20)" || exit
 	URL="$LECTURES/$CHOSEN"
 	save_to "$PATH_LAST"
@@ -90,7 +89,7 @@ lectures)
 	;;
 
 local)
-	GENER="$HOME/Storage/Videos/"
+	GENER="$VIDEOS_FOLDER"
 	DIR=$(find "$GENER" -maxdepth 1 -type d | cut -d'/' -f6 | dmenu -i -l 20) || exit
 	if [ -d "$GENER$DIR" ]; then
 		CHOSEN=$(find "$GENER$DIR" | cut -d'/' -f8 | dmenu -i -l 20) || exit
@@ -109,16 +108,15 @@ last)
 	;;
 
 last_lecture)
-	mpv "$HOME/Storage/Videos/Lectures/doing"
+	mpv "$VIDEOS_FOLDER"
 	;;
 
 aplay)
-	verify_clipboard
 	save_to "$PATH_LAST"
 	open_mpv
 	;;
 
 edit_queue)
-	$TERMINAL -e nvim ~/.config/mpv/queue
+	$TERMINAL -e nvim "$PATH_QUEUE"
 	;;
 esac

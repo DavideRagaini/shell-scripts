@@ -1,13 +1,15 @@
 #!/bin/sh
 
-[ -n $(pidof spotifyd) ] &&
-	$CHOSEN="spotify" ||
-	CHOSEN="$(echo 'spotify\nlocal' | fzf)"
+[ -n "$(pidof spotifyd)" ] &&
+	CHOSEN="spotify" ||
+	CHOSEN="$(printf 'spotify\nlocal' | fzf)"
 
 case "$CHOSEN" in
-	spotify)
-		spotifyd &&
-			spotify-tui ;;
-	local)
-		ncmpcpp ;;
+spotify)
+	spotifyd &&
+		spotify-tui
+	;;
+local)
+	ncmpcpp
+	;;
 esac
