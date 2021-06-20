@@ -1,63 +1,66 @@
 #!/bin/sh
 
 HOSTS="${XDG_DATA_HOME:-$HOME/.local/share}/hosts"
-BLOCKED="twitch.tv"
+BLOCKED="twitch.tv\
+	4chan.org\
+	boards.4chan.org\
+	reddit.com\
+	www.reddit.com\
+	redditmedia.com\
+	redditstatic.com"
 # youtube.com
 
 set_hosts() {
-		[ -e /etc/hosts ] ||
-			(sudo ln -s $HOSTS /etc/hosts &&
+	[ -e /etc/hosts ] ||
+		(sudo ln -s "$HOSTS/etc/hosts" &&
 			notify-send "Blacklist Set")
 }
 
 append() {
-	for i in $@
-	do
-				printf "0.0.0.0	$i\\n0.0.0.0	www.$i\\n" >> $HOSTS
+	for i in "$@"; do
+		printf "0.0.0.0	%s\\n0.0.0.0	www.%s\\n" "$i" "$i" >>"$HOSTS"
 	done
 }
 
 check_custom_hosts() {
-	for i in $@
-	do
-		grep "0.0.0.0	www.$i" $HOSTS || append $i
+	for i in "$@"; do
+		grep "0.0.0.0	www.$i" "$HOSTS" || append "$i"
 	done
 }
 
 delete_hosts() {
-	for i in $@
-	do
-		sed -i "/0.0.0.0	$i/d; /0.0.0.0	www.$i/d" $HOSTS
+	for i in "$@"; do
+		sed -i "/0.0.0.0	$i/d; /0.0.0.0	www.$i/d" "$HOSTS"
 	done
 }
 
 case "$1" in
-	on)
-		set_hosts
-		check_custom_hosts $BLOCKED
-		;;
+on)
+	set_hosts
+	check_custom_hosts "$BLOCKED"
+	;;
 
-	yon)
-		set_hosts
-		check_custom_hosts youtube.com
-		 ;;
+yon)
+	set_hosts
+	check_custom_hosts youtube.com
+	;;
 
-	yoff)
-		delete_hosts youtube.com
-		;;
+yoff)
+	delete_hosts youtube.com
+	;;
 
-	off)
-		delete_hosts $BLOCKED
-		;;
+off)
+	delete_hosts "$BLOCKED"
+	;;
 
-	update)
-		curl -o $HOSTS http://sbc.io/hosts/alternates/fakenews-gambling-porn-social/hosts
-		append $BLOCKED
-		;;
+update)
+	curl -o "$HOSTS http://sbc.io/hosts/alternates/fakenews-gambling-porn-social/hosts"
+	append "$BLOCKED"
+	;;
 
-	*)
-		echo 'Something Wrong!'
-		;;
+*)
+	echo 'Something Wrong!'
+	;;
 esac
 
 # check_custom_hosts youtube.com twitch.tv

@@ -1,17 +1,16 @@
-#!/bin/sh
+#!/bin/bash
 
 if [ -z "$1" ]; then
 	CMDS="\
 queue
 enqueue
 enqueue&play
-lectures
-add_playlist
-local
-last
-last_lecture
 aplay
-edit_queue"
+last
+edit_queue
+lectures
+local
+last_lecture"
 
 	CHOSEN="$(echo "$CMDS" | dmenu -l 10)" || exit
 else
@@ -22,70 +21,75 @@ VIDEOS_FOLDER="${XDG_CONFIG_HOME:-$HOME/Storage/Videos}"
 PATH_QUEUE="$HOME/.config/mpv/queue"
 PATH_LAST="$HOME/.config/mpv/last"
 
-[ -n "$2" ] &&
-	printf "%s" "$2" | grep -Eo '(http|https)://[^/"]+' &&
-	URL="$2" ||
-	URL="$(xclip -o -selection clipboard)"
+valid_url() {
+	printf "%s" "$1" |
+		grep -qEo '(http|https)://.*(youtube.com|twitch.tv|vimeo.com|youtu.be).*' ||
+		notify-send "Not valid URL" "$1"
+}
 
-search_from() {
-	URL="$(echo "$1" |
-		grep -P "^$(echo "$1" |
+add_to_queue() {
+	PLAYLIST="$(dmenu -P -p "Name of the playlist?")"
+	[ -z "$PLAYLIST" ] && PLAYLIST="1shot"
+	notify-send "$PLAYLIST" "$1"
+	TITLE="$(youtube-dl --get-title "$URL")"
+	printf "%s: %s\t%s\n%s" "$PLAYLIST" "$TITLE" "$1" "$(cat "$PATH_QUEUE")" >"$PATH_QUEUE" ||
+		notify-send "Failed to queue"
+	sort "$PATH_QUEUE" -o "$PATH_QUEUE"
+}
+
+open_mpv() {
+	echo "$1" >"$PATH_LAST"
+	notify-send "Working on" "$1"
+	mpv --geometry=256x144+1660+910 --no-terminal "$1"
+}
+
+case "$CHOSEN" in
+enqueue)
+	if [ -n "$2" ] && [ -n "$(valid_url "$2")" ]; then
+		URL="$2"
+	else
+		tmp="$(xclip -selection clipboard -o)" &&
+			valid_url "$tmp" &&
+			URL="$tmp"
+	fi
+	[ -n "$(valid_url "$URL")" ] &&
+		notify-send "Something wrong!" &&
+		exit
+	add_to_queue "$URL"
+	;;
+
+queue)
+	QUEUE="$(cat "$PATH_QUEUE")"
+	URL="$(echo "$QUEUE" |
+		grep -P "^$(echo "$QUEUE" |
 			grep "https:" |
 			sed 's/\t.*//g' |
 			dmenu -i -l 20 |
 			awk '{print $1}')\s" |
 		sed 's/.*\t//')"
-}
-
-add_to() {
-	[ -z "$3" ] && PLAYLIST=""
-	echo "$1" >"$BACKUP"
-	TITLE="$(youtube-dl --get-title "$URL")"
-	printf "%s%s\t%s\n%s" "$PLAYLIST" "$TITLE" "$URL" "$1" >"$2" ||
-		notify-send "Failed to queue"
-}
-
-save_to() {
-	echo "$URL" >"$1"
-}
-
-open_mpv() {
-	notify-send "Working on it" "$URL"
-	mpv --geometry=256x144+1660+910 --no-terminal "$URL"
-}
-
-case "$CHOSEN" in
-enqueue)
-	QUEUE="$(cat "$PATH_QUEUE")"
-	add_to "$QUEUE" "$PATH_QUEUE"
-	;;
-
-queue)
-	QUEUE="$(cat "$PATH_QUEUE")"
-	search_from "$QUEUE"
-	save_to "$PATH_LAST"
-	open_mpv
+	open_mpv "$URL"
 	;;
 
 'enqueue&play')
-	QUEUE="$(cat "$PATH_QUEUE")"
-	add_to "$QUEUE" "$PATH_QUEUE"
-	save_to "$PATH_LAST"
-	open_mpv
-	;;
-
-add_playlist)
-	PLAYLIST="$(dmenu -P -p "Name of the playlist?"):"
-	QUEUE="$(cat "$PATH_QUEUE")"
-	add_to "$QUEUE" "$PATH_QUEUE" "$PLAYLIST"
+	if [ -n "$2" ] && [ -n "$(valid_url "$2")" ]; then
+		URL="$2"
+	else
+		tmp="$(xclip -selection clipboard -o)" &&
+			valid_url "$tmp" &&
+			URL="$tmp"
+	fi
+	[ -n "$(valid_url "$URL")" ] &&
+		notify-send "Something wrong!" &&
+		exit
+	add_to_queue "$URL"
+	open_mpv "$URL"
 	;;
 
 lectures)
 	LECTURES="$VIDEOS_FOLDER/Lectures"
 	CHOSEN="$(find "$LECTURES" -maxdepth 1 -type d | cut -d'/' -f7 | dmenu -i -l 20)" || exit
 	URL="$LECTURES/$CHOSEN"
-	save_to "$PATH_LAST"
-	open_mpv
+	open_mpv "$URL"
 	;;
 
 local)
@@ -94,12 +98,10 @@ local)
 	if [ -d "$GENER$DIR" ]; then
 		CHOSEN=$(find "$GENER$DIR" | cut -d'/' -f8 | dmenu -i -l 20) || exit
 		URL="$GENER$DIR/$CHOSEN"
-		save_to "$PATH_LAST"
-		open_mpv
+		open_mpv "$URL"
 	else
 		URL="$GENER$DIR"
-		save_to "$PATH_LAST"
-		open_mpv
+		open_mpv "$URL"
 	fi
 	;;
 
@@ -108,12 +110,11 @@ last)
 	;;
 
 last_lecture)
-	mpv "$VIDEOS_FOLDER"
+	mpv "$VIDEOS_FOLDER/doing"
 	;;
 
 aplay)
-	save_to "$PATH_LAST"
-	open_mpv
+	open_mpv "$2"
 	;;
 
 edit_queue)

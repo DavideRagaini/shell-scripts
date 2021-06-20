@@ -6,7 +6,8 @@ via-feed() {
 	if [[ "$1" == "-r" ]] || [[ ! -e "$cache" ]]; then
 		# cat "$HOME/.config/via/shortcuts" > "$cache"
 		# cat "$HOME/.config/via/websites" >> "$cache"
-		find "$HOME/Documents" "$HOME/Universitá" -type f -iname "*.pdf" > "$cache"
+		find "$HOME" -type f -iname "*.pdf" > "$cache"
+		# find "$HOME/Documents" "$HOME/Universitá" -type f -iname "*.pdf" > "$cache"
 	fi
 
 	cat "$cache"
@@ -14,7 +15,7 @@ via-feed() {
 
 select-feed() {
 			sed 's/\/home\/davide/~/g' |
-			dmenu -i -l 15 |
+			fzfmenu |
 			sed 's/~/\/home\/davide/g'
 	  }
 

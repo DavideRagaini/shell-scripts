@@ -1,15 +1,15 @@
 #!/bin/sh
 
 [ -n "$(pidof spotifyd)" ] &&
-	CHOSEN="spotify" ||
-	CHOSEN="$(printf 'spotify\nlocal' | fzf)"
+	CHOSEN="Spotify" ||
+	CHOSEN="$(printf 'Spotify\nLocal' | fzf --cycle --border --margin 10% --padding 10% --header='Choose music source')"
 
 case "$CHOSEN" in
-spotify)
+Spotify)
 	spotifyd &&
 		spotify-tui
 	;;
-local)
+Local)
 	ncmpcpp
 	;;
 esac
