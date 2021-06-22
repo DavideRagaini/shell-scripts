@@ -1,8 +1,57 @@
 #!/bin/sh
 
-clip=$(xclip -o -selection clipboard)
-cd ~/Storage/Ebooks/Raw || exit 0
-wget -r -np -nc -k -c "$clip"
-notify-send "Site downloaded in ~/S/E/R"
-echo Site downloaded in ~/S/E/R
+usage() {
+	cat <<EOF
+Usage: site-to-kindle -c|-u [-d]
+where:
+    -c: Get url from clipboard
+    -d: Specifies directory
+    -u: Specifies url as argument
+    -h: Help
+EOF
+	exit 0
+}
 
+is_valid_url() {
+	printf "%s" "$1" |
+		grep -Eoq "((http|https)://)(www.)?[a-zA-Z0-9@:%._\\+~#?&//=]{2,256}\\.[a-z]{2,6}\\b([-a-zA-Z0-9@:%._\\+~#?&//=]*)"
+}
+
+while getopts ":cd:hu:" opt; do
+	case $opt in
+
+	c) URL="$(xclip -o -selection clipboard)" ;;
+
+	d)
+		DIR="${OPTARG}"
+		[ -z "$DIR" ] &&
+			DIR="$HOME/Storage/Books/Ebooks/Web_Pages" &&
+			notify-send "Using default directory" "$DIR"
+		[ ! -d "$DIR" ] &&
+			notify-send "Not valid directory" &&
+			exit 0
+		;;
+
+	h) usage ;;
+
+	\?)
+		printf "Invalid options\\n"
+		usage
+		exit 1
+		;;
+
+	u) URL="${OPTARG}" ;;
+
+	esac
+done
+
+[ -z "$URL" ] &&
+	notify-send "No URL passed" &&
+	exit 1
+[ "$(is_valid_url "$URL")" ] &&
+	notify-send "URL not valid" &&
+	exit 0
+
+cd "$DIR" || exit
+wget -np -nc -k -c "$URL"
+notify-send "Site downloaded in ~/S/B/E/W" "$URL"

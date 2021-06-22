@@ -1,11 +1,10 @@
-#!/bin/bash
+#!/bin/sh
 
 if [ -z "$1" ]; then
 	CMDS="\
 queue
 enqueue
 eplay
-qclip
 aplay
 last
 edit_queue
@@ -13,27 +12,28 @@ lectures
 local
 last_lecture"
 
-	CHOSEN="$(echo "$CMDS" | dmenu -i -l 20)" || exit
+	CHOSEN="$(echo "$CMDS" | dmenu -i)" || exit
+	URL="$(xclip -selection clipboard -o)"
 else
 	CHOSEN="$1"
+	URL="$2"
 fi
 
-VIDEOS_FOLDER="${XDG_VIDEOS_DIR:-$HOME/Storage/Videos}"
+VIDEOS_FOLDER="${XDG_CONFIG_HOME:-$HOME/Storage/Videos}"
 PATH_QUEUE="$HOME/.config/mpv/queue"
 PATH_LAST="$HOME/.config/mpv/last"
 
 valid_url() {
 	printf "%s" "$1" |
-		grep -qEo '(http|https)://.*(youtube.com|twitch.tv|vimeo.com|youtu.be).*' ||
-		notify-send "Not valid URL" "$1"
+		grep -Eoq "((http|https)://)(www.)?[a-zA-Z0-9@:%._\\+~#?&//=]{2,256}\\.[a-z]{2,6}\\b([-a-zA-Z0-9@:%._\\+~#?&//=]*)"
 }
 
 add_to_queue() {
 	PLAYLIST="$(dmenu -P -p "Name of the playlist?")"
 	[ -z "$PLAYLIST" ] && PLAYLIST="1shot"
-	TITLE="$(youtube-dl --get-title "$1")"
-	notify-send "Adding" "$PLAYLIST\n\n$TITLE\n\n$1"
-	printf "%s:%s\t%s\n%s" "$PLAYLIST" "$TITLE" "$1" "$(cat "$PATH_QUEUE")" >"$PATH_QUEUE" ||
+	notify-send "$PLAYLIST" "$1"
+	TITLE="$(youtube-dl --get-title "$URL" || notify-send "Something wrong with the URL" "$1" && exit)"
+	printf "%s: %s\t%s\n%s" "$PLAYLIST" "$TITLE" "$1" "$(cat "$PATH_QUEUE")" >"$PATH_QUEUE" ||
 		notify-send "Failed to queue"
 	sort "$PATH_QUEUE" -o "$PATH_QUEUE"
 }
@@ -46,12 +46,6 @@ open_mpv() {
 }
 
 case "$CHOSEN" in
-enqueue)
-	[ -z "$2" ] && notify-send "No arg[2]"
-	valid_url "$2"
-	add_to_queue "$2"
-	;;
-
 queue)
 	QUEUE="$(cat "$PATH_QUEUE")"
 	URL="$(echo "$QUEUE" |
@@ -65,16 +59,19 @@ queue)
 	;;
 
 eplay)
-	[ -z "$2" ] && notify-send "No arg[2]"
-	valid_url "$2"
-	add_to_queue "$2"
-	open_mpv "$2"
-	;;
-
-qclip)
-	URL="$(xclip -selection clipboard -o)"
 	valid_url "$URL"
 	add_to_queue "$URL"
+	open_mpv "$URL"
+	;;
+
+enqueue)
+	valid_url "$URL"
+	add_to_queue "$URL"
+	;;
+
+aplay)
+	valid_url "$URL"
+	open_mpv "$URL"
 	;;
 
 lectures)
@@ -84,11 +81,11 @@ lectures)
 	open_mpv "$URL"
 	;;
 
-local)
+'local')
 	GENER="$VIDEOS_FOLDER"
-	DIR=$(find "$GENER" -maxdepth 1 -type d | cut -d'/' -f6 | dmenu -i -l 20) || exit
+	DIR="$(find "$GENER" -maxdepth 1 -type d | cut -d'/' -f6 | dmenu -i -l 20)" || exit
 	if [ -d "$GENER$DIR" ]; then
-		CHOSEN=$(find "$GENER$DIR" | cut -d'/' -f8 | dmenu -i -l 20) || exit
+		CHOSEN="$(find "$GENER$DIR" | cut -d'/' -f8 | dmenu -i -l 20)" || exit
 		URL="$GENER$DIR/$CHOSEN"
 		open_mpv "$URL"
 	else
@@ -103,11 +100,6 @@ last)
 
 last_lecture)
 	mpv "$VIDEOS_FOLDER/doing"
-	;;
-
-aplay)
-	valid_url "$2"
-	open_mpv "$2"
 	;;
 
 edit_queue)
