@@ -4,7 +4,8 @@ if [ -z "$1" ]; then
 	CMDS="\
 queue
 enqueue
-enqueue&play
+eplay
+qclip
 aplay
 last
 edit_queue
@@ -12,12 +13,12 @@ lectures
 local
 last_lecture"
 
-	CHOSEN="$(echo "$CMDS" | dmenu -l 10)" || exit
+	CHOSEN="$(echo "$CMDS" | dmenu -i -l 20)" || exit
 else
 	CHOSEN="$1"
 fi
 
-VIDEOS_FOLDER="${XDG_CONFIG_HOME:-$HOME/Storage/Videos}"
+VIDEOS_FOLDER="${XDG_VIDEOS_DIR:-$HOME/Storage/Videos}"
 PATH_QUEUE="$HOME/.config/mpv/queue"
 PATH_LAST="$HOME/.config/mpv/last"
 
@@ -30,9 +31,9 @@ valid_url() {
 add_to_queue() {
 	PLAYLIST="$(dmenu -P -p "Name of the playlist?")"
 	[ -z "$PLAYLIST" ] && PLAYLIST="1shot"
-	notify-send "$PLAYLIST" "$1"
-	TITLE="$(youtube-dl --get-title "$URL")"
-	printf "%s: %s\t%s\n%s" "$PLAYLIST" "$TITLE" "$1" "$(cat "$PATH_QUEUE")" >"$PATH_QUEUE" ||
+	TITLE="$(youtube-dl --get-title "$1")"
+	notify-send "Adding" "$PLAYLIST\n\n$TITLE\n\n$1"
+	printf "%s:%s\t%s\n%s" "$PLAYLIST" "$TITLE" "$1" "$(cat "$PATH_QUEUE")" >"$PATH_QUEUE" ||
 		notify-send "Failed to queue"
 	sort "$PATH_QUEUE" -o "$PATH_QUEUE"
 }
@@ -40,22 +41,15 @@ add_to_queue() {
 open_mpv() {
 	echo "$1" >"$PATH_LAST"
 	notify-send "Working on" "$1"
-	mpv --geometry=256x144+1660+910 --no-terminal "$1"
+	# mpv --geometry=256x144+1660+910 --no-terminal --title="fmpv" "$1"
+	mpv --no-terminal "$1"
 }
 
 case "$CHOSEN" in
 enqueue)
-	if [ -n "$2" ] && [ -n "$(valid_url "$2")" ]; then
-		URL="$2"
-	else
-		tmp="$(xclip -selection clipboard -o)" &&
-			valid_url "$tmp" &&
-			URL="$tmp"
-	fi
-	[ -n "$(valid_url "$URL")" ] &&
-		notify-send "Something wrong!" &&
-		exit
-	add_to_queue "$URL"
+	[ -z "$2" ] && notify-send "No arg[2]"
+	valid_url "$2"
+	add_to_queue "$2"
 	;;
 
 queue)
@@ -70,19 +64,17 @@ queue)
 	open_mpv "$URL"
 	;;
 
-'enqueue&play')
-	if [ -n "$2" ] && [ -n "$(valid_url "$2")" ]; then
-		URL="$2"
-	else
-		tmp="$(xclip -selection clipboard -o)" &&
-			valid_url "$tmp" &&
-			URL="$tmp"
-	fi
-	[ -n "$(valid_url "$URL")" ] &&
-		notify-send "Something wrong!" &&
-		exit
+eplay)
+	[ -z "$2" ] && notify-send "No arg[2]"
+	valid_url "$2"
+	add_to_queue "$2"
+	open_mpv "$2"
+	;;
+
+qclip)
+	URL="$(xclip -selection clipboard -o)"
+	valid_url "$URL"
 	add_to_queue "$URL"
-	open_mpv "$URL"
 	;;
 
 lectures)
@@ -114,6 +106,7 @@ last_lecture)
 	;;
 
 aplay)
+	valid_url "$2"
 	open_mpv "$2"
 	;;
 

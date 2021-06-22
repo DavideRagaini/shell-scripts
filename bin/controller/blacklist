@@ -12,7 +12,7 @@ BLOCKED="twitch.tv\
 
 set_hosts() {
 	[ -e /etc/hosts ] ||
-		(sudo ln -s "$HOSTS/etc/hosts" &&
+		(sudo ln -s "$HOSTS" "/etc/hosts" &&
 			notify-send "Blacklist Set")
 }
 

@@ -6,7 +6,7 @@ via-feed() {
 	if [[ "$1" == "-r" ]] || [[ ! -e "$cache" ]]; then
 		# cat "$HOME/.config/via/shortcuts" > "$cache"
 		# cat "$HOME/.config/via/websites" >> "$cache"
-		find "$HOME" -type f -iname "*.pdf" > "$cache"
+		fd --full-path "$HOME" -c never -t f -E "Storage" -E "Projects" -E "Torrents" -E "Laboratorio Automazione" -E "Programmazione ad Oggetti" > "$cache"
 		# find "$HOME/Documents" "$HOME/Universitá" -type f -iname "*.pdf" > "$cache"
 	fi
 
