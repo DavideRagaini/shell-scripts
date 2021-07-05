@@ -13,11 +13,11 @@ esac
 volstat="$(amixer get Master)" # ALSA only equivalent.
 
 #echo "$volstat" | grep -q "Mute: yes" && printf "🔇\\n" && exit
-echo "$volstat" | grep "\[off\]" >/dev/null && printf "婢\\n" && exit # ALSA 🔇
+echo "$volstat" | grep "\[off\]" >/dev/null && printf "[婢]" && exit # ALSA 🔇
 
 #vol="$(echo "$volstat" | grep '[0-9]\+%' | sed "s,.* \([0-9]\+\)%.*,\1,;1q")"
 vol=$(echo "$volstat" | grep -o "\[[0-9]\+%\]" | sed "s/[^0-9]*//g;1q") # ALSA
 
 [ "$vol" -le "50" ] && icon="奔" || icon="墳" #🔈🔉
 
-printf "%s%s%%\\n" "$icon" "$vol"
+printf "[%s %s]" "$icon" "$vol"

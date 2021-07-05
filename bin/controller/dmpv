@@ -19,21 +19,32 @@ else
 	URL="$2"
 fi
 
-VIDEOS_FOLDER="${XDG_CONFIG_HOME:-$HOME/Storage/Videos}"
+VIDEOS_FOLDER="${XDG_VIDEOS_DIR:-$HOME/Storage/Videos}"
 PATH_QUEUE="$HOME/.config/mpv/queue"
 PATH_LAST="$HOME/.config/mpv/last"
 
+playlist_check() {
+	printf "%s" "$1" |
+		grep -oq 'list='
+}
+
 valid_url() {
 	printf "%s" "$1" |
-		grep -Eoq "((http|https)://)(www.)?[a-zA-Z0-9@:%._\\+~#?&//=]{2,256}\\.[a-z]{2,6}\\b([-a-zA-Z0-9@:%._\\+~#?&//=]*)"
+		grep -Eoq "((http|https)://)(www.)?[youtube.com|twitch.tv|vimeo|youtu.be]?.*$"
 }
 
 add_to_queue() {
 	PLAYLIST="$(dmenu -P -p "Name of the playlist?")"
 	[ -z "$PLAYLIST" ] && PLAYLIST="1shot"
-	notify-send "$PLAYLIST" "$1"
-	TITLE="$(youtube-dl --get-title "$URL" || notify-send "Something wrong with the URL" "$1" && exit)"
-	printf "%s: %s\t%s\n%s" "$PLAYLIST" "$TITLE" "$1" "$(cat "$PATH_QUEUE")" >"$PATH_QUEUE" ||
+
+	if [ -z "$(playlist_check "$1")" ]; then
+		TITLE="$(youtube-dl --no-warnings --dump-single-json "$1" | jq -r '.title')"
+	else
+		TITLE="$(youtube-dl --get-title "$1")"
+	fi
+
+	notify-send "$PLAYLIST" "$TITLE\n$1"
+	printf "%s:%s\t%s\n%s" "$PLAYLIST" "$TITLE" "$1" "$(cat "$PATH_QUEUE")" >"$PATH_QUEUE" ||
 		notify-send "Failed to queue"
 	sort "$PATH_QUEUE" -o "$PATH_QUEUE"
 }

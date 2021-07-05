@@ -1,22 +1,37 @@
 #!/bin/sh
 
-NAMES=$(pactl list sinks | grep -E 'Name|State|Description|Active Port' | sed 's/Description: /->/g; s/\t//g;' | fmt -w 1000 | sed ':b;s/State:/\n/g;tb; s/Name: //g; s/Active Port:/On/g')
+NAMES=$(
+	pactl list sinks |
+		grep -E 'Name|State|Description|Active Port' |
+		sed 's/Description: /->/g; s/\t//g;' |
+		fmt -w 1000 |
+		sed ':b;s/State:/\n/g;tb; s/Name: //g; s/Active Port:/On/g'
+)
 
-if [ $(echo $NAMES | wc -l) -lt 3 ]; then
+if [ "$(echo "$NAMES" | wc -l)" -lt 3 ]; then
 	OUTPUT="$(printf "%s" "$NAMES" | grep "SUSPENDED")"
 else
-	CHOSEN=$(echo "$NAMES" | sed -n -e 's/^.*->//p' | dmenu -i -l 10 -p "Sink:") || exit
+	CHOSEN=$(echo "$NAMES" |
+		grep 'SUSPENDED' |
+		sed -n -e 's/^.*->//p' |
+		dmenu -i -l 10 -p "Sink:") ||
+		exit
 	OUTPUT=$(echo "$NAMES" | grep "$CHOSEN")
 fi
 
-OUTPUT="${OUTPUT## SUSPENDED}"
+OUTPUT="${OUTPUT## SUSPENDED }"
 OUTPUT="${OUTPUT%% -\>*}"
 # OUTPUT=${OUTPUT##*()}
 # OUTPUT="${OUTPUT%%*( )}"
 
-pactl set-default-sink $OUTPUT
+# Pipewire
+pactl set-default-sink "$OUTPUT"
+
 # Pulseaudio
 # INPUTS=$(pactl list short sink-inputs | awk '{print $1}')
 # pactl move-sink-input $INPUTS $OUTPUT
 
-pkill -RTMIN+7 dwmblocks && sleep 1 && pkill -RTMIN+10 dwmblocks
+pkill -RTMIN+10 dwmblocks
+# pkill -RTMIN+7 dwmblocks &&
+# sleep 1 &&
+# pkill -RTMIN+10 dwmblocks

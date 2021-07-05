@@ -1,6 +1,0 @@
-#!/bin/sh
-
-[ $(pidof spotifyd) ] ||
-	spotifyd
-
-spotify-tui

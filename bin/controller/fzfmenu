@@ -5,9 +5,9 @@
 # (useful for e.g. find $HOME | fzfmenu ...)
 input=$(mktemp -u --suffix .fzfmenu.input)
 output=$(mktemp -u --suffix .fzfmenu.output)
-mkfifo $input
-mkfifo $output
-chmod 600 $input $output
+mkfifo "$input"
+mkfifo "$output"
+chmod 600 "$input" "$output"
 
 # it's better to use st here (starts a lot faster than pretty much everything else)
 # the ugly printf | sed thing is here to make args with quotes work.
@@ -15,14 +15,14 @@ chmod 600 $input $output
 # sadly we can't use "$@" here directly because we are inside sh -c "..." call
 # already.
 # you can also set window dimensions via -g '=COLSxROWS', see man st.
-# st -n fzfmenu -g 150x40+350+125 -e sh -c "cat $input |
-alacritty --class 'fzfmenu' --config-file="$HOME/.config/alacritty/fzfmenu.yml" -e sh -c "cat $input |
-	fzf --border=rounded --margin=5% --multi --ansi -i --height=25 $(printf -- " '%s'" "$@" | sed "s/^ ''$//") |
+# alacritty --class 'fzfmenu' --config-file="$HOME/.config/alacritty/fzfmenu.yml" -e sh -c "cat $input |
+st -n fzfmenu -f "Inconsolata:size=14" -g 174x30 -e sh -c "cat $input |
+	fzf --border=rounded --margin=1% --multi --ansi -i --height=40 $(printf -- " '%s'" "$@" | sed "s/^ ''$//") |
 	tee $output" &
 disown
 
 # handle ctrl+c outside child terminal window
-trap "kill $! 2>/dev/null; rm -f $input $output" EXIT
+trap "kill '$!' 2>/dev/null; rm -f '$input' '$output'" EXIT
 
-cat >$input
-cat $output
+cat >"$input"
+cat "$output"

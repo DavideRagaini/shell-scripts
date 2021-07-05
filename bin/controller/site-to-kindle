@@ -4,10 +4,10 @@ usage() {
 	cat <<EOF
 Usage: site-to-kindle -c|-u [-d]
 where:
-    -c: Get url from clipboard
-    -d: Specifies directory
-    -u: Specifies url as argument
-    -h: Help
+	-c: Get url from clipboard
+	-d: Specifies directory
+	-u: Specifies url as argument
+	-h: Help
 EOF
 	exit 0
 }

@@ -2,86 +2,24 @@
 
 via-feed() {
 	cache="$HOME/.cache/via"
-
 	if [[ "$1" == "-r" ]] || [[ ! -e "$cache" ]]; then
-		# cat "$HOME/.config/via/shortcuts" > "$cache"
-		# cat "$HOME/.config/via/websites" >> "$cache"
-		fd --full-path "$HOME" -c never -t f -E "Storage" -E "Projects" -E "Torrents" -E "Laboratorio Automazione" -E "Programmazione ad Oggetti" > "$cache"
-		# find "$HOME/Documents" "$HOME/Universitá" -type f -iname "*.pdf" > "$cache"
+		fd -c never -t f -E "Storage" -E "Projects" -E "Torrents" -E "Laboratorio Automazione" -E "Programmazione ad Oggetti" --base-directory "$HOME" >"$cache"
 	fi
-
 	cat "$cache"
-	}
-
-select-feed() {
-			sed 's/\/home\/davide/~/g' |
-			fzfmenu |
-			sed 's/~/\/home\/davide/g'
-	  }
-
-via-open() {
-	while read arg; do
-		# first try matching by filename or pathname
-		case "${arg,,}" in
-			http*)
-				$BROWSER "$arg" &
-				;;
-			[^/]*) # doesn't start with '/'
-				sh -c "$arg"
-				;;
-			*.txt)
-				$TERMINAL $EDITOR "$arg" &
-				;;
-			*.pdf | *.epub | *.djvu | *.cbz)
-				$READER "$arg" &
-				;;
-			*.mp3 | *.flac)
-				$TERMINAL mpg123 -opulse "$arg" &
-				;;
-			# *.od[tsp]|*.doc|*.docx|*.ppt|*.pptx|*.xls|*.xlsx)
-				# libreoffice "$arg" &
-				# ;;
-			*)
-				# then try  by mimetype
-				mimetype=$(file -Lb --mime-type "$arg")
-				case "$mimetype" in
-					text/html)
-						$BROWSER "$arg" &
-						;;
-					text/* | inode/x-empty | message/rfc822)
-						$TERMINAL $EDITOR "$arg" &
-						;;
-					inode/directory)
-						cd "$arg"
-						$TERMINAL -e tmux &
-						cd -
-						;;
-					image/*)
-						sxiv "$arg" &
-						;;
-					*)
-						exit 1
-						;;
-				esac
-				;;
-		esac
-	done
-	}
-
-PATH="$HOME/.config/via:$PATH"
+}
 
 case "$1" in
-	-r)  # rebuild cache first
-		via-feed -r |
-		select-feed |
-		via-open
-		;;
-	-ro) # rebuild cache only
-		via-feed -r >/dev/null
-		;;
-	*)
-		via-feed |
-			select-feed |
-			via-open
-		;;
+-r) # rebuild cache first
+	via-feed -r |
+		fzfmenu |
+		opener
+	;;
+-ro) # rebuild cache only
+	via-feed -r >/dev/null
+	;;
+*)
+	via-feed |
+		fzfmenu |
+		opener
+	;;
 esac

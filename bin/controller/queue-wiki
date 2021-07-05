@@ -1,12 +1,67 @@
 #!/bin/sh
 
-URL="$(xclip -o)"
-TITLE="$(wget -qO- "$URL" |
-	gawk -v IGNORECASE=1 -v RS='</title' 'RT{gsub(/.*<title[^>]*>/,"");print;exit}')"
-# notify-send -u critical "Queuing this link" "$TITLE\n$URL"
+set -x
+usage() {
+	cat <<EOF
+Usage: queuer -c|-u [-d]
+where:
+    -c: Get url from clipboard
+    -f: Specifies file
+    -u: Specifies url as argument
+    -h: Help
+EOF
+	exit 0
+}
 
-BASE="$HOME/.local/src/wiki/journal"
-FILES="$(find $BASE -maxdepth 2 -type f | sed 's/^.*journal//g')"
+while getopts ":cf:hu:" opt; do
+	case $opt in
+
+	c) URL="$(xclip -o -selection clipboard)" ;;
+
+	f)
+		FILE="${OPTARG}"
+		[ -z "$FILE" ] &&
+			FILE="$HOME/Org/Tasks.org" &&
+			notify-send "Using default File" "$FILE"
+		[ -d "$FILE" ] &&
+			notify-send "Arg is a directory" &&
+			exit 0
+		[ ! -f "$FILE" ] &&
+			notify-send "Arg is not a file" &&
+			exit 0
+		;;
+
+	h) usage ;;
+
+	\?)
+		printf "Invalid options\\n"
+		usage
+		exit 1
+		;;
+
+	u) URL="${OPTARG}" ;;
+
+	esac
+done
+
+is_valid_url() {
+	printf "%s" "$1" |
+		grep -Eoq "((http|https)://)(www.)?[a-zA-Z0-9@:%._\\+~#?&//=]{2,256}\\.[a-z]{2,6}\\b([-a-zA-Z0-9@:%._\\+~#?&//=]*)"
+}
+
+[ -z "$URL" ] &&
+	notify-send "No URL passed" &&
+	exit 1
+[ "$(is_valid_url "$URL")" ] &&
+	notify-send "URL not valid" &&
+	exit 0
+
+BASE="$HOME/Org"
+FILES="$(find "$BASE" -maxdepth 4 -type f -name "*.org" | sed 's/^.*Org\///g')"
 CHOSEN="$(echo "$FILES" | dmenu -i -l 15)" || exit
 
-printf "[%s](%s)\n" "$TITLE" "$URL" >> "$BASE$CHOSEN"
+TITLE="$(wget -qO- "$URL" |
+	gawk -v IGNORECASE=1 -v RS='</title' 'RT{gsub(/.*<title[^>]*>/,"");print;exit}')"
+notify-send -u critical "Queuing this link" "$TITLE\n$BASE/$CHOSEN\n$URL"
+
+printf "[[%s][%s]]\n" "$URL" "$TITLE" >>"$BASE/$CHOSEN"

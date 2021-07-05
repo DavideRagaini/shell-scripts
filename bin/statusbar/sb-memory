@@ -7,7 +7,7 @@ case $BLOCK_BUTTON in
 esac
 
 # free -h | awk '/^Mem:/ {print $3}'
-free -h | awk 'NR>1 {print $3}' | paste -sd'/'
+printf "[ %s]" "$(free -h | awk 'NR>1 {print $3}' | paste -sd'/')"
 #TEMP=$(sensors | awk '/Core 0:/ {print $3}')
 #MEM=$(free -h | awk '/^Mem:/ {print $3}')
 #printf "%s %s" "$TEMP" "$MEM"

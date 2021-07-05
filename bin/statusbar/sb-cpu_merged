@@ -14,7 +14,7 @@ cache=/tmp/cpubarscache
 stats=$(awk '/cpu[0-9]+/ {printf "%d %d %d\n", substr($1,4), ($2 + $3 + $4 + $5), $5 }' /proc/stat)
 [ ! -f $cache ] && echo "$stats" > "$cache"
 old=$(cat "$cache")
-# printf "🪨"
+printf "[ "
 echo "$stats" | while read -r row; do
 	id=${row%% *}
 	rest=${row#* }
@@ -41,4 +41,4 @@ echo "$stats" > "$cache"
 CLOCK="$(lscpu | grep CPU\ MHz | awk '{print $3}' | cut -d'.' -f1)"
 LOAD="$(cut -d ' ' -f1 /proc/loadavg)"
 
-printf "%s @%s" "$LOAD" "$CLOCK"
+printf " %s @%s]" "$LOAD" "$CLOCK"

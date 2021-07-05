@@ -12,4 +12,4 @@ CLOCK="$(lscpu | awk '/CPU MHz/ {print $3}' | cut -d'.' -f1)"
 LOAD="$(cut -d ' ' -f1 /proc/loadavg)"
 
 
-printf "%s @%s" "$LOAD" "$CLOCK"
+printf "[%s @%s]" "$LOAD" "$CLOCK"

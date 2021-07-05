@@ -8,5 +8,8 @@ case $BLOCK_BUTTON in
 	6) "$TERMINAL" -e "$EDITOR" "$0" ;;
 esac
 
-[ "$(playerctl -p spotifyd status)" = "Playing" ] &&
-	printf " %s" "$(playerctl -p spotifyd metadata --format "{{title}} ﴁ {{artist}}  {{album}}")"
+if [ "$(playerctl -p spotifyd status)" = "Playing" ]; then
+	printf "[ %.95s]" "$(playerctl -p spotifyd metadata --format "{{title}} ﴁ {{artist}}  {{album}}")"
+else
+	printf "[]"
+fi
