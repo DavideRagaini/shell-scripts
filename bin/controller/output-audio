@@ -5,7 +5,7 @@ NAMES=$(
 		grep -E 'Name|State|Description|Active Port' |
 		sed 's/Description: /->/g; s/\t//g;' |
 		fmt -w 1000 |
-		sed ':b;s/State:/\n/g;tb; s/Name: //g; s/Active Port:/On/g'
+		sed 's/State://1; s/State:/\n/g; s/Name: //g; s/Active Port:/On/g'
 )
 
 if [ "$(echo "$NAMES" | wc -l)" -lt 3 ]; then
