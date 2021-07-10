@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 if [ -z "$1" ]; then
 	CMDS="\
@@ -12,7 +12,7 @@ lectures
 local
 last_lecture"
 
-	CHOSEN="$(echo "$CMDS" | dmenu -i)" || exit
+	CHOSEN="$(dmenu -i <<<"$CMDS")" || exit
 	URL="$(xclip -selection clipboard -o)"
 else
 	CHOSEN="$1"
@@ -59,20 +59,18 @@ open_mpv() {
 case "$CHOSEN" in
 queue)
 	QUEUE="$(cat "$PATH_QUEUE")"
-	URL="$(echo "$QUEUE" |
-		grep -P "^$(echo "$QUEUE" |
-			grep "https:" |
-			sed 's/\t.*//g' |
-			dmenu -i -l 20 |
-			awk '{print $1}')\s" |
-		sed 's/.*\t//')"
+	CHOSEN="$(echo "$QUEUE" | sed 's/\t.*//g' | dmenu -i -l 20)" || exit
+	LINE="$(grep "$CHOSEN" <<<"$QUEUE")"
+	TITLE="$(cut -f1 <<<"$LINE")"
+	URL="$(cut -f2 <<<"$LINE")"
+	notify-send "$TITLE" "$URL"
 	open_mpv "$URL"
 	;;
 
 eplay)
 	valid_url "$URL"
+	open_mpv "$URL" &
 	add_to_queue "$URL"
-	open_mpv "$URL"
 	;;
 
 enqueue)
