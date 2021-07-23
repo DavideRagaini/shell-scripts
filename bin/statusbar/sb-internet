@@ -1,8 +1,8 @@
 #!/bin/sh
 
 case $BLOCK_BUTTON in
-	1) $TERMINAL -e nmtui ;;
-	3) pgrep -x dunst >/dev/null && notify-send "🌐 Internet module" "\- Click to connect
+1) $TERMINAL -e nmtui ;;
+3) pgrep -x dunst >/dev/null && notify-send "🌐 Internet module" "\- Click to connect
 📡: no wifi connection
 📶: wifi connection with quality
 ❎: no ethernet
@@ -11,12 +11,4 @@ case $BLOCK_BUTTON in
 esac
 
 [ "$(nmcli radio wifi)" = "enabled" ] && wifiicon="" && signal="$(grep "^\s*w" /proc/net/wireless | awk '{print int($3 * 100 / 70) "%" }')"
-printf "%s%s%s" "$wifiicon" "$signal" "$(cat /sys/class/net/e*/operstate | sed "s/down/❎/;s/up/🌐/;s/unknown//")"
-
-# [ "$(cat /sys/class/net/w*/operstate)" = 'down' ] && wifiicon="" # 📡
-# [ -z "${wifiicon+var}" ] && wifiicon=$(grep "^\s*w" /proc/net/wireless | awk '{ print "", int($3 * 100 / 70) "%" }')
-# [ "$(rfkill | grep phy | awk '{print $4}')" = "blocked" ] && printf " "
-# printf "%s %s\n" "$wifiicon" "$(cat /sys/class/net/e*/operstate | sed "s/down//;s/up/🌐/")" #❎
-
-# [ "$(cat /sys/class/net/w*/operstate)" = 'up' ] && printf "%s" "$(grep "^\s*w" /proc/net/wireless | awk '{ print "" int($3 * 100 / 70) "%" }')"
-# printf "%s" "$(cat /sys/class/net/e*/operstate | sed "s/down//;s/up/🌐/")" #❎
+printf "[%s%s%s]" "$wifiicon" "$signal" "$(cat /sys/class/net/e*/operstate | sed "s/down/❎/;s/up/🌐/;s/unknown//")"

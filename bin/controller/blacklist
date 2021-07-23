@@ -54,7 +54,7 @@ off)
 	;;
 
 update)
-	curl -o "$HOSTS http://sbc.io/hosts/alternates/fakenews-gambling-porn-social/hosts"
+	curl -o "$HOSTS" "http://sbc.io/hosts/alternates/fakenews-gambling-porn-social/hosts"
 	append "$BLOCKED"
 	;;
 

@@ -1,32 +1,33 @@
 #!/bin/sh
 
 case $BLOCK_BUTTON in
-	3) notify-send "🔋 Battery module" "🔋: discharging
+3) notify-send "🔋 Battery module" "🔋: discharging
 🛑: not charging
 ♻: stagnant charge
 🔌: charging
 ⚡: charged
 ❗: battery very low!
 - Scroll to change adjust xbacklight." ;;
-	6) "$TERMINAL" -e "$EDITOR" "$0" ;;
+6) "$TERMINAL" -e "$EDITOR" "$0" ;;
 esac
 
-# Loop through all attached batteries and format the info
 for battery in /sys/class/power_supply/BAT?*; do
-	# If non-first battery, print a space separator.
 	[ -n "${capacity+x}" ] && printf " "
-	# Sets up the status and capacity
-	case "$(cat "$battery/status")" in
-		"Full") status="⚡" ;;
-		"Discharging") status="🔋" ;;
-		"Charging") status="🔌" ;;
-		"Not charging") status="🛑" ;;
-		"Unknown") status="♻️" ;;
-	esac
 	capacity=$(cat "$battery/capacity")
-	time="$(acpi | awk '{print $5}')"
-	# Will make a warn variable if discharging and low
-	[ "$status" = "🔋" ] && [ "$capacity" -le 35 ] && warn="❗"
-	# Prints the info
-	printf "%s%s%d% %s" "$status" "$warn" "$capacity" "$time"; unset warn
+	case "$(cat "$battery/status")" in
+	"Full") status="⚡" ;;
+	"Discharging")
+		case "$capacity" in
+		100 | 9[0-9]) status= ;;
+		8[0-9] | 7[0-9]) status= ;;
+		6[0-9] | 5[0-9]) status= ;;
+		4[0-9] | 3[0-9]) status=❗ ;;
+		2[0-9] | 1[0-9]) status=❗ ;;
+		esac
+		;;
+	"Charging") status="" ;;
+	"Not charging") status="🛑" ;;
+	"Unknown") status="屢 " ;;
+	esac
+	printf "[%s%s%s]" "$status" "$capacity" "$(acpi | awk '{print $5}')"
 done && exit 0

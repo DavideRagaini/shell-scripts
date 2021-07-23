@@ -1,6 +1,6 @@
 #!/bin/sh
 
-case $BLOCK_BUTTON in
+case "$BLOCK_BUTTON" in
 	1) notify-send "🖥 CPU hogs" "$(ps axch -o cmd:15,%cpu --sort=-%cpu | head)" ;;
 	2) notify-send "🖥 CPU hogs" "$(ps axch -o cmd:15,%cpu --sort=-%cpu | head)" ;;
 	3) notify-send "Currently in:" "$(sudo tlp-stat -s | grep Mode | sed 's/^.*=//g')" ;;
@@ -11,5 +11,4 @@ CLOCK="$(lscpu | awk '/CPU MHz/ {print $3}' | cut -d'.' -f1)"
 # LOAD=$(top -bn1 | awk '/load/ {sub(",","",$11); print $11}')
 LOAD="$(cut -d ' ' -f1 /proc/loadavg)"
 
-
-printf "[%s @%s]" "$LOAD" "$CLOCK"
+printf "[%s @%s]" "$LOAD" "$CLOCK"
