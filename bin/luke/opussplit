@@ -1,7 +1,5 @@
 #!/bin/sh
 
-#!/bin/sh
-
 # Requires ffmpeg (audio splitting) and my `tag` wrapper script.
 
 [ ! -f "$2" ] && printf "The first file should be the audio, the second should be the timecodes.\\n" && exit

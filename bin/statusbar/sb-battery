@@ -29,5 +29,5 @@ for battery in /sys/class/power_supply/BAT?*; do
 	"Not charging") status="🛑" ;;
 	"Unknown") status="屢 " ;;
 	esac
-	printf "[%s%s%s]" "$status" "$capacity" "$(acpi | awk '{print $5}')"
+	printf "[%s%s %s]" "$status" "$capacity" "$(acpi | awk '{print $5}')"
 done && exit 0
