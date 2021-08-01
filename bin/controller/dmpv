@@ -34,7 +34,7 @@ valid_url() {
 }
 
 add_to_queue() {
-	PLAYLIST="$(dmenu -P -p "Name of the playlist?")"
+	PLAYLIST="$(: | dmenu -p "Name of the playlist?")"
 	[ -z "$PLAYLIST" ] && PLAYLIST="1shot"
 
 	if [ -z "$(playlist_check "$1")" ]; then
@@ -59,7 +59,7 @@ open_mpv() {
 case "$CHOSEN" in
 queue)
 	QUEUE="$(cat "$PATH_QUEUE")"
-	CHOSEN="$(echo "$QUEUE" | sed 's/\t.*//g' | dmenu -i -l 20)" || exit
+	CHOSEN="$(echo "$QUEUE" | cut -f1 | dmenu -i -l 20)" || exit
 	LINE="$(grep "$CHOSEN" <<<"$QUEUE")"
 	TITLE="$(cut -f1 <<<"$LINE")"
 	URL="$(cut -f2 <<<"$LINE")"
@@ -90,7 +90,7 @@ lectures)
 	open_mpv "$URL"
 	;;
 
-'local')
+local)
 	GENER="$VIDEOS_FOLDER"
 	DIR="$(find "$GENER" -maxdepth 1 -type d | cut -d'/' -f6 | dmenu -i -l 20)" || exit
 	if [ -d "$GENER$DIR" ]; then
