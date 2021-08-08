@@ -1,10 +1,10 @@
 #!/bin/sh
 
 case $BLOCK_BUTTON in
-	1) notify-send "🖥 CPU hogs" "$(ps axch -o cmd:15,%cpu --sort=-%cpu | head)" ;;
-	2) notify-send "🖥 CPU hogs" "$(ps axch -o cmd:15,%cpu --sort=-%cpu | head)" ;;
-	3) notify-send "Currently in:" "$(sudo tlp-stat -s | grep Mode | sed 's/^.*=//g')" ;;
-	6) "$TERMINAL" -e "$EDITOR" "$0" ;;
+1) notify-send "🖥 CPU hogs" "$(ps axch -o cmd:15,%cpu --sort=-%cpu | head)" ;;
+2) notify-send "🖥 CPU hogs" "$(ps axch -o cmd:15,%cpu --sort=-%cpu | head)" ;;
+3) notify-send "Currently in:" "$(sudo tlp-stat -s | grep Mode | sed 's/^.*=//g')" ;;
+6) "$TERMINAL" -e "$EDITOR" "$0" ;;
 esac
 
 # Cache in tmpfs to improve speed and reduce SSD load
@@ -12,7 +12,7 @@ cache=/tmp/cpubarscache
 
 # id total idle
 stats=$(awk '/cpu[0-9]+/ {printf "%d %d %d\n", substr($1,4), ($2 + $3 + $4 + $5), $5 }' /proc/stat)
-[ ! -f $cache ] && echo "$stats" > "$cache"
+[ ! -f $cache ] && echo "$stats" >"$cache"
 old=$(cat "$cache")
 printf "[ "
 echo "$stats" | while read -r row; do
@@ -25,20 +25,21 @@ echo "$stats" | while read -r row; do
 		printf "%d\n", (1 - (idle - $3)  / (total - $2))*100 /12.5}' \
 		id="$id" total="$total" idle="$idle")" in
 
-		"0") printf "▁";;
-		"1") printf "▂";;
-		"2") printf "▃";;
-		"3") printf "▄";;
-		"4") printf "▅";;
-		"5") printf "▆";;
-		"6") printf "▇";;
-		"7") printf "█";;
-		"8") printf "█";;
+	"0") printf "▁" ;;
+	"1") printf "▂" ;;
+	"2") printf "▃" ;;
+	"3") printf "▄" ;;
+	"4") printf "▅" ;;
+	"5") printf "▆" ;;
+	"6") printf "▇" ;;
+	"7") printf "█" ;;
+	"8") printf "█" ;;
 	esac
 done
-echo "$stats" > "$cache"
+echo "$stats" >"$cache"
 
-CLOCK="$(lscpu | grep CPU\ MHz | awk '{print $3}' | cut -d'.' -f1)"
-LOAD="$(cut -d ' ' -f1 /proc/loadavg)"
+CLOCK="$(cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq | cut -c 1-4)"
+LOAD="$(cut -d ' ' -f1-3 /proc/loadavg)"
 
 printf " %s @%s]" "$LOAD" "$CLOCK"
+# printf " %s]" "$LOAD"
