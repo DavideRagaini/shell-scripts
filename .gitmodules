@@ -1,3 +1,6 @@
 [submodule "modules/diff-so-fancy"]
 	path = modules/diff-so-fancy
 	url = https://github.com/so-fancy/diff-so-fancy
+[submodule "modules/fontpreview-ueberzug"]
+	path = modules/fontpreview-ueberzug
+	url = https://github.com/OliverLew/fontpreview-ueberzug.git
