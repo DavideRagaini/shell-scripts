@@ -1,14 +1,13 @@
 #!/bin/sh
 
-if [ "$(pidof -q spotifyd)" ]; then
-	CHOSEN="Spt"
-elif [ "$(pidof -q mpd)" ]; then
-	CHOSEN="ncmpcpp"
-elif [ "$(mpc status | grep -q playing)" ]; then
+pidof -q spotifyd &&
+	CHOSEN="Sptui"
+
+mpc status 2>/dev/null | grep -q playing &&
 	CHOSEN="Local"
-else
+
+[ -z $CHOSEN ] &&
 	CHOSEN="$(printf 'Spotify\nLocal' | fzf --cycle --border --margin 10% --padding 10% --header='Choose music source')"
-fi
 
 case "$CHOSEN" in
 Spotify)
@@ -22,7 +21,7 @@ ncmpcpp)
 Local)
 	ncmpcpp
 	;;
-Spt)
+Sptui)
 	spotify-tui
 	;;
 esac
