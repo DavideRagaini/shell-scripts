@@ -1,25 +1,24 @@
 #!/bin/bash
 
-via-feed() {
-	cache="$HOME/.cache/via"
-	if [[ "$1" == "-r" ]] || [[ ! -e "$cache" ]]; then
-		fd -c never -t f -E "Storage" -E "Projects" -E "Torrents" -E "Laboratorio Automazione" -E "Programmazione ad Oggetti" --base-directory "$HOME" >"$cache"
+CACHE="$HOME/.cache/via"
+
+build_cache() {
+	if [[ "$1" == "-r" ]] || [[ ! -e "$CACHE" ]]; then
+		fd -c never -t f -E "Storage" -E "Projects" -E "Torrents" -E "Laboratorio Automazione" -E "Programmazione ad Oggetti" --base-directory "$HOME" >"$CACHE"
 	fi
-	cat "$cache"
 }
 
 case "$1" in
--r) # rebuild cache first
-	via-feed -r |
+-r)
+	build_cache -r
+	cat "$CACHE" |
 		fzfmenu |
-		opener
-	;;
--ro) # rebuild cache only
-	via-feed -r >/dev/null
-	;;
+		opener ;;
+-ro)
+	build_cache ;;
 *)
-	via-feed |
+	build_cache
+	cat "$CACHE" |
 		fzfmenu |
-		opener
-	;;
+		opener ;;
 esac

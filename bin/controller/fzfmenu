@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 # fzfmenu - fzf as dmenu replacement
 
 # fifos are here to not wait for end of input
@@ -16,7 +16,7 @@ chmod 600 "$input" "$output"
 # already.
 # you can also set window dimensions via -g '=COLSxROWS', see man st.
 # alacritty --class 'fzfmenu' --config-file="$HOME/.config/alacritty/fzfmenu.yml" -e sh -c "cat $input |
-st -n fzfmenu -f "FiraCode Nerd Font:size=20" -g 100x20 -e sh -c "cat $input |
+st -n fzfmenu -f "FiraCode Nerd Font Mono:size=20" -g 100x20 -e sh -c "cat $input |
 	fzf --border=rounded --margin=1% --multi --ansi -i --height=40 $(printf -- " '%s'" "$@" | sed "s/^ ''$//") |
 	tee $output" &
 disown
