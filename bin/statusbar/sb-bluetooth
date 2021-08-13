@@ -1,4 +1,3 @@
 #!/bin/sh
 
-[ "$(rfkill | grep hci0 | awk '{print $4}')" = "unblocked" ] && printf ""
-
+[ "$(rfkill | awk '/hci0/ {print $4}')" = "unblocked" ] && printf ""
