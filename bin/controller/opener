@@ -1,40 +1,40 @@
 #!/bin/sh
 
-while read -r arg; do
-	case "$arg" in
-	http*) $BROWSER "$arg" & ;;
-	*.txt) $TERMINAL "$EDITOR" "$arg" & ;;
-	*.pdf | *.djvu | *.cbz) $READER "$arg" & ;;
-	*.epub | *.mobi | *.azw3) setsid ebook-viewer "$arg" & ;;
-	*.mkv | *.web | *.mp4 | *avi) setsid mpv -no-terminal "$arg" & ;;
-	*.mp3 | *.flac | *.opus | *mp3?source*) setsid mpv "$arg" & ;;
-	*.png | *.jpg | *.jpeg | *.gif) setsid sxiv "$arg" & ;;
-		# *.od[tsp]|*.doc|*.docx|*.ppt|*.pptx|*.xls|*.xlsx)
-		# libreoffice "$arg" &
-		# ;;
-		# [^/]*) # doesn't start with '/'
-		#	sh -c "$arg"
-		# ;;
-	*)
-		mimetype=$(file -Lb --mime-type "$arg")
-		case "$mimetype" in
-		audio/*) mpv --audio-display=no "$arg" ;;
-		application/epub+zip) ebook-viewer "$arg" & ;;
-		application/json) $EDITOR "$arg" ;;
-		image/vnd.djvu | application/pdf | application/octet-stream) setsid zathura "$arg" & ;;
-		image/svg+xml) display -- "$arg" ;;
-		image/*) rotdir "$arg" | grep -i "\.\(png\|jpg\|jpeg\|gif\|webp\|tif\|ico\)\(_large\)*$" | sxiv -aio 2>/dev/null | lf-select & ;;
-		text/html) $BROWSER "$arg" & ;;
-		text/* | inode/x-empty | message/rfc822) $TERMINAL "$EDITOR" "$arg" & ;;
-		video/*) setsid mpv "$arg" -quiet >/dev/null 2>&1 & ;;
-		*) notify-send "Type not set" && exit 1 ;;
-			# image/x-xcf) setsid -f gimp "$arg" >/dev/null 2>&1 ;;
-			# inode/directory)
-			# 	cd "$arg" || exit
-			# 	$TERMINAL &
-			# 	cd - || exit
-			# 	;;
-		esac
-		;;
-	esac
+for i in $@; do
+    case $i in
+        http* | *.html) setsid -f "$BROWSER" "$i" 2>/dev/null & ;;
+        *.txt) $TERMINAL "$EDITOR" "$i" & ;;
+        *.pdf | *.djvu | *.cbz) setsid -f "$READER" "$i" & ;;
+        *.epub | *.mobi | *.azw3) setsid ebook-viewer "$i" & ;;
+        *.mkv | *.web | *.mp4 | *avi) setsid mpv -no-terminal "$i" & ;;
+        *.mp3 | *.flac | *.opus | *mp3?source*) setsid mpv "$i" & ;;
+        *.png | *.jpg | *.jpeg | *.gif) setsid sxiv "$i" & ;;
+        *.tar*) tar tf "$file" | less ;;
+        *.zip) unzip -l "$file" | less ;;
+        *.rar) unrar l "$file" | less ;;
+        *.7z) 7z l "$file" | less ;;
+        # .od[tsp]|*.doc|*.docx|*.ppt|*.pptx|*.xls|*.xlsx) libreoffice "$i" & ;;
+        # [^/]*) sh -c "$i" ;;
+        *)
+            mimetype=$(file -Lb --mime-type "$i")
+            case "$mimetype" in
+                audio/*) mpv --audio-display=no "$i" ;;
+                application/epub+zip) ebook-viewer "$i" & ;;
+                application/json) $EDITOR "$i" ;;
+                image/vnd.djvu | application/pdf | application/octet-stream) setsid "$READER" "$i" & ;;
+                image/svg+xml) display -- "$i" ;;
+                image/*) rotdir "$i" | grep -i "\.\(png\|jpg\|jpeg\|gif\|webp\|tif\|ico\)\(_large\)*$" | sxiv -aio 2>/dev/null | lf-select & ;;
+                text/html) $BROWSER "$i" & ;;
+                text/* | inode/x-empty | message/rfc822) $TERMINAL "$EDITOR" "$i" & ;;
+                video/*) setsid mpv "$i" -quiet >/dev/null 2>&1 & ;;
+                *) notify-send "Type not set" && exit 1 ;;
+                    # image/x-xcf) setsid -f gimp "$i" >/dev/null 2>&1 ;;
+                    # inode/directory)
+                    # 	cd "$i" || exit
+                    # 	$TERMINAL &
+                    # 	cd - || exit
+                    # 	;;
+            esac
+            ;;
+    esac
 done

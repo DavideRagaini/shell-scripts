@@ -1,66 +1,58 @@
 #!/bin/sh
 
 HOSTS="${XDG_DATA_HOME:-$HOME/.local/share}/hosts"
-BLOCKED="twitch.tv\
-	4chan.org\
-	boards.4chan.org\
-	reddit.com\
-	www.reddit.com\
+SUPERHOSTS="${XDG_DATA_HOME:-$HOME/.local/share}/superhosts.deny"
+UNBLOCK="reddit.com\
 	redditmedia.com\
-	redditstatic.com"
-# youtube.com
+	redditstatic.com\
+    web.whatsapp.com\
+	4chan.org\
+	boards.4chan.org"
 
 set_hosts() {
-	[ -e /etc/hosts ] ||
-		(sudo ln -s "$HOSTS" "/etc/hosts" &&
-			notify-send "Blacklist Set")
-}
+    [ -e /etc/hosts ] ||
+        (sudo ln -s "$HOSTS" "/etc/hosts" &&
+            notify-send "Hosts Set")
 
-append() {
-	for i in "$@"; do
-		printf "0.0.0.0	%s\\n0.0.0.0	www.%s\\n" "$i" "$i" >>"$HOSTS"
-	done
-}
+    [ -e /etc/hosts.deny ] ||
+        (sudo ln -s "$HOSTS.deny" "/etc/hosts.deny" &&
+            notify-send "Hosts.deny Set")
 
-check_custom_hosts() {
-	for i in "$@"; do
-		grep "0.0.0.0	www.$i" "$HOSTS" || append "$i"
-	done
+    [ -e /etc/superhosts.deny ] ||
+        (sudo ln -s "$SUPERHOSTS" "/etc/superhosts.deny" &&
+            notify-send "Superhosts.deny Set")
 }
 
 delete_hosts() {
-	for i in "$@"; do
-		sed -i "/0.0.0.0	$i/d; /0.0.0.0	www.$i/d" "$HOSTS"
-	done
+    for i in $@; do
+        sed -i "/0.0.0.0	$i/d; /0.0.0.0	www.$i/d" "$HOSTS"
+    done
 }
 
 case "$1" in
-on)
-	set_hosts
-	check_custom_hosts "$BLOCKED"
-	;;
+    on)
+        set_hosts
+        delete_hosts "$UNBLOCK"
+        ;;
 
-yon)
-	set_hosts
-	check_custom_hosts youtube.com
-	;;
+    off)
+        delete_hosts "$BLOCKED"
+        ;;
 
-yoff)
-	delete_hosts youtube.com
-	;;
+    update)
+        # curl -o "$HOSTS" 'http://sbc.io/hosts/alternates/fakenews-gambling-porn/hosts'
+        echo 'Downloading hosts'
+        curl -o "$HOSTS" "https://hosts.ubuntu101.co.za/hosts"
 
-off)
-	delete_hosts "$BLOCKED"
-	;;
+        echo 'Downloading hosts.deny'
+        curl -o "$HOSTS.deny" "https://hosts.ubuntu101.co.za/hosts"
 
-update)
-	curl -o "$HOSTS" "http://sbc.io/hosts/alternates/fakenews-gambling-porn-social/hosts"
-	append "$BLOCKED"
-	;;
+        echo 'Downloading superhosts.deny'
+        curl -o "$SUPERHOSTS" "https://hosts.ubuntu101.co.za/hosts"
+        # delete_hosts "$UNBLOCK"
+        ;;
 
-*)
-	echo 'Something Wrong!'
-	;;
+    *)
+        echo 'Need arg!'
+        ;;
 esac
-
-# check_custom_hosts youtube.com twitch.tv

@@ -1,24 +1,21 @@
-#!/bin/bash
+#!/bin/sh
 
 CACHE="$HOME/.cache/via"
 
 build_cache() {
-	if [[ "$1" == "-r" ]] || [[ ! -e "$CACHE" ]]; then
-		fd -c never -t f -E "Storage" -E "Projects" -E "Torrents" -E "Laboratorio Automazione" -E "Programmazione ad Oggetti" --base-directory "$HOME" >"$CACHE"
-	fi
+    # fd -c never -t f -E "Storage" -E "Projects" -E "Torrents" -E "Laboratorio Automazione" -E "Programmazione ad Oggetti" --base-directory "$HOME" >"$CACHE"
+    find . -type f -iname "*.pdf" ! -path "./.*/*" ! -path "./Storage/*" >"$CACHE"
 }
 
 case "$1" in
--r)
-	build_cache -r
-	cat "$CACHE" |
-		fzfmenu |
-		opener ;;
--ro)
-	build_cache ;;
-*)
-	build_cache
-	cat "$CACHE" |
-		fzfmenu |
-		opener ;;
+    -r)
+        build_cache
+        opener "$(fzfmenu <"$CACHE")"
+        ;;
+    -ro)
+        build_cache
+        ;;
+    *)
+        opener "$(fzfmenu <"$CACHE")"
+        ;;
 esac
