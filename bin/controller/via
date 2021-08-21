@@ -4,13 +4,13 @@ CACHE="$HOME/.cache/via"
 
 build_cache() {
     # fd -c never -t f -E "Storage" -E "Projects" -E "Torrents" -E "Laboratorio Automazione" -E "Programmazione ad Oggetti" --base-directory "$HOME" >"$CACHE"
-    find . -type f -iname "*.pdf" ! -path "./.*/*" ! -path "./Storage/*" >"$CACHE"
+    find  -type f -iname "*.pdf" -not -path "./.*/*" -not -path "./Storage/*" >"$CACHE"
 }
 
 case "$1" in
     -r)
-        build_cache
-        opener "$(fzfmenu <"$CACHE")"
+        build_cache &&
+		opener "$(fzfmenu <"$CACHE")"
         ;;
     -ro)
         build_cache

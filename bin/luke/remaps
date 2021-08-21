@@ -10,5 +10,11 @@ killall xcape 2>/dev/null
 xcape -e 'Super_L=Escape'
 # Map the menu button to right super as well.
 xmodmap -e 'keycode 135 = Super_R'
+# Swap grave and acute accents
+xmodmap -e 'keycode 38 = a A a A agrave Agrave aacute aacute'
+xmodmap -e 'keycode 26 = e E e E egrave Egrave eacute eacute'
+xmodmap -e 'keycode 31 = i I i I igrave Igrave iacute iacute'
+xmodmap -e 'keycode 32 = o O o O ograve Ograve oacute oacute'
+xmodmap -e 'keycode 30 = u U u U ugrave Ugrave uacute uacute'
 # Turn off the caps lock if on since there is no longer a key for it.
 xset -q | grep "Caps Lock:\s*on" && xdotool key Caps_Lock
