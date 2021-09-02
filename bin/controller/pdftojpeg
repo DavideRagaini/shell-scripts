@@ -1,9 +1,6 @@
-#!/usr/bin/env sh
+#!/bin/sh
 
-set -x
-
-for i in *.pdf
-do
+for i in *.pdf; do
     mkdir "${i%.*}"
     pdftoppm -jpeg -rx 300 -ry 300 "${i%.*}.pdf" "${i%.*}/${i%.*}"
 done

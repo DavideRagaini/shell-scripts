@@ -1,26 +1,23 @@
 #!/bin/sh
 
 case $BLOCK_BUTTON in
-	1) notify-send "This Month" "$(cal --color=always | sed "s/..7m/<b><span color=\"red\">/;s/..27m/<\/span><\/b>/")" ;;
-	6) "$TERMINAL" -e "$EDITOR" "$0" ;;
+    1) notify-send "This Month" "$(cal --color=always | sed "s/..7m/<b><span color=\"red\">/;s/..27m/<\/span><\/b>/")" ;;
+    6) "$TERMINAL" -e "$EDITOR" "$0" ;;
 esac
 
-#date +%c
-# date '+%a %d/%B/%y %I:%M%p'
-# date '+%I:%M:%S%p'
 case "$(date '+%I')" in
-	01) icon="🕐" ;;
-	02) icon="🕑" ;;
-	03) icon="🕒" ;;
-	04) icon="🕓" ;;
-	05) icon="🕔" ;;
-	06) icon="🕕" ;;
-	07) icon="🕖" ;;
-	08) icon="🕗" ;;
-	09) icon="🕘" ;;
-	10) icon="🕙" ;;
-	11) icon="🕚" ;;
-	12) icon="🕛" ;;
+    01) icon="🕐" ;;
+    02) icon="🕑" ;;
+    03) icon="🕒" ;;
+    04) icon="🕓" ;;
+    05) icon="🕔" ;;
+    06) icon="🕕" ;;
+    07) icon="🕖" ;;
+    08) icon="🕗" ;;
+    09) icon="🕘" ;;
+    10) icon="🕙" ;;
+    11) icon="🕚" ;;
+    12) icon="🕛" ;;
 esac
 
-printf "[%s%s]" "$icon" "$(date '+%I:%M%p')"
+printf "[%s%s]" "$icon" "$(date '+%k:%M')"

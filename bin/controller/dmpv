@@ -1,8 +1,7 @@
 #!/bin/bash
 
 if [ -z "$1" ]; then
-	CMDS="\
-queue
+	CMDS="queue
 enqueue
 eplay
 aplay
@@ -23,28 +22,15 @@ VIDEOS_FOLDER="${XDG_VIDEOS_DIR:-$HOME/Storage/Videos}"
 PATH_QUEUE="$HOME/.config/mpv/queue"
 PATH_LAST="$HOME/.config/mpv/last"
 
-playlist_check() {
-	printf "%s" "$1" |
-		grep -oq 'list='
-}
-
-valid_url() {
-	printf "%s" "$1" |
-		grep -Eoq "((http|https)://)(www.)?[youtube.com|twitch.tv|vimeo|youtu.be]?.*$"
-}
-
 add_to_queue() {
 	PLAYLIST="$(: | dmenu -p "Name of the playlist?")"
 	[ -z "$PLAYLIST" ] && PLAYLIST="1shot"
 
-	if [ -z "$(playlist_check "$1")" ]; then
-		TITLE="$(youtube-dl --no-warnings --dump-single-json "$1" | jq -r '.title')"
-	else
-		TITLE="$(youtube-dl --get-title "$1")"
-	fi
+	TITLE="$(youtube-dl --no-warnings --dump-single-json "$1" | jq -r '.title')"
+	[ -z "$TITLE" ] && exit
 
-	notify-send "$PLAYLIST" "$TITLE\n$1"
-	printf "%s:%s\t%s\n%s" "$PLAYLIST" "$TITLE" "$1" "$(cat "$PATH_QUEUE")" >"$PATH_QUEUE" ||
+	notify-send "$PLAYLIST:$TITLE" "$1"
+	printf "%s:%s «%s»\t%s\n%s" "$PLAYLIST" "$TITLE" "$(date '+%k:%M %d/%m/%y')" "$1" "$(cat "$PATH_QUEUE")" >"$PATH_QUEUE" ||
 		notify-send "Failed to queue"
 	sort "$PATH_QUEUE" -o "$PATH_QUEUE"
 }
@@ -58,9 +44,8 @@ open_mpv() {
 
 case "$CHOSEN" in
 queue)
-	QUEUE="$(cat "$PATH_QUEUE")"
-	CHOSEN="$(echo "$QUEUE" | cut -f1 | dmenu -i -l 20)" || exit
-	LINE="$(grep "$CHOSEN" <<<"$QUEUE")"
+	CHOSEN="$(cut -f1 "$PATH_QUEUE" | dmenu -i -l 20)" || exit
+	LINE="$(grep -w "$CHOSEN" "$PATH_QUEUE")"
 	TITLE="$(cut -f1 <<<"$LINE")"
 	URL="$(cut -f2 <<<"$LINE")"
 	notify-send "$TITLE" "$URL"
@@ -68,18 +53,15 @@ queue)
 	;;
 
 eplay)
-	valid_url "$URL"
 	open_mpv "$URL" &
 	add_to_queue "$URL"
 	;;
 
 enqueue)
-	valid_url "$URL"
 	add_to_queue "$URL"
 	;;
 
 aplay)
-	valid_url "$URL"
 	open_mpv "$URL"
 	;;
 

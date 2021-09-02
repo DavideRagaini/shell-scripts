@@ -1,15 +1,15 @@
 #!/bin/sh
 
 case $BLOCK_BUTTON in
-	1) notify-send "Song" "$(mpc status)" ;;
-	3) mpc toggle ;;
-	4) mpc prev ;;
-	5) mpc next ;;
-	6) "$TERMINAL" -e "$EDITOR" "$0" ;;
+    1) notify-send "Song" "$(mpc status)" ;;
+    3) mpc toggle ;;
+    4) mpc prev ;;
+    5) mpc next ;;
+    6) "$TERMINAL" -e "$EDITOR" "$0" ;;
 esac
 
-if [ "$(mpc status | sed -n 2p | awk '{print $1}')" = "[playing]" ]; then
-	printf "[%.95s]" "$(mpc current -f "ﴁ %artist%  %title%  %album%")"
+if [ "$(mpc status | awk 'NR==2 {print $1}')" = "[playing]" ]; then
+    printf "[%.95s]" "$(mpc current -f "ﴁ %artist%  %title%  %album%")"
 else
-	printf "[🎵]"
+    printf "[🎵]"
 fi
