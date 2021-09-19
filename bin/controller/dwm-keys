@@ -1,0 +1,6 @@
+#!/bin/sh
+
+grep 'XK_' "$HOME/.local/src/dwm/config.h" |
+    grep -v "/\*" |
+    sed -E "s/^\t//" |
+    fzfmenu

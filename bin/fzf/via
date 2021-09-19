@@ -10,12 +10,12 @@ build_cache() {
 case "$1" in
     -r)
         build_cache &&
-            opener "$(fzfmenu <"$CACHE")"
+            zathura "$(fzfmenu <"$CACHE")"
         ;;
     -ro)
         build_cache
         ;;
     *)
-        opener "$(fzfmenu <"$CACHE")"
+        zathura "$(fzfmenu <"$CACHE")"
         ;;
 esac

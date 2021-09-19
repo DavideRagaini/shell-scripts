@@ -3,9 +3,7 @@
 HOSTS="${XDG_DATA_HOME:-$HOME/.local/share}/hosts"
 SUPERHOSTS="${XDG_DATA_HOME:-$HOME/.local/share}/superhosts.deny"
 UNBLOCK="reddit.com\
-	redditmedia.com\
-	redditstatic.com\
-    web.whatsapp.com\
+	redditmedia.com\ redditstatic.com\ web.whatsapp.com\
 	4chan.org\
 	boards.4chan.org"
 

@@ -12,7 +12,7 @@ local
 last_lecture"
 
 	CHOSEN="$(dmenu -i <<<"$CMDS")" || exit
-	URL="$(xclip -selection clipboard -o)"
+	URL="$(xclip -selection clipboard -o)" 2> /dev/null
 else
 	CHOSEN="$1"
 	URL="$2"
@@ -26,7 +26,7 @@ add_to_queue() {
 	PLAYLIST="$(: | dmenu -p "Name of the playlist?")"
 	[ -z "$PLAYLIST" ] && PLAYLIST="1shot"
 
-	TITLE="$(youtube-dl --no-warnings --dump-single-json "$1" | jq -r '.title')"
+	TITLE="$(youtube-dl --no-warnings --dump-single-json "$1" | jq -r '"\(.title) «\(.channel.) \(.uploader)»"' | sed 's/«null /«/; s/null»/»/')"
 	[ -z "$TITLE" ] && exit
 
 	notify-send "$PLAYLIST:$TITLE" "$1"

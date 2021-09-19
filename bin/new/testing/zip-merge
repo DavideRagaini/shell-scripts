@@ -1,0 +1,60 @@
+#!/bin/sh
+
+set -x
+usage() {
+    cat <<EOF
+Usage: zip-merge -n -e [-d]
+where:
+	-e: Specifies extension
+	-d: Specifies directory - Disabled
+	-n: Specifies name
+	-h: Help
+EOF
+    exit 0
+}
+
+while getopts ":n:e:h" opt; do
+    case $opt in
+
+        # d)
+        #     DIR="${OPTARG}"
+        #     [ -z "$DIR" ] &&
+        #         echo "No directory specified" "$DIR" &&
+        #         exit
+        #     [ ! -d "$DIR" ] &&
+        #         echo "Not valid directory" &&
+        #         exit 0
+        #     ;;
+
+        e)
+            EXT="${OPTARG}"
+            ;;
+
+        n)
+            NAME="${OPTARG}"
+            ;;
+
+        h) usage ;;
+
+        \?)
+            printf "Invalid options\\n"
+            usage
+            exit 1
+            ;;
+    esac
+done
+
+[ -z "$NAME" ] &&
+    echo "Missing name; Use -n 'NAME'" &&
+    exit
+
+[ -z "$EXT" ] &&
+    EXT='zip' &&
+    echo "No EXT specified; using zip"
+
+mkdir "$NAME"
+for x in *.zip; do
+    unzip -d "$NAME" -o -u "$x"
+done
+
+zip -r "$NAME"."$EXT" "$NAME"
