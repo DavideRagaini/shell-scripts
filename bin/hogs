@@ -1,0 +1,8 @@
+#!/bin/sh
+RED='\033[0;31m'
+NC='\033[0m' # No Color
+
+echo "${RED}CPU hogs${NC}"
+ps axch -o cmd:15,%cpu --sort=-%cpu | head
+echo "${RED}Memory hogs${NC}"
+ps axch -o cmd:15,%mem --sort=-%mem | head

@@ -12,7 +12,7 @@ local
 last_lecture"
 
 	CHOSEN="$(dmenu -i <<<"$CMDS")" || exit
-	URL="$(xclip -selection clipboard -o)" 2> /dev/null
+	URL="$(xclip -selection clipboard -o)" 2>/dev/null
 else
 	CHOSEN="$1"
 	URL="$2"
@@ -21,14 +21,17 @@ fi
 VIDEOS_FOLDER="${XDG_VIDEOS_DIR:-$HOME/Storage/Videos}"
 PATH_QUEUE="$HOME/.config/mpv/queue"
 PATH_LAST="$HOME/.config/mpv/last"
+TITLE=""
+
+get_title() {
+	TITLE="$(youtube-dl --no-warnings --dump-single-json "$1" | jq -r '"\(.title) «\(.uploader)»"')"
+	[ -z "$TITLE" ] && notify-send "could not retrieve title" && exit
+}
 
 add_to_queue() {
 	PLAYLIST="$(: | dmenu -p "Name of the playlist?")"
 	[ -z "$PLAYLIST" ] && PLAYLIST="1shot"
-
-	TITLE="$(youtube-dl --no-warnings --dump-single-json "$1" | jq -r '"\(.title) «\(.channel) \(.uploader)»"' | sed 's/«null /«/; s/null»/»/')"
-	[ -z "$TITLE" ] && exit
-
+	get_title "$1"
 	notify-send "$PLAYLIST:$TITLE" "$1"
 	printf "%s:%s «%s»\t%s\n%s" "$PLAYLIST" "$TITLE" "$(date '+%k:%M %d/%m/%y')" "$1" "$(cat "$PATH_QUEUE")" >"$PATH_QUEUE" ||
 		notify-send "Failed to queue"
@@ -37,63 +40,64 @@ add_to_queue() {
 
 open_mpv() {
 	echo "$1" >"$PATH_LAST"
-	notify-send "Working on" "$1"
-	# mpv --geometry=256x144+1660+910 --no-terminal --title="fmpv" "$1"
-	mpv --no-terminal "$1"
+	notify-send "Working on $TITLE" "$1"
+	# mpv --geometry=640x360+1660+910 --no-terminal --title="fmpv" "$1"
+	ts -L "$TITLE" mpv --no-terminal "$1"
 }
 
 case "$CHOSEN" in
-queue)
-	CHOSEN="$(cut -f1 "$PATH_QUEUE" | dmenu -i -l 20)" || exit
-	LINE="$(grep -w "$CHOSEN" "$PATH_QUEUE")"
-	TITLE="$(cut -f1 <<<"$LINE")"
-	URL="$(cut -f2 <<<"$LINE")"
-	notify-send "$TITLE" "$URL"
-	open_mpv "$URL"
-	;;
-
-eplay)
-	open_mpv "$URL" &
-	add_to_queue "$URL"
-	;;
-
-enqueue)
-	add_to_queue "$URL"
-	;;
-
-aplay)
-	open_mpv "$URL"
-	;;
-
-lectures)
-	LECTURES="$VIDEOS_FOLDER/Lectures"
-	CHOSEN="$(find "$LECTURES" -maxdepth 1 -type d | cut -d'/' -f7 | dmenu -i -l 20)" || exit
-	URL="$LECTURES/$CHOSEN"
-	open_mpv "$URL"
-	;;
-
-local)
-	GENER="$VIDEOS_FOLDER"
-	DIR="$(find "$GENER" -maxdepth 1 -type d | cut -d'/' -f6 | dmenu -i -l 20)" || exit
-	if [ -d "$GENER$DIR" ]; then
-		CHOSEN="$(find "$GENER$DIR" | cut -d'/' -f8 | dmenu -i -l 20)" || exit
-		URL="$GENER$DIR/$CHOSEN"
+	queue)
+		CHOSEN="$(cut -f1 "$PATH_QUEUE" | dmenu -i -l 20)" || exit
+		LINE="$(grep -w "$CHOSEN" "$PATH_QUEUE")"
+		TITLE="$(cut -f1 <<<"$LINE")"
+		URL="$(cut -f2 <<<"$LINE")"
+		notify-send "$TITLE" "$URL"
 		open_mpv "$URL"
-	else
-		URL="$GENER$DIR"
+		;;
+
+	eplay)
+		open_mpv "$URL" &
+		add_to_queue "$URL"
+		;;
+
+	enqueue)
+		add_to_queue "$URL"
+		;;
+
+	aplay)
+		get_title "$URL"
 		open_mpv "$URL"
-	fi
-	;;
+		;;
 
-last)
-	mpv "$(cat "$PATH_LAST")"
-	;;
+	lectures)
+		LECTURES="$VIDEOS_FOLDER/Lectures"
+		CHOSEN="$(find "$LECTURES" -maxdepth 1 -type d | cut -d'/' -f7 | dmenu -i -l 20)" || exit
+		URL="$LECTURES/$CHOSEN"
+		open_mpv "$URL"
+		;;
 
-last_lecture)
-	mpv "$VIDEOS_FOLDER/doing"
-	;;
+	local)
+		GENER="$VIDEOS_FOLDER"
+		DIR="$(find "$GENER" -maxdepth 1 -type d | cut -d'/' -f6 | dmenu -i -l 20)" || exit
+		if [ -d "$GENER$DIR" ]; then
+			CHOSEN="$(find "$GENER$DIR" | cut -d'/' -f8 | dmenu -i -l 20)" || exit
+			URL="$GENER$DIR/$CHOSEN"
+			open_mpv "$URL"
+		else
+			URL="$GENER$DIR"
+			open_mpv "$URL"
+		fi
+		;;
 
-edit_queue)
-	$TERMINAL -e nvim "$PATH_QUEUE"
-	;;
+	last)
+		mpv "$(cat "$PATH_LAST")"
+		;;
+
+	last_lecture)
+		mpv "$VIDEOS_FOLDER/doing"
+		;;
+
+	edit_queue)
+		$TERMINAL -e nvim "$PATH_QUEUE"
+		;;
 esac
