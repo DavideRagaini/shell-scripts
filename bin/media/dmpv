@@ -40,7 +40,7 @@ add_to_queue() {
 
 open_mpv() {
 	echo "$1" >"$PATH_LAST"
-	notify-send "Working on $TITLE" "$1"
+	notify-send "Working on:" "$TITLE\n$1"
 	# mpv --geometry=640x360+1660+910 --no-terminal --title="fmpv" "$1"
 	ts -L "$TITLE" mpv --no-terminal "$1"
 }
