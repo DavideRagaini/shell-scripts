@@ -2,16 +2,25 @@
 
 case $1 in
 	video)
-		youtube-dl -ic --add-metadata --playlist-start="$3" --playlist-end="$4" "$2" || youtube-dl -ic --add-metadata --playlist-start="$2" "$3" || youtube-dl -ic --add-metadata "$2" ;;
+		yt-dlp -ic --add-metadata --playlist-start="$3" --playlist-end="$4" "$2" ||
+			yt-dlp -ic --add-metadata --playlist-start="$2" "$3" ||
+			yt-dlp -ic --add-metadata "$2"
+		;;
 
 	audio)
-		youtube-dl --add-metadata -ic --extract-audio --audio-format mp3 --audio-quality 0 --playlist-start="$2" --playlist-end="$3" "$4" || youtube-dl --add-metadata -ic --extract-audio --audio-format mp3 --audio-quality 0 --playlist-start="$2" "$3" || youtube-dl --add-metadata -ic --extract-audio --audio-format mp3 --audio-quality 0 "$2" ;;
+		yt-dlp --add-metadata -ic --extract-audio --audio-format mp3 --audio-quality 0 --playlist-start="$2" --playlist-end="$3" "$4" ||
+			yt-dlp --add-metadata -ic --extract-audio --audio-format mp3 --audio-quality 0 --playlist-start="$2" "$3" ||
+			yt-dlp --add-metadata -ic --extract-audio --audio-format mp3 --audio-quality 0 "$2"
+		;;
 
-	bestaudio) #youtube-dl --add-metadata -ic -x -f bestaudio/best --audio-quality 0 "$2" ;;
-		youtube-dl --add-metadata -ic --extract-audio -f bestaudio/best --audio-quality 0 --playlist-start="$2" --playlist-end="$3" "$4" || youtube-dl --add-metadata -ic --extract-audio -f bestaudio/best --audio-quality 0 --playlist-start="$2" "$3" || youtube-dl --add-metadata -ic --extract-audio -f bestaudio/best --audio-quality 0 "$2" ;;
+	bestaudio) #yt-dlp --add-metadata -ic -x -f bestaudio/best --audio-quality 0 "$2" ;;
+		yt-dlp --add-metadata -ic --extract-audio -f bestaudio/best --audio-quality 0 --playlist-start="$2" --playlist-end="$3" "$4" ||
+			yt-dlp --add-metadata -ic --extract-audio -f bestaudio/best --audio-quality 0 --playlist-start="$2" "$3" ||
+			yt-dlp --add-metadata -ic --extract-audio -f bestaudio/best --audio-quality 0 "$2" ;;
 
 	*)
-		notify-send "Video or Audio?" ;;
+		notify-send "Video or Audio?"
+		;;
 esac
 
 figlet "Completed" | lolcat

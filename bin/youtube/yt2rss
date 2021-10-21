@@ -1,5 +1,5 @@
 #!/bin/sh
 
-channel_id="$(youtube-dl --no-warnings --dump-single-json "$1" | jq -r '.channel_id')"
+channel_id="$(yt-dlp --no-warnings --dump-single-json "$1" | jq -r '.channel_id')"
 printf "%s%s" 'https://www.youtube.com/feeds/videos.xml?channel_id=' "$channel_id"
 notify-send "Pasted to Clipboard" "$channel_id"

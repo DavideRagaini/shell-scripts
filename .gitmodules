@@ -4,3 +4,6 @@
 [submodule "modules/fontpreview-ueberzug"]
 	path = modules/fontpreview-ueberzug
 	url = https://github.com/OliverLew/fontpreview-ueberzug.git
+[submodule "modules/ani-cli"]
+	path = modules/ani-cli
+	url = https://github.com/pystardust/ani-cli.git

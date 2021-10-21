@@ -24,7 +24,7 @@ PATH_LAST="$HOME/.config/mpv/last"
 TITLE=""
 
 get_title() {
-	TITLE="$(youtube-dl --no-warnings --dump-single-json "$1" | jq -r '"\(.title) «\(.uploader)»"')"
+	TITLE="$(yt-dlp --no-warnings --dump-single-json "$1" | jq -r '"\(.title) «\(.uploader)»"')"
 	[ -z "$TITLE" ] && notify-send "could not retrieve title" && exit
 }
 
@@ -98,6 +98,6 @@ case "$CHOSEN" in
 		;;
 
 	edit_queue)
-		$TERMINAL -e nvim "$PATH_QUEUE"
+		$TERMINAL -e $EDITOR "$PATH_QUEUE"
 		;;
 esac
