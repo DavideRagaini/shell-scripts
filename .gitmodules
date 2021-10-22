@@ -7,3 +7,6 @@
 [submodule "modules/ani-cli"]
 	path = modules/ani-cli
 	url = https://github.com/pystardust/ani-cli.git
+[submodule "modules/xdeb"]
+	path = modules/xdeb
+	url = https://github.com/toluschr/xdeb.git
