@@ -1,0 +1,17 @@
+#!/bin/sh
+
+cmds="XDG_CACHE_HOME	$HOME/.cache
+XDG_CONFIG_HOME	$HOME/.config
+XDG_DATA_HOME	$HOME/.local/share
+XDG_DOCUMENTS_DIR	$HOME/Documents
+XDG_DOWNLOAD_DIR	$HOME/Downloads
+XDG_MUSIC_DIR	$HOME/Storage/Music
+XDG_PICTURES_DIR	$HOME/Storage/Pictures
+XDG_RUNTIME_DIR	$HOME/.cache
+XDG_VIDEOS_DIR	$HOME/Storage/Videos"
+
+chosen="$(echo "$cmds" |
+    dmenu -l 10)"
+
+notify-send "$chosen"
+echo "$chosen" | cut -f 2 | xclip -selection clipboard
