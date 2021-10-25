@@ -1,9 +1,9 @@
 #!/bin/sh
 
 if [ "$(pidof -q spotifyd)" ]; then # || [ "$(playerctl -l | grep -q spotifyd)" ]
-    # mpc -q pause
+    mpc -q pause
     case "$1" in
-        toggle) playerctl -p spotifyd play-pause ;;
+        toggle) sctl.sh toggle ;;
         next) playerctl -p spotifyd next ;;
         prev) playerctl -p spotifyd previous ;;
         seekf) playerctl -p spotifyd position 10+ ;;
