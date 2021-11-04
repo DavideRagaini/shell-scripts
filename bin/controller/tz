@@ -1,0 +1,2 @@
+#!/bin/sh
+tabbed -c zathura "$1" -e

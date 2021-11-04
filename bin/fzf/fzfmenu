@@ -1,6 +1,6 @@
 #!/bin/bash
-# fzfmenu - fzf as dmenu replacement
 
+# fzfmenu - fzf as dmenu replacement
 # fifos are here to not wait for end of input
 # (useful for e.g. find $HOME | fzfmenu ...)
 input=$(mktemp -u --suffix .fzfmenu.input)
@@ -15,8 +15,41 @@ chmod 600 "$input" "$output"
 # sadly we can't use "$@" here directly because we are inside sh -c "..." call
 # already.
 # you can also set window dimensions via -g '=COLSxROWS', see man st.
+center=0
+
+min_dx=37
+mod_x=33
+min_dy=71
+mod_y=67
+padding=1
+
+dim_screen="$(xrandr | awk '/current/ {sub(",","",$10); print $8$9$10}')"
+dim_mon_x=$(echo "$dim_screen" | cut -d'x' -f1)
+dim_mon_y=$(echo "$dim_screen" | cut -d'x' -f2)
+
+dim_w_x=$((1 + dim_mon_x - min_dx))
+dim_w_y=$((1 + dim_mon_y - min_dy))
+
+rows=$((padding + (dim_w_x / mod_x)))
+colums=$((padding + (dim_w_y / mod_y)))
+
+if [ $center == 1 ]; then
+	mx=0.75
+	my=0.5
+
+	dim_p_x=$(bc <<<"($rows * $mx)/1")
+	dim_p_y=$(bc <<<"($colums * $my)/1")
+
+	pos_x=$(bc <<<"(($dim_mon_x - $dim_w_x * $mx) / 2 ) / 1")
+	pos_y=$(bc <<<"(($dim_mon_y - $dim_w_y * $my) / 2 ) / 1")
+
+	GEOM="$(printf "%dx%d+%d+%d" "$dim_p_x" "$dim_p_y" "$pos_x" "$pos_y")"
+else
+	GEOM="$(printf "%dx%d" "$rows" "$((1 + colums / 2))")"
+fi
+
 # alacritty --class 'fzfmenu' --config-file="$HOME/.config/alacritty/fzfmenu.yml" -e sh -c "cat $input |
-st -n fzfmenu -f "FiraCode Nerd Font Mono:size=20" -g 100x20 -e sh -c "cat $input |
+st -n fzfmenu -f "FiraCode Nerd Font Mono:size=20" -g "$GEOM" -e sh -c "cat $input |
 	fzf --border=rounded --margin=1% --multi --ansi -i --height=40 $(printf -- " '%s'" "$@" | sed "s/^ ''$//") |
 	tee $output" &
 disown

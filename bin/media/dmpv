@@ -12,7 +12,7 @@ local
 last_lecture"
 
 	CHOSEN="$(dmenu -i <<<"$CMDS")" || exit
-	URL="$(xclip -selection clipboard -o)" 2>/dev/null
+	URL="$(xclip -selection clipboard -o)" >/dev/null
 else
 	CHOSEN="$1"
 	URL="$2"
@@ -22,6 +22,7 @@ VIDEOS_FOLDER="${XDG_VIDEOS_DIR:-$HOME/Storage/Videos}"
 PATH_QUEUE="$HOME/.config/mpv/queue"
 PATH_LAST="$HOME/.config/mpv/last"
 TITLE=""
+GEOM=""
 
 get_title() {
 	TITLE="$(yt-dlp --no-warnings --dump-single-json "$1" | jq -r '"\(.title) «\(.uploader)»"')"
@@ -38,10 +39,22 @@ add_to_queue() {
 	sort "$PATH_QUEUE" -o "$PATH_QUEUE"
 }
 
+floating() {
+	dim_w_x="640"
+	dim_w_y="360"
+	dim_screen="$(xrandr | awk '/*/ {print $1}')"
+	dim_mon_x="$(echo "$dim_screen" | cut -d'x' -f1)"
+	dim_mon_y="$(echo "$dim_screen" | cut -d'x' -f2)"
+	x="$((dim_mon_x - dim_w_x - 5))"
+	y="$((dim_mon_y - dim_w_y - 40))"
+	GEOM="$(printf "%sx%s+%s+%s" "$dim_w_x" "$dim_w_y" "$x" "$y")"
+}
+
 open_mpv() {
 	echo "$1" >"$PATH_LAST"
 	notify-send "Working on:" "$TITLE\n$1"
-	ts -L "$TITLE" mpv --geometry=640x360+1660+910 --no-terminal --title="fmpv" "$1"
+	floating
+	ts -L "$TITLE" mpv --no-terminal --geometry="$GEOM" --title="fmpv" "$1" >/dev/null
 }
 
 case "$CHOSEN" in

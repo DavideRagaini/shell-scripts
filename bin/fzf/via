@@ -4,18 +4,24 @@ CACHE="$HOME/.cache/via"
 
 build_cache() {
     # fd -c never -t f -E "Storage" -E "Projects" -E "Torrents" -E "Laboratorio Automazione" -E "Programmazione ad Oggetti" --base-directory "$HOME" >"$CACHE"
-    find "$HOME" -type f -iname "*.pdf" -not -path "./.*/*" -not -path "./Storage/*" >"$CACHE"
+    # find "$HOME" -type f -iname "*.pdf" -not -path "./.*/*" -not -path "./Storage/*" >"$CACHE"
+    locate -r "$HOME/[^S.].*.pdf$" >"$CACHE"
+}
+
+reader() {
+    # zathura "$(fzfmenu <"$CACHE")"
+    tz "$(fzfmenu <"$CACHE")"
 }
 
 case "$1" in
     -r)
         build_cache &&
-            zathura "$(fzfmenu <"$CACHE")"
+            reader
         ;;
     -ro)
         build_cache
         ;;
     *)
-        zathura "$(fzfmenu <"$CACHE")"
+        reader
         ;;
 esac
