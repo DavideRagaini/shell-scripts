@@ -22,10 +22,9 @@ function pctl_get {
 
 # Cache the initial status of spotifyd
 spt_status="$(pctl_get "spotifyd" "PlaybackStatus")"
-
+all_player=$(playerctl -l)
 # Gets a media player (returned by `playerctl -l`). This prefers spotifyd above all other.
 function pref_spt {
-    all_player=$(playerctl -l)
     player=$($all_player | grep "spotifyd")
 
     if [[ "$?" == 0 ]]; then
@@ -34,12 +33,12 @@ function pref_spt {
         player=$($all_player | head -n 1)
     fi
 
-    echo "$player"
+    # echo "$player"
 }
 
 # Loop on each media player
 # This checks for any media player playing, and if they are, pause and exit.
-for player in $(playerctl -l); do
+for player in $all_player; do
     echo $player
     # If it's spotifyd
     if [[ "$player" == *"spotifyd"* ]]; then
