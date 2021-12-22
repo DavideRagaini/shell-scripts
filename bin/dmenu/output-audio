@@ -33,5 +33,5 @@ pactl set-default-sink "$OUTPUT"
 
 # pkill -RTMIN+10 dwmblocks
 # pkill -RTMIN+7 dwmblocks &&
-# sleep 1 &&
-# pkill -RTMIN+10 dwmblocks
+sleep 3 &&
+pkill -RTMIN+10 dwmblocks
