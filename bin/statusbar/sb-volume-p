@@ -16,14 +16,4 @@ echo "$volstat" |
 	printf "[婢]" &&
 	exit
 
-vol="$(echo "$volstat" | grep '[0-9]\+%' | sed "s,.* \([0-9]\+\)%.*,\1,;1q")"
-
-if [ "$vol" -gt "70" ]; then
-	icon="墳"
-elif [ "$vol" -lt "30" ]; then
-	icon="奄"
-else
-	icon="奔"
-fi
-
-printf "[%s%s]" "$icon" "$vol"
+printf "[%s%s]" "奄" "$(echo "$volstat" | grep '[0-9]\+%' | sed "s,.* \([0-9]\+\)%.*,\1,;1q")"

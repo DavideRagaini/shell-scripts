@@ -16,4 +16,4 @@ echo "$volstat" |
 	printf "[婢]" &&
 	exit
 
-printf "[%s %s]" "" "$(echo "$volstat" | grep -o "\[[0-9]\+%\]" | sed "s/[^0-9]*//g;1q")"
+printf "[%s %s]" "奄" "$(echo "$volstat" | grep -o "\[[0-9]\+%\]" | sed "s/[^0-9]*//g;1q")"
