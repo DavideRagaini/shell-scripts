@@ -42,7 +42,7 @@ add_to_queue() {
 floating() {
 	dim_w_x="640"
 	dim_w_y="360"
-	dim_screen="$(xrandr | awk '/*/ {print $1}')"
+	dim_screen="$(xrandr | awk '/current/ {sub(",","",$10); print $8$9$10}')"
 	dim_mon_x="$(echo "$dim_screen" | cut -d'x' -f1)"
 	dim_mon_y="$(echo "$dim_screen" | cut -d'x' -f2)"
 	x="$((dim_mon_x - dim_w_x - 5))"
@@ -106,10 +106,10 @@ case "$CHOSEN" in
 		;;
 
 	last_lecture)
-		mpv "$VIDEOS_FOLDER/doing"
+		mpv "$VIDEOS_FOLDER/Lectures/doing"
 		;;
 
 	edit_queue)
-		$TERMINAL -e $EDITOR "$PATH_QUEUE"
+		$VISUAL "$PATH_QUEUE"
 		;;
 esac

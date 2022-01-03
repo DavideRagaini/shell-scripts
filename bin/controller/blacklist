@@ -1,11 +1,9 @@
 #!/bin/sh
 
-HOSTS="${XDG_DATA_HOME:-$HOME/.local/share}/hosts"
-SUPERHOSTS="${XDG_DATA_HOME:-$HOME/.local/share}/superhosts.deny"
-UNBLOCK="reddit.com\
-	redditmedia.com\ redditstatic.com\ web.whatsapp.com\
-	4chan.org\
-	boards.4chan.org"
+HOSTS="${XDG_DATA_HOME:-$HOME/.local/share}/hosts.d/hosts"
+HOSTS1="${XDG_DATA_HOME:-$HOME/.local/share}/hosts.d/hosts1"
+HOSTS2="${XDG_DATA_HOME:-$HOME/.local/share}/hosts.d/hosts2"
+SUPERHOSTS="${XDG_DATA_HOME:-$HOME/.local/share}/hosts.d/superhosts.deny"
 
 set_hosts() {
     [ -e /etc/hosts ] ||
@@ -21,33 +19,25 @@ set_hosts() {
             notify-send "Superhosts.deny Set")
 }
 
-delete_hosts() {
-    for i in $@; do
-        sed -i "/0.0.0.0	$i/d; /0.0.0.0	www.$i/d" "$HOSTS"
-    done
-}
-
 case "$1" in
     on)
         set_hosts
-        delete_hosts "$UNBLOCK"
-        ;;
-
-    off)
-        delete_hosts "$BLOCKED"
         ;;
 
     update)
-        # curl -o "$HOSTS" 'http://sbc.io/hosts/alternates/fakenews-gambling-porn/hosts'
         echo 'Downloading hosts'
-        curl -o "$HOSTS" "https://hosts.ubuntu101.co.za/hosts"
+        curl -o "$HOSTS1" "https://hosts.ubuntu101.co.za/hosts"
+        curl -o "$HOSTS2" 'http://sbc.io/hosts/alternates/fakenews-gambling-porn/hosts'
+        cat $HOSTS1 >$HOSTS
+        cat $HOSTS2 >>$HOSTS
 
         echo 'Downloading hosts.deny'
-        curl -o "$HOSTS.deny" "https://hosts.ubuntu101.co.za/hosts"
+        curl -o "$HOSTS.deny" "https://hosts.ubuntu101.co.za/hosts.deny"
 
         echo 'Downloading superhosts.deny'
-        curl -o "$SUPERHOSTS" "https://hosts.ubuntu101.co.za/hosts"
-        # delete_hosts "$UNBLOCK"
+        curl -o "$SUPERHOSTS" "https://hosts.ubuntu101.co.za/superhosts.deny"
+
+        set_hosts
         ;;
 
     *)
