@@ -1,4 +1,5 @@
 #!/bin/sh
 
-list="$(vkpurge list | fzf)" || exit
-doas vkpurge rm "$list"
+list="$(vkpurge list | fzf)"
+echo "Removing $list"
+doas vkpurge rm $list

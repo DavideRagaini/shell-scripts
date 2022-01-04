@@ -19,19 +19,23 @@ for battery in /sys/class/power_supply/BAT?*; do
 		"Discharging")
 			case "$capacity" in
 				100 | 9[0-9]) status='' ;;
-				8[0-9] | 7[0-9])
-					status=''
-					notify-send "Unplug AC"
-					;;
+				8[0-9] | 7[0-9]) status='' ;;
 				6[0-9] | 5[0-9]) status='' ;;
-				4[0-9] | 3[0-9])
+				4[0-9]) status='❗' ;;
+				3[0-9])
 					status='❗'
-					notify-send "Plug AC"
+					notify-send -i "/usr/share/icons/Paper/48x48@2x/status/battery-040.png" "Plug AC"
 					;;
-				2[0-9] | 1[0-9]) status='❗' ;;
+				2[0-9] | 1[0-9])
+					status='❗'
+					notify-send -i "/usr/share/icons/Paper/48x48@2x/status/battery-020.png" "Plug AC"
+					;;
 			esac
 			;;
-		"Charging") status="" ;;
+		"Charging")
+			[ $capacity -ge 75 ] && notify-send -i "/usr/share/icons/Paper/48x48@2x/status/battery-000-charging.png" "Unplug AC"
+			status=""
+			;;
 		"Not charging") status="🛑" ;;
 		"Unknown") status="屢" ;;
 	esac

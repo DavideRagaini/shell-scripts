@@ -1,21 +1,18 @@
 #!/bin/sh
 
-HOSTS="${XDG_DATA_HOME:-$HOME/.local/share}/hosts.d/hosts"
-HOSTS1="${XDG_DATA_HOME:-$HOME/.local/share}/hosts.d/hosts1"
-HOSTS2="${XDG_DATA_HOME:-$HOME/.local/share}/hosts.d/hosts2"
-SUPERHOSTS="${XDG_DATA_HOME:-$HOME/.local/share}/hosts.d/superhosts.deny"
+HOSTS="${XDG_DATA_HOME:-$HOME/.local/share}/hosts.d"
 
 set_hosts() {
     [ -e /etc/hosts ] ||
-        (sudo ln -s "$HOSTS" "/etc/hosts" &&
+        (sudo ln -sf "$HOSTS/hosts" "/etc/hosts" &&
             notify-send "Hosts Set")
 
     [ -e /etc/hosts.deny ] ||
-        (sudo ln -s "$HOSTS.deny" "/etc/hosts.deny" &&
+        (sudo ln -sf "$HOSTS/hosts.deny" "/etc/hosts.deny" &&
             notify-send "Hosts.deny Set")
 
     [ -e /etc/superhosts.deny ] ||
-        (sudo ln -s "$SUPERHOSTS" "/etc/superhosts.deny" &&
+        (sudo ln -sf "$HOSTS/superhosts.deny" "/etc/superhosts.deny" &&
             notify-send "Superhosts.deny Set")
 }
 
@@ -26,16 +23,14 @@ case "$1" in
 
     update)
         echo 'Downloading hosts'
-        curl -o "$HOSTS1" "https://hosts.ubuntu101.co.za/hosts"
-        curl -o "$HOSTS2" 'http://sbc.io/hosts/alternates/fakenews-gambling-porn/hosts'
-        cat $HOSTS1 >$HOSTS
-        cat $HOSTS2 >>$HOSTS
+        curl -o "$HOSTS/hosts1" "https://hosts.ubuntu101.co.za/hosts" >"$HOSTS/hosts"
+        curl -o "$HOSTS/hosts2" 'http://sbc.io/hosts/alternates/fakenews-gambling-porn/hosts' >>"$HOSTS/hosts"
 
         echo 'Downloading hosts.deny'
-        curl -o "$HOSTS.deny" "https://hosts.ubuntu101.co.za/hosts.deny"
+        curl -o "$HOSTS/hosts.deny" "https://hosts.ubuntu101.co.za/hosts.deny"
 
         echo 'Downloading superhosts.deny'
-        curl -o "$SUPERHOSTS" "https://hosts.ubuntu101.co.za/superhosts.deny"
+        curl -o "$HOSTS/superhosts.deny" "https://hosts.ubuntu101.co.za/superhosts.deny"
 
         set_hosts
         ;;
