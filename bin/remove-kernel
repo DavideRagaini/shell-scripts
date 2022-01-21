@@ -1,5 +1,11 @@
 #!/bin/sh
 
+RED='\033[0;31m'
+NC='\033[0m' # No Color
+
 list="$(vkpurge list | fzf)"
-echo "Removing $list"
+
+selected="$(echo $list | sed 's/^/ - /')"
+echo "${RED}Removing:$NC\n$selected\n\n"
+
 doas vkpurge rm $list
