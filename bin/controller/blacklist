@@ -23,8 +23,10 @@ case "$1" in
 
     update)
         echo 'Downloading hosts'
-        curl -o "$HOSTS/hosts1" "https://hosts.ubuntu101.co.za/hosts" >"$HOSTS/hosts"
-        curl -o "$HOSTS/hosts2" 'http://sbc.io/hosts/alternates/fakenews-gambling-porn/hosts' >>"$HOSTS/hosts"
+        curl -o "$HOSTS/hosts1" "https://hosts.ubuntu101.co.za/hosts"
+        curl -o "$HOSTS/hosts2" 'http://sbc.io/hosts/alternates/fakenews-gambling-porn/hosts'
+        cat "$HOSTS/hosts1" >"$HOSTS/hosts"
+        cat "$HOSTS/hosts2" >>"$HOSTS/hosts"
 
         echo 'Downloading hosts.deny'
         curl -o "$HOSTS/hosts.deny" "https://hosts.ubuntu101.co.za/hosts.deny"
