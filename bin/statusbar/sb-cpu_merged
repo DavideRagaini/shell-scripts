@@ -38,7 +38,7 @@ echo "$stats" | while read -r row; do
 done
 echo "$stats" >"$cache"
 
-CORES=$(lscpu | awk '/^.*On-line CPU\(s\)/ {print $4}')
+CORES=$(lscpu | awk '/^.*On-line CPU\(s\)/ {sub(",","-",$4); print $4}')
 R=$(shuf -i "$CORES" -n 1)
 CLOCK="$(cat /sys/devices/system/cpu/cpu"$R"/cpufreq/scaling_cur_freq)"
 [ "$CLOCK" -lt 1000000 ] && N=3
