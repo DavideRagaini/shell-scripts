@@ -1,0 +1,3 @@
+#!/bin/sh
+
+emacsclient -c -e "(+eshell/here)" -F "((name . \"Eshell\")(width . 170)(height . 50))"

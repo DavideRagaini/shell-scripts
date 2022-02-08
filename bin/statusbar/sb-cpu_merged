@@ -45,4 +45,4 @@ CLOCK="$(cat /sys/devices/system/cpu/cpu"$R"/cpufreq/scaling_cur_freq)"
 CLOCK="$(echo "$CLOCK" | cut -c 1-${N:-4})"
 LOAD="$(cut -d ' ' -f1-3 /proc/loadavg)"
 
-printf " %s @%s]" "$LOAD" "$CLOCK"
+printf " %s %d@%s]" "$LOAD" "$R" "$CLOCK"

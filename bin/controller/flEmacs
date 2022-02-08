@@ -1,3 +1,0 @@
-#!/bin/sh
-
-emacsclient -c -e "(org-agenda-list 14)" -F "((name . \"flEmacs\")(width . 190)(height . 45))"
