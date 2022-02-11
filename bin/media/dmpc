@@ -1,20 +1,24 @@
 #!/bin/sh
 
-if [ "$(pidof -q spotifyd)" ]; then # || [ "$(playerctl -l | grep -q spotifyd)" ]
+if [ "$(pgrep spotifyd)" ]; then # || [ "$(playerctl -l | grep -q spotifyd)" ]
     mpc -q pause
     case "$1" in
-        toggle) sctl.sh toggle ;;
-        next) playerctl -p spotifyd next ;;
-        prev) playerctl -p spotifyd previous ;;
-        seekf) playerctl -p spotifyd position 10+ ;;
-        seekp) playerctl -p spotifyd position 10- ;;
+        toggle)
+            dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotifyd /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.PlayPause ;;
+        next)
+            dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotifyd /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.Next ;;
+        prev)
+            dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotifyd /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.Previous ;;
+        # TODO
+        # seekf) playerctl -p spotifyd position 10+ ;;
+        # seekp) playerctl -p spotifyd position 10- ;;
     esac
 else
     case "$1" in
-        toggle) mpc -q --host=127.0.0.1 --port=6600 toggle ;;
-        next) mpc -q --host=127.0.0.1 --port=6600 next ;;
-        prev) mpc -q --host=127.0.0.1 --port=6600 prev ;;
-        seekf) mpc -q --host=127.0.0.1 --port=6600 seekthrough 10 ;;
-        seekp) mpc -q --host=127.0.0.1 --port=6600 seekthrough -10 ;;
+        toggle) mpc -q toggle ;;
+        next) mpc -q next ;;
+        prev) mpc -q prev ;;
+        seekf) mpc -q seekthrough 10 ;;
+        seekp) mpc -q seekthrough -10 ;;
     esac
 fi

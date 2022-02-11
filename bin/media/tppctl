@@ -1,20 +1,10 @@
 #!/bin/sh
 
-[ -z "$1" ] && echo "Missing arguments"
+[ -z "$1" ] && echo "Missing arguments" && exit
 
-instances="$(playerctl -a -i spotifyd metadata --format "{{playerName}} -> {{status}}  {{title}} - {{artist}} {{album}}" | sed 's/Playing/奈/ ; s/Paused//' | nl -w2 -s' ')"
-
-# Just one istance of whatever player
-[ "$(echo "$instances" | wc -l)" -eq 1 ] && playerctl -p "$(echo "$instances" | awk '{print $2}')" "$1" "$2" && exit
-
-chosen="$(echo "$instances" | dmenu -l 5)" || exit
-howmany=$(echo "$instances" | grep -c "$(echo "$chosen" | awk '{print $2}')")
-if [ $howmany -eq 1 ]
-then
-    #  If there are more players elegible
-    playerctl -p "$(echo "$chosen" | awk '{print $2}')"  "$1" "$2"
-else
-    # If there is more then 1 instances of the same player
-    player="$(playerctl -l | dmenu -l 5)"
-    playerctl -p "$player"  "$1" "$2"
-fi
+case $1 in
+    toggle) echo cycle pause | socat - "/tmp/mpvsocket" ;;
+    next) echo playlist-next | socat - "/tmp/mpvsocket" ;;
+    prev) echo playlist-prev | socat - "/tmp/mpvsocket" ;;
+    seek) echo seek "$2" | socat - "/tmp/mpvsocket" ;;
+esac

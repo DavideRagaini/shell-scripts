@@ -103,7 +103,7 @@ case "$CHOSEN" in
 		;;
 
 	last)
-		mpv "$(cat "$PATH_LAST")"
+		open_mpv "$(cat "$PATH_LAST")"
 		;;
 
 	last_lecture)
