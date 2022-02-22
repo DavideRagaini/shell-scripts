@@ -19,7 +19,7 @@ case "$ext" in
 	m) matlab -nosplash -nodesktop -r "run(\"$file\")" ;;
 	# m) octave "$file" ;;
 	md)	if  [ -x "$(command -v lowdown)" ]; then
-			lowdown -d nointem -e super "$file" -Tms | groff -mpdfmark -ms -kept > "$base".pdf
+ 			lowdown --parse-no-intraemph "$file" -Tms | groff -mpdfmark -ms -kept > "$base".pdf
 		elif [ -x "$(command -v groffdown)" ]; then
 			groffdown -i "$file" | groff > "$base.pdf"
 		else
