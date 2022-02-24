@@ -15,4 +15,6 @@ CLOCK="$(echo "$CLOCK" | cut -c 1-${N:-4})"
 
 LOAD="$(cut -d ' ' -f1-3 /proc/loadavg)"
 
-printf "[%s @%s]" "$LOAD" "$CLOCK"
+[ "$(doas tlp-stat -s | awk '/Mode/ {print $3}')" = "AC" ] && FIRE=" "
+
+printf "[%s @%s%s]" "$LOAD" "$CLOCK" "$FIRE"
