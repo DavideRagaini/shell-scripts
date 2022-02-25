@@ -26,12 +26,6 @@ OUTPUT="${OUTPUT%% -\>*}"
 
 # Pipewire
 pactl set-default-sink "$OUTPUT"
-
 # Pulseaudio
 # INPUTS=$(pactl list short sink-inputs | awk '{print $1}')
 # pactl move-sink-input $INPUTS $OUTPUT
-
-# pkill -RTMIN+10 dwmblocks
-# pkill -RTMIN+7 dwmblocks &&
-sleep 3 &&
-pkill -RTMIN+10 dwmblocks

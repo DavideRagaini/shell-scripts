@@ -8,5 +8,3 @@ case "$(sudo tlp-stat -s | grep Mode | awk '{print $3}')" in
 		sudo tlp bat
 		notify-send "  Energy Saving mode";;
 esac
-
-pkill -RTMIN+6 dwmblock
