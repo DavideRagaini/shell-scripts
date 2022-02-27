@@ -8,8 +8,5 @@ case $BLOCK_BUTTON in
     6) "$TERMINAL" -e "$EDITOR" "$0" ;;
 esac
 
-if [ "$(mpc status | awk 'NR==2 {print $1}')" = "[playing]" ]; then
+[ "$(mpc status | awk 'NR==2 {print $1}')" = "[playing]" ] &&
     printf "[%.95s]" "$(mpc current -f "ﴁ %artist%  %title%  %album%")"
-else
-    printf "[🎵]"
-fi
