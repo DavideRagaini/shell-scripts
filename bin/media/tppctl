@@ -1,10 +1,33 @@
 #!/bin/sh
 
 [ -z "$1" ] && echo "Missing arguments" && exit
+sockets_dir="/tmp/mpvSockets"
+actions() {
+    case $1 in
+        toggle) echo cycle pause | socat - "$2" ;;
+        next) echo playlist-next | socat - "$2" ;;
+        prev) echo playlist-prev | socat - "$2" ;;
+        fseek) echo seek 10 | socat - "$2" ;;
+        bseek) echo seek -10 | socat - "$2" ;;
+    esac
+}
 
-case $1 in
-    toggle) echo cycle pause | socat - "/tmp/mpvsocket" ;;
-    next) echo playlist-next | socat - "/tmp/mpvsocket" ;;
-    prev) echo playlist-prev | socat - "/tmp/mpvsocket" ;;
-    seek) echo seek "$2" | socat - "/tmp/mpvsocket" ;;
-esac
+instances="$(find $sockets_dir -type s)"
+if [ "$1" = "pause_all" ]; then
+    for i in $instances; do
+        echo '{ "command": ["set_property", "pause", true] }' | socat - "$i";
+    done
+    exit
+fi
+
+list=" "
+if [ "$(echo "$instances" | wc -l)" -eq 1 ]; then
+    actions "$1" "$instances"
+else
+    for i in $instances; do
+        title="$(echo '{ "command": ["get_property", "media-title"] }' | socat - "$i" | jq -r '.data')"
+        list="$(printf "%s%s (%s)\n " "$list" "$title" "$i")"
+    done
+    toggled="$(echo "$list" | sed '/^ $/d' | dmenu -i -l 5 -p "Toggle which?")"
+    actions "$1" "$(echo "$toggled" | sed 's/.*(\(.*\))/\1/')"
+fi

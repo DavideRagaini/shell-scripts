@@ -1,0 +1,19 @@
+#!/bin/sh
+
+instances="$(playerctl -a -i spotifyd,mpv metadata --format "{{playerName}} -> {{status}}  {{title}} - {{artist}} {{album}}" | sed 's/Playing/奈/ ; s/Paused//' | nl -w2 -s' ')"
+
+# Just one istance of whatever player
+[ "$(echo "$instances" | wc -l)" -eq 1 ] &&
+    playerctl -p "$(echo "$instances" | awk '{print $2}')" "$1" "$2" && exit
+
+chosen="$(echo "$instances" | dmenu -l 5)" || exit
+howmany=$(echo "$instances" | grep -c "$(echo "$chosen" | awk '{print $2}')")
+if [ $howmany -eq 1 ]
+then
+    #  If there are more players elegible
+    playerctl -p "$(echo "$chosen" | awk '{print $2}')"  "$1" "$2"
+else
+    # If there is more then 1 instances of the same player
+    player="$(playerctl -l | dmenu -l 5)"
+    playerctl -p "$player"  "$1" "$2"
+fi

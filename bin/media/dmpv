@@ -46,8 +46,8 @@ floating() {
 	dim_w_x="$((dim_mon_x/6))"
 	dim_w_y="$((dim_mon_y/6))"
 	x="$((dim_mon_x - dim_w_x - 5))"
-	# y="$((dim_mon_y - dim_w_y - 40))"		# bottom bar
-	y="$((dim_mon_y - dim_w_y - 5))"		# top bar
+	y="$((dim_mon_y - dim_w_y - 40))"		# bottom bar
+	# y="$((dim_mon_y - dim_w_y - 5))"		# top bar
 	GEOM="$(printf "%sx%s+%s+%s" "$dim_w_x" "$dim_w_y" "$x" "$y")"
 }
 
@@ -84,7 +84,7 @@ case "$CHOSEN" in
 
 	lectures)
 		LECTURES="$VIDEOS_FOLDER/Lectures"
-		CHOSEN="$(find "$LECTURES" -maxdepth 1 -type d | cut -d'/' -f7 | dmenu -i -l 20)" || exit
+		CHOSEN="$(find "$LECTURES" -maxdepth 1 -type d | cut -d'/' -f7 | sed '/^$/d' | dmenu -i -l 10)" || exit
 		URL="$LECTURES/$CHOSEN"
 		open_mpv "$URL"
 		;;

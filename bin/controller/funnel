@@ -16,7 +16,8 @@ lockfile="/tmp/ts.lock"
 tsstart() {
 	touch "${lockfile}"
 	while read url ; do
-		$BROWSER "$url"
+		# $BROWSER "$url"
+		sh "$url"
 	done < "${pipefile}"
 	rm -f "${lockfile}"
 	notify-send " Tasks Completed"
