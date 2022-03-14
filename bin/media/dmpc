@@ -1,7 +1,6 @@
 #!/bin/sh
 
 if [ "$(pgrep spotifyd)" ]; then # || [ "$(playerctl -l | grep -q spotifyd)" ]
-    mpc -q pause
     case "$1" in
         toggle)
             dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotifyd /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.PlayPause ;;
