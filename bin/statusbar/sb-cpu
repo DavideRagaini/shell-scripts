@@ -12,9 +12,6 @@ R=$(shuf -i "$CORES" -n 1)
 CLOCK="$(cat /sys/devices/system/cpu/cpu"$R"/cpufreq/scaling_cur_freq)"
 [ "$CLOCK" -lt 1000000 ] && N=3
 CLOCK="$(echo "$CLOCK" | cut -c 1-${N:-4})"
-
 LOAD="$(cut -d ' ' -f1-3 /proc/loadavg)"
-
-[ "$(doas tlp-stat -s | awk '/Mode/ {print $3}')" = "AC" ] && FIRE=" "
-
-printf "[%s @%s%s]" "$LOAD" "$CLOCK" "$FIRE"
+# [ "$(doas tlp-stat -s | awk '/Mode/ {print $3}')" = "AC" ] && FIRE=" "
+printf "%s %d@%s]" "$LOAD" "$R" "$CLOCK"

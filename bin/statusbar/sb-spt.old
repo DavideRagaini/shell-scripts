@@ -1,0 +1,12 @@
+#!/bin/sh
+
+case "$BLOCK_BUTTON" in
+	1) notify-send "Spotify" "$(playerctl -p spotifyd metadata --format "ﴁ {{artist}} 阮 {{title}}  {{album}}")" ;;
+	3) playerctl -p spotifyd play-pause ;;
+	4) playerctl -p spotifyd next ;;
+	5) playerctl -p spotifyd previuos ;;
+	6) "$TERMINAL" -e "$EDITOR" "$0" ;;
+esac
+
+[ "$(playerctl -p spotifyd status)" = "Playing" ] &&
+	printf "[ %.95s]" "$(playerctl -p spotifyd metadata --format "{{title}} ﴁ {{artist}}  {{album}}")"

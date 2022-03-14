@@ -1,7 +1,6 @@
 #!/bin/sh
 
 [ -z "$1" ] && echo "Missing arguments" && exit
-sockets_dir="/tmp/mpvSockets"
 actions() {
     case $1 in
         toggle) echo cycle pause | socat - "$2" ;;
@@ -12,7 +11,7 @@ actions() {
     esac
 }
 
-instances="$(find $sockets_dir -type s)"
+instances="$(find "/tmp/mpvSockets" -type s)"
 if [ "$1" = "pause_all" ]; then
     for i in $instances; do
         echo '{ "command": ["set_property", "pause", true] }' | socat - "$i";
@@ -28,6 +27,6 @@ else
         title="$(echo '{ "command": ["get_property", "media-title"] }' | socat - "$i" | jq -r '.data')"
         list="$(printf "%s%s (%s)\n " "$list" "$title" "$i")"
     done
-    toggled="$(echo "$list" | sed '/^ $/d' | dmenu -i -l 5 -p "Toggle which?")"
-    actions "$1" "$(echo "$toggled" | sed 's/.*(\(.*\))/\1/')"
+    chosen="$(echo "$list" | sed '/^ $/d' | dmenu -i -fn 'FiraCode Nerd Font:size=18' -l 5 -p "Toggle which?")"
+    actions "$1" "$(echo "$chosen" | sed 's/.*(\(.*\))/\1/')"
 fi

@@ -1,3 +1,3 @@
 #!/bin/sh
 
-emacsclient -s davide -c -e "(progn (find-file \"$HOME/Org/Tasks.org\") (split-window-right 65) (org-agenda-list 31))" -F "((name . \"Eagenda\")(width . 170)(height . 45))"
+emacsclient -c -e "(progn (find-file \"$HOME/Org/Tasks.org\") (split-window-right 65) (org-agenda-list 15))" -F "((name . \"Eagenda\")(width . 170)(height . 45))"

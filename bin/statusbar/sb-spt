@@ -1,12 +1,15 @@
-#!/bin/sh
+#!/usr/bin/env python3
 
-case "$BLOCK_BUTTON" in
-	1) notify-send "Spotify" "$(playerctl -p spotifyd metadata --format "ﴁ {{artist}} 阮 {{title}}  {{album}}")" ;;
-	3) playerctl -p spotifyd play-pause ;;
-	4) playerctl -p spotifyd next ;;
-	5) playerctl -p spotifyd previuos ;;
-	6) "$TERMINAL" -e "$EDITOR" "$0" ;;
-esac
+import dbus
 
-[ "$(playerctl -p spotifyd status)" = "Playing" ] &&
-	printf "[ %.95s]" "$(playerctl -p spotifyd metadata --format "{{title}} ﴁ {{artist}}  {{album}}")"
+bus = dbus.SessionBus()
+player = bus.get_object('org.mpris.MediaPlayer2.spotifyd', '/org/mpris/MediaPlayer2')
+iface = dbus.Interface(player, dbus_interface='org.freedesktop.DBus.Properties')
+status = iface.Get('org.mpris.MediaPlayer2.Player', 'PlaybackStatus')
+if status == 'Playing':
+    info = iface.Get('org.mpris.MediaPlayer2.Player', 'Metadata')
+    print("[ %.28s ﴁ %.28s  %s° %.28s]" %
+          (str(info['xesam:title']),
+          str(info['xesam:artist'][0]),
+          str(info['xesam:trackNumber']),
+          str(info['xesam:album'])))

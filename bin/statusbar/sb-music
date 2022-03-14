@@ -9,4 +9,4 @@ case $BLOCK_BUTTON in
 esac
 
 [ "$(mpc status | awk 'NR==2 {print $1}')" = "[playing]" ] &&
-    printf "[%.95s]" "$(mpc current -f "ﴁ %artist%  %title%  %album%")"
+    printf "[%.95s]" "$(mpc current -f "ﴁ %artist%  %title%  %track%° %album%")"

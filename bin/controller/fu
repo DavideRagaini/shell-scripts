@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/bin/sh
 
 cleanup() {
 	~/.config/lf/cleaner
@@ -7,7 +7,7 @@ cleanup() {
 	rm -rf "$LF_UEBERZUG_TEMPDIR"
 }
 
-trap cleanup INT HUP
+trap cleanup INT HUP QUIT TERM PWR EXIT
 
 LF_UEBERZUG_TEMPDIR="$(mktemp -d -t lf-XXXXXX)"
 export LF_UEBERZUG_TEMPDIR
