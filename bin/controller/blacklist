@@ -1,18 +1,15 @@
 #!/bin/sh
 
-list="/etc/hosts.list"
-cat > "$list" <<EOF
-url="https://hosts.ubuntu101.co.za/hosts"
-output="/etc/hosts1"
-url="http://sbc.io/hosts/alternates/fakenews-gambling-porn/hosts"
-output="/etc/hosts2"
-url="https://hosts.ubuntu101.co.za/hosts.deny"
-output="/etc/hosts.deny"
-url="https://hosts.ubuntu101.co.za/superhosts.deny"
-output="/etc/superhosts.deny"'
-EOF
+DIR="/etc"
 
-echo 'Downloading hosts'
-curl --parallel --parallel-immediate --parallel-max 4 --config $list
-cat "/etc/hosts1" >"/etc/hosts"
-cat "/etc/hosts2" >>"/etc/hosts"
+URLS="https://hosts.ubuntu101.co.za/hosts
+https://hosts.ubuntu101.co.za/superhosts.deny
+https://hosts.ubuntu101.co.za/hosts.deny"
+
+echo 'Downloading hosts files'
+for i in $URLS; do
+    wget "$i" -N -P $DIR &
+    sleep 0.5
+done
+wait &&
+    wget 'http://sbc.io/hosts/alternates/fakenews-gambling-porn/hosts' -O ->> "$DIR/hosts"
