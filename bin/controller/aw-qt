@@ -1,0 +1,10 @@
+#!/bin/sh
+
+cd $HOME/Packages/activitywatch-mod
+
+./aw-server/aw-server &
+./aw-watcher-afk/aw-watcher-afk &
+./aw-watcher-window/aw-watcher-window &
+./aw-watcher-utilization/aw-watcher-utilization &
+./aw-watcher-utilization/aw-watcher-input &
+poetry run ./aw-watcher-input/aw-warcher-input &

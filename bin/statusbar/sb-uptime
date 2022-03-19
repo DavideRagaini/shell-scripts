@@ -1,0 +1,3 @@
+#!/bin/sh
+
+uptime | awk '{gsub(",",""); print "[" $3"]"}'

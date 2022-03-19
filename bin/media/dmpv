@@ -55,7 +55,7 @@ open_mpv() {
 	echo "$1" >"$PATH_LAST"
 	notify-send "Working on:" "$TITLE\n$1"
 	floating
-	ts -L "$TITLE" mpv --no-terminal --geometry="$GEOM" --title="fmpv" "$1" >/dev/null
+	ts -L "$TITLE" mpv --no-terminal --geometry="$GEOM" --x11-name="mpvFloat" "$1" >/dev/null
 }
 
 case "$CHOSEN" in
@@ -64,7 +64,6 @@ case "$CHOSEN" in
 		LINE="$(grep -w "$CHOSEN" "$PATH_QUEUE")"
 		TITLE="$(cut -f1 <<<"$LINE")"
 		URL="$(cut -f2 <<<"$LINE")"
-		notify-send "$TITLE" "$URL"
 		open_mpv "$URL"
 		;;
 
@@ -84,9 +83,10 @@ case "$CHOSEN" in
 
 	lectures)
 		LECTURES="$VIDEOS_FOLDER/Lectures"
-		CHOSEN="$(find "$LECTURES" -maxdepth 1 -type d | cut -d'/' -f7 | sed '/^$/d' | dmenu -i -l 10)" || exit
+		CHOSEN="$(find "$LECTURES" -maxdepth 1 -type d | cut -d'/' -f7 | sed '/^$/d' | dmenu -i -l 10)" ||
+			exit
 		URL="$LECTURES/$CHOSEN"
-		open_mpv "$URL"
+		mpv "$URL" '--title="${path} - mpv"'
 		;;
 
 	local)

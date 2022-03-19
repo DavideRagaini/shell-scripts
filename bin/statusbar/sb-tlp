@@ -1,0 +1,3 @@
+#!/bin/sh
+
+[ "$(doas tlp-stat -s | awk '/Mode/ {print $3}')" = "AC" ] && printf ""

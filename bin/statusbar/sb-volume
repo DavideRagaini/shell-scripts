@@ -13,7 +13,7 @@ volstat="$(amixer get Master)"
 
 echo "$volstat" |
 	grep "\[off\]" >/dev/null &&
-	printf "[婢]" &&
+	printf "[ﱝ]" &&
 	exit
 
-printf "[%s %s]" "奄" "$(echo "$volstat" | grep -o "\[[0-9]\+%\]" | sed "s/[^0-9]*//g;1q")"
+printf "[%s %s]" "墳" "$(echo "$volstat" | grep -o "\[[0-9]\+%\]" | sed "s/[^0-9]*//g;1q")"
