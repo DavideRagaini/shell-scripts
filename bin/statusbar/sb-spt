@@ -8,8 +8,16 @@ iface = dbus.Interface(player, dbus_interface='org.freedesktop.DBus.Properties')
 status = iface.Get('org.mpris.MediaPlayer2.Player', 'PlaybackStatus')
 if status == 'Playing':
     info = iface.Get('org.mpris.MediaPlayer2.Player', 'Metadata')
-    print("[ %.28s ﴁ %.28s  %s° %.28s]" %
+    artists = ""
+    n_artists = len(info['xesam:artist'])
+    if n_artists > 1:
+        for i in range(n_artists):
+            artists = artists + str(info['xesam:artist'][i]) + ", "
+    else:
+        artists = str(info['xesam:artist'][0])
+    print("[ %.29s ﴁ %.29s  %s° %.29s]" %
           (str(info['xesam:title']),
-          str(info['xesam:artist'][0]),
+          artists,
           str(info['xesam:trackNumber']),
           str(info['xesam:album'])))
+exit(0)

@@ -12,17 +12,20 @@ actions() {
 }
 
 instances="$(find "/tmp/mpvSockets" -type s)"
-if [ "$1" = "pause_all" ]; then
-    for i in $instances; do
-        echo '{ "command": ["set_property", "pause", true] }' | socat - "$i";
-    done
-    exit
-fi
-
-list=" "
 if [ "$(echo "$instances" | wc -l)" -eq 1 ]; then
     actions "$1" "$instances"
+elif [ "$1" = "pause_all" ]; then
+    for i in $instances; do
+        echo '{ "command": ["set_property", "pause", true] }' |
+            socat - "$i";
+    done
+elif [ "$1" = "invert" ]; then
+    for i in $instances; do
+        echo '{ "command": ["cycle", "pause"] }' |
+            socat - "$i";
+    done
 else
+    list=" "
     for i in $instances; do
         title="$(echo '{ "command": ["get_property", "media-title"] }' | socat - "$i" | jq -r '.data')"
         list="$(printf "%s%s (%s)\n " "$list" "$title" "$i")"

@@ -9,7 +9,9 @@ build_cache() {
 }
 
 reader() {
-    zathura "$(fzfmenu <"$CACHE")"
+    file="$(fzfmenu <"$CACHE")"
+    [ -n "$file" ] &&
+        zathura "$file"
 }
 
 case "$1" in

@@ -1,10 +1,13 @@
-#!/usr/bin/env sh
+#!/bin/sh
 
+ICONS='/usr/share/icons/Paper/48x48@2x'
 case "$(sudo tlp-stat -s | grep Mode | awk '{print $3}')" in
 	battery)
 		sudo tlp ac
-		notify-send " Performance mode";;
-	AC)
+		notify-send -i "$ICONS/categories/cs-power.png" "Plug AC"
+		;;
+	AC|unknown)
 		sudo tlp bat
-		notify-send "  Energy Saving mode";;
+		notify-send -i "$ICONS/emblems/emblem-photos.png" "Energy Saving mode"
+		;;
 esac

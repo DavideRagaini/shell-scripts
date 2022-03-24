@@ -86,7 +86,7 @@ case "$CHOSEN" in
 		CHOSEN="$(find "$LECTURES" -maxdepth 1 -type d | cut -d'/' -f7 | sed '/^$/d' | dmenu -i -l 10)" ||
 			exit
 		URL="$LECTURES/$CHOSEN"
-		mpv "$URL" '--title="${path} - mpv"'
+		mpv "$URL" '--title=${path} - mpv'
 		;;
 
 	local)
@@ -95,10 +95,10 @@ case "$CHOSEN" in
 		if [ -d "$GENER$DIR" ]; then
 			CHOSEN="$(find "$GENER$DIR" | cut -d'/' -f8 | dmenu -i -l 20)" || exit
 			URL="$GENER$DIR/$CHOSEN"
-			open_mpv "$URL"
+			mpv "$URL"
 		else
 			URL="$GENER$DIR"
-			open_mpv "$URL"
+			mpv "$URL"
 		fi
 		;;
 

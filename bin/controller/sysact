@@ -1,0 +1,56 @@
+#!/bin/sh
+
+if [ -z "$1" ]
+then
+	cmds="\
+	Lock
+	dwm
+	dwmblocks
+	Leave
+	Reboot
+	Suspend
+	Hibernate
+	Display
+	Shutdown"
+	choice="$(printf "%s" "$cmds" | cut -d'	' -f 2 | dmenu)"
+else
+	choice="$1"
+fi
+
+log() {
+	printf "%s:%s%s\n" "$1" "$(date '+%F %a %T')" "$2" >> "$HOME/.local/uptime"
+}
+
+[ "$(printf "No\\nYes" | dmenu -i -p "$choice" -nb darkred -sb red -sf white -nf gray)" = "No" ] &&
+	exit 1
+
+case "$choice" in
+	Start)
+		log "Start     " "";;
+	Shutdown)
+		log "Shutdown  " " -> $(uptime -p)" &&
+			sudo -A shutdown -h now;;
+	Suspend)
+		log "Suspend   " "" &&
+			sudo -A zzz;;
+	Hibernate)
+		log "Hibernate " "" &&
+			sudo -A ZZZ ;;
+	Resume)
+		log "Resume    " "" ;;
+	Reboot)
+		log "Reboot    " "" &&
+			sudo -A shutdown -r now ;;
+	Lock)
+		lock ;;
+	Leave)
+		kill -TERM "$(pgrep -u $USER "\bdwm$")" ;;
+	dwm)
+		kill -HUP "$(pgrep -u $USER "\bdwm$")" ;;
+	dwmblocks)
+		killall -q dwmblocks
+		setsid dwmblocks & ;;
+	Display)
+		xset dpms force off ;;
+	*) exit 2 ;;
+esac
