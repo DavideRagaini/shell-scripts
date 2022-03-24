@@ -21,36 +21,34 @@ log() {
 	printf "%s:%s%s\n" "$1" "$(date '+%F %a %T')" "$2" >> "$HOME/.local/uptime"
 }
 
-[ "$(printf "No\\nYes" | dmenu -i -p "$choice" -nb darkred -sb red -sf white -nf gray)" = "No" ] &&
-	exit 1
+confirm() {
+	[ "$(printf "No\\nYes" | dmenu -i -p "$choice" -nb darkred -sb red -sf white -nf gray)" = "No" ] &&
+		exit 1
+}
 
 case "$choice" in
-	Start)
-		log "Start     " "";;
+	Start) log "Start     " "";;
+	Resume) log "Resume    " "" ;;
+	dwm) kill -HUP "$(pgrep -u $USER "\bdwm$")" ;;
+	dwmblocks) killall -q dwmblocks && setsid dwmblocks & ;;
+	Display) xset dpms force off ;;
+	Leave) kill -TERM "$(pgrep -u $USER "\bdwm$")" ;;
+	Lock) confirm; lock ;;
 	Shutdown)
+		confirm
 		log "Shutdown  " " -> $(uptime -p)" &&
 			sudo -A shutdown -h now;;
 	Suspend)
+		confirm
 		log "Suspend   " "" &&
 			sudo -A zzz;;
 	Hibernate)
+		confirm
 		log "Hibernate " "" &&
 			sudo -A ZZZ ;;
-	Resume)
-		log "Resume    " "" ;;
 	Reboot)
+		confirm
 		log "Reboot    " "" &&
 			sudo -A shutdown -r now ;;
-	Lock)
-		lock ;;
-	Leave)
-		kill -TERM "$(pgrep -u $USER "\bdwm$")" ;;
-	dwm)
-		kill -HUP "$(pgrep -u $USER "\bdwm$")" ;;
-	dwmblocks)
-		killall -q dwmblocks
-		setsid dwmblocks & ;;
-	Display)
-		xset dpms force off ;;
 	*) exit 2 ;;
 esac
