@@ -12,22 +12,22 @@ then
 	Hibernate
 	Display
 	Shutdown"
-	choice="$(printf "%s" "$cmds" | cut -d'	' -f 2 | dmenu)"
+	choice="$(printf "%s" "$cmds" | cut -d'	' -f 2 | dmenu -i)"
 else
 	choice="$1"
 fi
 
 log() {
-	printf "%s:%s%s\n" "$1" "$(date '+%F %a %T')" "$2" >> "$HOME/.local/uptime"
+	printf "%s %s%s\n" "$1" "$(date '+%F %a %T')" "$2" >> "$HOME/.local/uptime"
 }
 
 confirm() {
-	[ "$(printf "No\\nYes" | dmenu -i -p "$choice" -nb darkred -sb red -sf white -nf gray)" = "No" ] &&
+	[ "$(printf "No\\nYes" | dmenu -i -p "$choice" -nb darkred -sb red -sf white -nf gray)" = "Yes" ] ||
 		exit 1
 }
 
 case "$choice" in
-	Start) log "Start     " "";;
+	Start) log "Start     " "" ;;
 	Resume) log "Resume    " "" ;;
 	dwm) kill -HUP "$(pgrep -u $USER "\bdwm$")" ;;
 	dwmblocks) killall -q dwmblocks && setsid dwmblocks & ;;
