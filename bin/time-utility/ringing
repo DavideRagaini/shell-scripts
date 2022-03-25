@@ -1,0 +1,2 @@
+#!/bin/sh
+mpv --no-terminal --start=00:00 --x11-name="mpvAlarm"--no-config "${XDG_VIDEOS_DIR:-$HOME/Storage/Videos}/alarm"

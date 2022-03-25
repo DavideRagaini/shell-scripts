@@ -11,4 +11,4 @@ countdown() {
 }
 
 countdown "$1" &&
-	mpv --loop-file --no-config ~/Storage/Inukshuk.flac
+	ringing

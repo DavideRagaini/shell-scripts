@@ -1,0 +1,12 @@
+#!/bin/sh
+
+SESSION="alarm"
+
+[ -z "$(tmux has-session -t $SESSION)" ] &&
+	{
+		tmux new-session -d -s $SESSION
+		tmux rename-window -t $SESSION:0 'PeaClock'
+		tmux send-keys -t 'PeaClock' 'peaclock --config-dir "$HOME/.config/peaclock"' C-m
+	}
+
+tmux attach-session -t $SESSION:0

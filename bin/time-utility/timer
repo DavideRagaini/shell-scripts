@@ -16,5 +16,5 @@ sleep $(( hour*3600 + minute*60 + seconds ))
 # echo "$blink_pid"
 # echo now should be killed
 # blink_pid="$(echo $!)"
-mpv --no-config "$HOME/Storage/Videos/20170728-The Hirsch Effekt - INUKSHUK (Official Video).mkv"
-kill "$blink_pid"
+ringing
+# kill "$blink_pid"
