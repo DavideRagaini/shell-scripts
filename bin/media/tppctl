@@ -30,6 +30,6 @@ else
         title="$(echo '{ "command": ["get_property", "media-title"] }' | socat - "$i" | jq -r '.data')"
         list="$(printf "%s%s (%s)\n " "$list" "$title" "$i")"
     done
-    chosen="$(echo "$list" | sed '/^ $/d' | dmenu -i -fn 'FiraCode Nerd Font:size=18' -l 5 -p "Toggle which?")"
+    chosen="$(echo "$list" | sed '/^ $/d' | dmenu -i -l 5 -p "Toggle which?")"
     actions "$1" "$(echo "$chosen" | sed 's/.*(\(.*\))/\1/')"
 fi

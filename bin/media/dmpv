@@ -18,6 +18,7 @@ else
 	URL="$2"
 fi
 
+export TS_SOCKET="/tmp/ts_dmpv"
 VIDEOS_FOLDER="${XDG_VIDEOS_DIR:-$HOME/Storage/Videos}"
 PATH_QUEUE="$HOME/.config/mpv/queue"
 PATH_LAST="$HOME/.config/mpv/last"
@@ -25,18 +26,18 @@ TITLE=""
 GEOM=""
 
 get_title() {
-	TITLE="$(yt-dlp --no-warnings --dump-single-json "$1" | jq -r '"\(.title) «\(.uploader)»"')"
+	TITLE="$(yt-dlp --no-warnings --dump-single-json "$URL" | jq -r '"\(.title) «\(.uploader)»"')"
 	[ -z "$TITLE" ] && notify-send "could not retrieve title" && exit
 }
 
 add_to_queue() {
 	PLAYLIST="$(: | dmenu -p "Name of the playlist?")"
 	[ -z "$PLAYLIST" ] && PLAYLIST="1shot"
-	get_title "$1"
-	notify-send "$PLAYLIST:$TITLE" "$1"
-	printf "%s:%s «%s»\t%s\n%s" "$PLAYLIST" "$TITLE" "$(date '+%k:%M %d/%m/%y')" "$1" "$(cat "$PATH_QUEUE")" >"$PATH_QUEUE" ||
+	get_title
+	notify-send "$PLAYLIST:$TITLE" "$URL"
+	printf "%s:%s «%s»\t%s\n" "$PLAYLIST" "$TITLE" "$(date '+%k:%M %d/%m/%y')" "$URL" >>"$PATH_QUEUE" ||
 		notify-send "Failed to queue"
-	sort "$PATH_QUEUE" -o "$PATH_QUEUE"
+	sort -u "$PATH_QUEUE" -o "$PATH_QUEUE"
 }
 
 floating() {
@@ -51,44 +52,43 @@ floating() {
 	GEOM="$(printf "%sx%s+%s+%s" "$dim_w_x" "$dim_w_y" "$x" "$y")"
 }
 
-open_mpv() {
-	echo "$1" >"$PATH_LAST"
-	notify-send "Working on:" "$TITLE\n$1"
+}
+
+save_to_last() {
+	printf "%s:%s\t%s\n" "$(date '+%k:%M %d/%m/%y')" "$TITLE" "$URL" >>"$PATH_LAST" ||
+		notify-send "Working on:" "$TITLE\n$URL"
+}
+
+fplay() {
 	floating
-	ts -L "$TITLE" mpv --no-terminal --geometry="$GEOM" --x11-name="mpvFloat" "$1" >/dev/null
+	ts -L "$TITLE" mpv --no-terminal --geometry="$GEOM" --x11-name="mpvFloat" "$URL" >/dev/null
+}
+
+get_from_file(){
+	FILE="${1}"
+	CHOSEN="$(cut -f1 "$FILE" | dmenu -i -l 20)" || exit
+	LINE="$(grep -w "$CHOSEN" "$FILE")"
+	TITLE="$(cut -f1 <<<"$LINE")"
+	URL="$(cut -f2 <<<"$LINE")"
 }
 
 case "$CHOSEN" in
-	queue)
-		CHOSEN="$(cut -f1 "$PATH_QUEUE" | dmenu -i -l 20)" || exit
-		LINE="$(grep -w "$CHOSEN" "$PATH_QUEUE")"
-		TITLE="$(cut -f1 <<<"$LINE")"
-		URL="$(cut -f2 <<<"$LINE")"
-		open_mpv "$URL"
-		;;
-
-	eplay)
-		open_mpv "$URL" &
-		add_to_queue "$URL"
-		;;
-
-	enqueue)
-		add_to_queue "$URL"
-		;;
-
-	aplay)
-		get_title "$URL"
-		open_mpv "$URL"
-		;;
-
+	queue) get_from_file "$PATH_QUEUE"
+		   save_to_last
+		   fplay ;;
+	eplay) save_to_last
+		   fplay &
+		   add_to_queue ;;
+	enqueue) add_to_queue ;;
+	aplay) get_title
+		   save_to_last
+		   fplay ;;
 	lectures)
 		LECTURES="$VIDEOS_FOLDER/Lectures"
 		CHOSEN="$(find "$LECTURES" -maxdepth 1 -type d | cut -d'/' -f7 | sed '/^$/d' | dmenu -i -l 10)" ||
 			exit
 		URL="$LECTURES/$CHOSEN"
-		mpv "$URL" '--title=${path} - mpv'
-		;;
-
+		mpv "$URL" '--title=${path} - mpv' ;;
 	local)
 		GENER="$VIDEOS_FOLDER"
 		DIR="$(find "$GENER" -maxdepth 1 -type d | cut -d'/' -f6 | dmenu -i -l 20)" || exit
@@ -99,18 +99,13 @@ case "$CHOSEN" in
 		else
 			URL="$GENER$DIR"
 			mpv "$URL"
-		fi
-		;;
-
-	last)
-		open_mpv "$(cat "$PATH_LAST")"
-		;;
-
-	last_lecture)
-		mpv "$VIDEOS_FOLDER/Lectures/doing"
-		;;
-
-	edit_queue)
-		$VISUAL "$PATH_QUEUE"
-		;;
+		fi ;;
+	last) get_from_file "$PATH_LAST"
+		  notify-send "Working on:" "$TITLE\n$URL"
+		  fplay	;;
+	last_lecture) mpv "$VIDEOS_FOLDER/Lectures/doing" ;;
+	edit_queue)	$VISUAL "$PATH_QUEUE" ;;
+	ts)	shift 1
+		ts $@ ;;
+	*) notify-send "Something wrong..." ;;
 esac

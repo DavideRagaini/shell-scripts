@@ -12,7 +12,7 @@ then
 	Hibernate
 	Display
 	Shutdown"
-	choice="$(printf "%s" "$cmds" | cut -d'	' -f 2 | dmenu -i)"
+	choice="$(printf "%s" "$cmds" | cut -d'	' -f 2 | dmenu -i -p 'Choose an action:')"
 else
 	choice="$1"
 fi
@@ -37,7 +37,7 @@ case "$choice" in
 	Shutdown)
 		confirm
 		log "Shutdown  " " -> $(uptime -p)" &&
-			sudo -A shutdown -h now;;
+			sudo -A poweroff -i now;;
 	Suspend)
 		confirm
 		log "Suspend   " "" &&
@@ -49,6 +49,6 @@ case "$choice" in
 	Reboot)
 		confirm
 		log "Reboot    " "" &&
-			sudo -A shutdown -r now ;;
+			sudo -A reboot -i now ;;
 	*) exit 2 ;;
 esac

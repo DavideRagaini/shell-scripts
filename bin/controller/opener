@@ -8,7 +8,7 @@ for i in $@; do
         *.epub | *.mobi | *.azw3) setsid ebook-viewer "$i" & ;;
         *.mkv | *.web | *.mp4 | *avi) setsid mpv -no-terminal "$i" & ;;
         *.mp3 | *.flac | *.opus | *mp3?source*) setsid mpv "$i" & ;;
-        *.png | *.jpg | *.jpeg | *.gif) setsid sxiv "$i" & ;;
+        *.png | *.jpg | *.jpeg | *.gif) setsid nsxiv "$i" & ;;
         *.tar*) tar tf "$file" | less ;;
         *.zip) unzip -l "$file" | less ;;
         *.rar) unrar l "$file" | less ;;
