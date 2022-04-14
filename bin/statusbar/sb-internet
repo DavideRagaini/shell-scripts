@@ -11,4 +11,4 @@ case $BLOCK_BUTTON in
 esac
 
 [ "$(wifi | awk '{print $3}')" = "on" ] && wifiicon="" && signal="$(grep "^\s*w" /proc/net/wireless | awk '{print int($3 * 100 / 70) "%" }')"
-printf "[%s%s%s]" "$wifiicon" "$signal" "$(cat /sys/class/net/e*/operstate | sed "s/down/❎/;s/up/🌐/;s/unknown//")"
+printf "[%s%s%s]" "$wifiicon" " $signal " "$(cat /sys/class/net/e*/operstate | sed "s/down/❎/;s/up/🌐/;s/unknown//")"

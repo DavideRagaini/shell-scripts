@@ -40,6 +40,7 @@ case "$choice" in
 			sudo -A poweroff -i now;;
 	Suspend)
 		confirm
+		i3lock -eft -c 1d2021 -i ~/.config/lockscreen.png
 		log "Suspend   " "" &&
 			sudo -A zzz;;
 	Hibernate)

@@ -52,8 +52,6 @@ floating() {
 	GEOM="$(printf "%sx%s+%s+%s" "$dim_w_x" "$dim_w_y" "$x" "$y")"
 }
 
-}
-
 save_to_last() {
 	printf "%s:%s\t%s\n" "$(date '+%k:%M %d/%m/%y')" "$TITLE" "$URL" >>"$PATH_LAST" ||
 		notify-send "Working on:" "$TITLE\n$URL"

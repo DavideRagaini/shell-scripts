@@ -18,16 +18,16 @@ for battery in /sys/class/power_supply/BAT?*; do
 		"Full") status="⚡" ;;
 		"Discharging")
 			case "$capacity" in
-				100 | 9[0-9]) status='' ;;
-				8[0-9] | 7[0-9]) status='' ;;
-				6[0-9] | 5[0-9]) status='' ;;
-				4[0-9]) status='❗' ;;
-				3[0-9])
-					status='❗'
+				100 | 9[0-9]) status=' ' ;;
+				8[0-9] | 7[0-9]) status=' ' ;;
+				6[0-9] | 5[0-9]) status=' ' ;;
+				4[0-9] | 3[6-9]) status='❗  ' ;;
+				3[0-5])
+					status='❗  '
 					notify-send -i "/usr/share/icons/Paper/48x48@2x/status/battery-040.png" "Plug AC"
 					;;
 				2[0-9] | 1[0-9])
-					status='❗'
+					status='❗  '
 					notify-send -i "/usr/share/icons/Paper/48x48@2x/status/battery-020.png" "Plug AC"
 					;;
 			esac
@@ -36,8 +36,8 @@ for battery in /sys/class/power_supply/BAT?*; do
 			[ $capacity -ge 75 ] && notify-send -i "/usr/share/icons/Paper/48x48@2x/status/battery-000-charging.png" "Unplug AC"
 			status=""
 			;;
-		"Not charging") status="🛑" ;;
-		"Unknown") status="屢" ;;
+		"Not charging") status="🛑 " ;;
+		"Unknown") status="屢 " ;;
 	esac
-	printf "[%s%s %s]" "$status" "$capacity" "$(acpi | awk '{print $5}')"
+	printf "[%s %s %s]" "$status" "$capacity" "$(acpi | awk '{print $5}')"
 done && exit 0
