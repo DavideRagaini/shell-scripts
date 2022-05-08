@@ -1,24 +1,12 @@
 #!/bin/sh
 
-# This script is called on startup to remap keys.
-# Increase key speed via a rate change
 xset r rate 300 50
-# Map the caps lock key to super...
-# setxkbmap -option caps:swapescape
-# Swap left_ctrl <-> left_alt
-setxkbmap -option ctrl:swapcaps
-# Swap left_super <-> left_alt
-setxkbmap -option altwin:swap_lalt_lwin
-# But when it is pressed only once, treat it as escape.
+setxkbmap -layout us -variant altgr-intl -option ctrl:swapcaps,altwin:swap_lalt_lwin,altwin:menu_win
 killall xcape 2>/dev/null
 xcape -e 'Super_L=Escape'
-# Map the menu button to right super as well.
-xmodmap -e 'keycode 135 = Super_R'
-# Swap grave and acute accents
 xmodmap -e 'keycode 38 = a A a A agrave Agrave aacute aacute'
 xmodmap -e 'keycode 26 = e E e E egrave Egrave eacute eacute'
 xmodmap -e 'keycode 31 = i I i I igrave Igrave iacute iacute'
 xmodmap -e 'keycode 32 = o O o O ograve Ograve oacute oacute'
 xmodmap -e 'keycode 30 = u U u U ugrave Ugrave uacute uacute'
-# Turn off the caps lock if on since there is no longer a key for it.
 xset -q | grep "Caps Lock:\s*on" && xdotool key Caps_Lock

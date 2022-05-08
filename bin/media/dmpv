@@ -7,10 +7,10 @@ eplay
 aplay
 last
 edit_queue
+edit_last
 lectures
 local
 last_lecture"
-
 	CHOSEN="$(dmenu -i <<<"$CMDS")" || exit
 	URL="$(xclip -selection clipboard -o)" >/dev/null
 else
@@ -23,10 +23,13 @@ VIDEOS_FOLDER="${XDG_VIDEOS_DIR:-$HOME/Storage/Videos}"
 PATH_QUEUE="$HOME/.config/mpv/queue"
 PATH_LAST="$HOME/.config/mpv/last"
 TITLE=""
+CHANNEL=""
 GEOM=""
 
 get_title() {
-	TITLE="$(yt-dlp --no-warnings --dump-single-json "$URL" | jq -r '"\(.title) «\(.uploader)»"')"
+	JSON="$(yt-dlp --no-warnings --dump-single-json "$URL")"
+	TITLE="$(jq -r '.title' <<<$JSON)"
+	CHANNEL="$(jq -r '.uploader,.channel' <<<$JSON | uniq -i | sed '/null/d')"
 	[ -z "$TITLE" ] && notify-send "could not retrieve title" && exit
 }
 
@@ -34,9 +37,8 @@ add_to_queue() {
 	PLAYLIST="$(: | dmenu -p "Name of the playlist?")"
 	[ -z "$PLAYLIST" ] && PLAYLIST="1shot"
 	get_title
-	notify-send "$PLAYLIST:$TITLE" "$URL"
-	printf "%s:%s «%s»\t%s\n" "$PLAYLIST" "$TITLE" "$(date '+%k:%M %d/%m/%y')" "$URL" >>"$PATH_QUEUE" ||
-		notify-send "Failed to queue"
+	notify-send "$PLAYLIST:$TITLE $CHANNEL" "$URL"
+	printf "%s: %s [%-15s] «%s»\t%s\n" "$PLAYLIST" "$TITLE" "$CHANNEL" "$(date '+%k:%M %d/%m/%y')" "$URL" >>"$PATH_QUEUE"
 	sort -u "$PATH_QUEUE" -o "$PATH_QUEUE"
 }
 
@@ -53,13 +55,13 @@ floating() {
 }
 
 save_to_last() {
-	printf "%s:%s\t%s\n" "$(date '+%k:%M %d/%m/%y')" "$TITLE" "$URL" >>"$PATH_LAST" ||
-		notify-send "Working on:" "$TITLE\n$URL"
+	printf "%s: %-20s: %s\t%s\n%s" "$(date '+%k:%M %d/%m/%y')" "$CHANNEL" "$TITLE" "$URL" "$(cat $PATH_LAST)" >"$PATH_LAST"
 }
 
 fplay() {
 	floating
-	ts -L "$TITLE" mpv --no-terminal --geometry="$GEOM" --x11-name="mpvFloat" "$URL" >/dev/null
+	notify-send "Working on:" "$TITLE «$CHANNEL»\n$URL"
+	ts -L "$TITLE «$CHANNEL»" mpv --no-terminal --geometry="$GEOM" --x11-name="mpvFloat" "$URL" >/dev/null
 }
 
 get_from_file(){
@@ -99,10 +101,11 @@ case "$CHOSEN" in
 			mpv "$URL"
 		fi ;;
 	last) get_from_file "$PATH_LAST"
-		  notify-send "Working on:" "$TITLE\n$URL"
+		  notify-send "Working on:" "$TITLE «$CHANNEL»\n$URL"
 		  fplay	;;
 	last_lecture) mpv "$VIDEOS_FOLDER/Lectures/doing" ;;
-	edit_queue)	$VISUAL "$PATH_QUEUE" ;;
+	edit_queue)	"$VISUAL" "$PATH_QUEUE" ;;
+	edit_last)	"$VISUAL" "$PATH_QUEUE" ;;
 	ts)	shift 1
 		ts $@ ;;
 	*) notify-send "Something wrong..." ;;

@@ -15,7 +15,7 @@ if status == 'Playing':
             artists = artists + str(info['xesam:artist'][i]) + ", "
     else:
         artists = str(info['xesam:artist'][0])
-    print("[ %.29s ﴁ %.29s  %s° %.29s]" %
+    print("[ %.14s ﴁ %.14s  %s°%.14s]" %
           (str(info['xesam:title']),
           artists,
           str(info['xesam:trackNumber']),
