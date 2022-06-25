@@ -1,0 +1,113 @@
+#!/bin/sh
+
+RED='\033[0;31m'
+YELLOW='\033[0;33m'
+NC='\033[0m' # No Color
+
+POLICY="policy0"
+BASE_FOLDER="/sys/devices/system/cpu/cpufreq"
+CUR_MIN_FRQ="$(cat $BASE_FOLDER/$POLICY/scaling_min_freq)"
+CUR_MAX_FRQ="$(cat $BASE_FOLDER/$POLICY/scaling_max_freq)"
+CUR_GOVERNOR="$(cat $BASE_FOLDER/$POLICY/scaling_governor)"
+FRQS_RAW="$(cat $BASE_FOLDER/$POLICY/scaling_available_frequencies)"
+GOVS_RAW="$(cat $BASE_FOLDER/$POLICY/scaling_available_governors)"
+MIN_SPEED=""
+MAX_SPEED=""
+GOVERNOR=""
+
+dmenu_selector() {
+    FRQS="$(echo "$FRQS_RAW" | tr ' ' '\n')"
+    MIN_SPEED="$(echo "$FRQS" | dmenu -p "Select minimum CPU speed")"
+    MAX_SPEED="$(echo "$FRQS" | dmenu -p "Select maximum CPU speed")"
+    GOVERNOR="$(echo "$GOVS_RAW" | sed 's/ /\n/g' | dmenu -p "Select CPU Governor")"
+}
+
+fzf_selector() {
+    FRQS="$(echo "$FRQS_RAW" | tr ' ' '\n')"
+    MIN_SPEED="$(echo "$FRQS" | fzf --header "Select minimum CPU speed")"
+    MAX_SPEED="$(echo "$FRQS" | fzf --header "Select maximum CPU speed")"
+    GOVERNOR="$(echo "$GOVS_RAW" | sed 's/ /\n/g' | fzf --header "Select CPU Governor")"
+}
+
+list_options() {
+    echo "$YELLOW List of possible settings:"
+    echo "$RED\\tGovernors:$NC\\t$GOVS_RAW"
+    echo "$RED\\tSpeeds:$NC\\t\\t$FRQS_RAW"
+}
+
+current_settings() {
+    echo "$YELLOW Currently running settings:$RED Governors:$NC $CUR_GOVERNOR | $RED Max speeds:$NC $CUR_MAX_FRQ | $RED Min speeds:$NC $CUR_MIN_FRQ"
+}
+
+print_changes() {
+    if [ -z "$DMENU_ENABLE" ]; then
+        echo "$YELLOW Params Changed to:$RED  Gov:$NC $CUR_GOVERNOR -> $GOVERNOR | $RED Min:$NC $CUR_MIN_FRQ -> $MIN_SPEED | $RED Max:$NC $CUR_MAX_FRQ -> $MAX_SPEED"
+    else
+        notify-send -u critical "Params Changed to:"\
+            "Min: $CUR_MIN_FRQ -> $MIN_SPEED\\nMax: $CUR_MAX_FRQ -> $MAX_SPEED\\nGov: $CUR_GOVERNOR -> $GOVERNOR"
+    fi
+}
+
+change_settings() {
+    if [ -n "$1" ] && [ -n "$2" ] && [ -n "$3" ]; then
+        sudo -A sed -i "s/MIN_SPEED=.*/MIN_SPEED=$MIN_SPEED/" /etc/default/cpufrequtils
+        sudo -A sed -i "s/MAX_SPEED=.*/MAX_SPEED=$MAX_SPEED/" /etc/default/cpufrequtils
+        sudo -A sed -i "s/GOVERNOR=.*/GOVERNOR=$GOVERNOR/"    /etc/default/cpufrequtils
+        sudo -A systemctl restart cpufrequtils
+        sync
+        print_changes
+        pkill -RTMIN+8 dwmblocks
+    fi
+}
+
+err() { echo "$RED Options:$NC
+$YELLOW Specify settings:$NC
+	-M: Maximum Frequency
+	-g: Governor
+	-m: Minimum Frequency
+$YELLOW Modes:$NC
+	-L: Low Performance Mode
+	-N: Normal Performance Mode
+	-P: High Performance Mode
+$YELLOW Guided selection:$NC
+	-d: DMENU Selector
+	-f: FZF Selector
+$YELLOW List:$NC
+	-c: Current Settings
+	-l: Avaliable Settings" &&
+            exit 1 ;}
+
+while getopts "M:g:m:LNPdfclh" o
+do case "${o}" in
+# Specify settings:
+	M) MAX_SPEED="${OPTARG}" ;;
+	g) GOVERNOR="${OPTARG}" ;;
+	m) MIN_SPEED="${OPTARG}" ;;
+# Modes:
+    L)
+        MIN_SPEED="126000"
+        MAX_SPEED="1200000"
+        GOVERNOR="conservative" ;;
+    N)
+        MIN_SPEED="126000"
+        MAX_SPEED="1800000"
+        GOVERNOR="conservative" ;;
+    P)
+        MIN_SPEED="126000"
+        MAX_SPEED="1800000"
+        GOVERNOR="ondemand" ;;
+# Guided selections:
+    d) DMENU_ENABLE=1 ;;
+	f) FZF_ENABLE=1 ;;
+# List:
+    c) current_settings && exit ;;
+	l) list_options && exit ;;
+# Default
+	h) err ;;
+	*) printf "Invalid option: -%s\\n" "$OPTARG" && err ;;
+esac done
+
+[ -z "$1" ] && err
+[ $DMENU_ENABLE ] && dmenu_selector
+[ $FZF_ENABLE ] && fzf_selector
+change_settings $MIN_SPEED $MAX_SPEED $GOVERNOR

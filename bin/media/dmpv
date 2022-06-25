@@ -28,8 +28,8 @@ GEOM=""
 
 get_title() {
 	JSON="$(yt-dlp --no-warnings --dump-single-json "$URL")"
-	TITLE="$(jq -r '.title' <<<$JSON)"
-	CHANNEL="$(jq -r '.uploader,.channel' <<<$JSON | uniq -i | sed '/null/d')"
+	TITLE="$(jq -r '.title' <<<"$JSON")"
+	CHANNEL="$(jq -r '.uploader,.channel' <<<"$JSON" | uniq -i | sed '/null/d')"
 	[ -z "$TITLE" ] && notify-send "could not retrieve title" && exit
 }
 

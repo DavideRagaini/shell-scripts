@@ -1,6 +1,7 @@
 #!/bin/sh
 
 DIR="/etc"
+tmp_file="/tmp/hosts"
 
 URLS="https://hosts.ubuntu101.co.za/hosts
 https://hosts.ubuntu101.co.za/superhosts.deny
@@ -12,4 +13,10 @@ for i in $URLS; do
     sleep 0.5
 done
 wait &&
-    wget 'http://sbc.io/hosts/alternates/fakenews-gambling-porn/hosts' -O ->> "$DIR/hosts"
+    cp "$DIR/hosts" "$tmp_file" &&
+    wget 'http://sbc.io/hosts/alternates/fakenews-gambling-porn/hosts' -O ->> "$tmp_file"
+
+printf "%s" "0.0.0.0 yewtu.be\\n0.0.0.0 www.yewtu.be" | tee -a "$tmp_file"
+
+printf "Removing duplicate lines"
+awk '!seen[$0]++' "$tmp_file" >"$DIR/hosts"
