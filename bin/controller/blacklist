@@ -2,21 +2,26 @@
 
 DIR="/etc"
 tmp_file="/tmp/hosts"
-
-URLS="https://hosts.ubuntu101.co.za/hosts
-https://hosts.ubuntu101.co.za/superhosts.deny
+URLS="https://hosts.ubuntu101.co.za/superhosts.deny
 https://hosts.ubuntu101.co.za/hosts.deny"
+block="yewtu.be
+4channel.org"
 
-echo 'Downloading hosts files'
+wget 'https://hosts.ubuntu101.co.za/hosts' -O "$DIR/hosts1" &
 for i in $URLS; do
     wget "$i" -N -P $DIR &
     sleep 0.5
 done
 wait &&
-    cp "$DIR/hosts" "$tmp_file" &&
-    wget 'http://sbc.io/hosts/alternates/fakenews-gambling-porn/hosts' -O ->> "$tmp_file"
+    wget 'http://sbc.io/hosts/alternates/fakenews-gambling-porn/hosts' -O "$DIR/hosts2"
 
-printf "%s" "0.0.0.0 yewtu.be\\n0.0.0.0 www.yewtu.be" | tee -a "$tmp_file"
+str=""
+for i in $block; do
+    str="$str$(printf "\\n0.0.0.0 %s\\n0.0.0.0 www.%s\\n" "$i" "$i")"
+done
 
-printf "Removing duplicate lines"
+cat "$DIR/hosts1" "$DIR/hosts2" >"$tmp_file"
+echo "$str" >>"$tmp_file"
+
+printf "\nRemoving duplicate lines"
 awk '!seen[$0]++' "$tmp_file" >"$DIR/hosts"
