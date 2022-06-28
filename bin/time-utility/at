@@ -1,0 +1,4 @@
+#!/bin/sh
+snooze -H "$1" -M "$2" -S "$3"
+shift 3
+exec sh -c "$@"
