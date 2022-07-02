@@ -11,3 +11,4 @@ case "$(sudo tlp-stat -s | grep Mode | awk '{print $3}')" in
 		notify-send -i "$ICONS/emblems/emblem-photos.png" "Energy Saving mode"
 		;;
 esac
+pkill -RTMIN+7 dwmblocks
