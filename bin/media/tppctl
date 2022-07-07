@@ -4,6 +4,8 @@
 actions() {
     case $1 in
         toggle) echo cycle pause | socat - "$2" ;;
+        play) echo '{ "command": ["set_property", "pause", false] }' | socat - "$2" ;;
+        pause) echo '{ "command": ["set_property", "pause", true] }' | socat - "$2" ;;
         next) echo playlist-next | socat - "$2" ;;
         prev) echo playlist-prev | socat - "$2" ;;
         fseek) echo seek 10 | socat - "$2" ;;

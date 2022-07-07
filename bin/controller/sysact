@@ -40,13 +40,20 @@ case "$choice" in
 			sudo -A poweroff -i now;;
 	Suspend)
 		confirm
-		i3lock -eft -c 1d2021 -i ~/Storage/Pictures/lockscreen.png
+		dmpc pause
+		tppctl pause_all
+		playerctl --all-players pause
 		log "Suspend   " "" &&
-			sudo -A zzz;;
+			sudo -A zzz
+		i3lock -eft -c 1d2021 -i ~/Storage/Pictures/lockscreen.png ;;
 	Hibernate)
 		confirm
+		dmpc pause
+		tppctl pause_all
+		playerctl --all-players pause
 		log "Hibernate " "" &&
-			sudo -A ZZZ ;;
+			sudo -A ZZZ
+		i3lock -eft -c 1d2021 -i ~/Storage/Pictures/lockscreen.png ;;
 	Reboot)
 		confirm
 		log "Reboot    " "" &&

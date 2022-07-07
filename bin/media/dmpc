@@ -4,6 +4,10 @@ if [ "$(pgrep spotifyd)" ]; then # || [ "$(playerctl -l | grep -q spotifyd)" ]
     case "$1" in
         toggle)
             dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotifyd /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.PlayPause ;;
+        play)
+            dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotifyd /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.Play ;;
+        pause)
+            dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotifyd /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.Pause ;;
         next)
             dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotifyd /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.Next ;;
         prev)
@@ -15,6 +19,8 @@ if [ "$(pgrep spotifyd)" ]; then # || [ "$(playerctl -l | grep -q spotifyd)" ]
 else
     case "$1" in
         toggle) mpc -q toggle ;;
+        play) mpc -q play ;;
+        pause) mpc -q pause ;;
         next) mpc -q next ;;
         prev) mpc -q prev ;;
         seekf) mpc -q seekthrough 10 ;;
