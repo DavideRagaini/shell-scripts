@@ -1,7 +1,7 @@
 #!/bin/bash
 
 LOCATION='Fano'
-wttr="${XDG_DATA_HOME:-$HOME/.local/share}/weatherreport"
+wttr="${XDG_DATA_HOME:-$HOME/.local/share}/weatherreport-full"
 
 update() {
 	wget -q "wttr.in/Moon" -O "$wttr"
@@ -12,4 +12,4 @@ update() {
 [ "$(stat -c %y "$wttr" 2>/dev/null | cut -d' ' -f1)" = "$(date '+%Y-%m-%d')" ] ||
 	update
 
-cat "$wttr"
+less "$wttr"
