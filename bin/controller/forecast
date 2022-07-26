@@ -1,7 +1,7 @@
 #!/bin/bash
 
 LOCATION='Fano'
-wttr="${XDG_DATA_HOME:-$HOME/.local/share}/weatherreport-full"
+wttr="${XDG_CACHE_HOME:-$HOME/.cache}/weatherreport-full"
 
 update() {
 	wget -q "wttr.in/Moon" -O "$wttr"

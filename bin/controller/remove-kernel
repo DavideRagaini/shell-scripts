@@ -5,4 +5,4 @@ list="$(vkpurge list | fzf)"
 selected="$(echo $list | sed 's/^/ - /')"
 printf "\033[0;31mREMOVING:\033[0m\n%s\n\n" "$selected"
 
-vkpurge rm $list
+sudo -A vkpurge rm $list

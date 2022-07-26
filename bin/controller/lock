@@ -1,0 +1,4 @@
+#!/bin/sh
+
+i3lock -eft -c 1d2021 -i ~/Storage/Pictures/lockscreen.png &&
+    sudo -A zzz

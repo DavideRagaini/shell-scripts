@@ -105,7 +105,7 @@ case "$CHOSEN" in
 		  fplay	;;
 	last_lecture) mpv "$VIDEOS_FOLDER/Lectures/doing" ;;
 	edit_queue)	"$VISUAL" "$PATH_QUEUE" ;;
-	edit_last)	"$VISUAL" "$PATH_QUEUE" ;;
+	edit_last)	"$VISUAL" "$PATH_LAST" ;;
 	ts)	shift 1
 		ts $@ ;;
 	*) notify-send "Something wrong..." ;;
