@@ -1,7 +1,6 @@
 #!/bin/sh
 
-if [ -z "$1" ]
-then
+if [ -z "$1" ]; then
 	cmds="\
 	Lock
 	dwm
@@ -18,7 +17,7 @@ else
 fi
 
 log() {
-	printf "%s %s%s\n" "$1" "$(date '+%F %a %T')" "$2" >> "$HOME/.local/uptime"
+	printf "%s %s%s\n" "$1" "$(date '+%F %a %T')" "$2" >>"$HOME/.local/uptime"
 }
 
 confirm() {
@@ -33,11 +32,15 @@ case "$choice" in
 	dwmblocks) killall -q dwmblocks && setsid dwmblocks & ;;
 	Display) xset dpms force off ;;
 	Leave) kill -TERM "$(pgrep -u $USER "\bdwm$")" ;;
-	Lock) confirm; lock ;;
+	Lock)
+		confirm
+		lock
+		;;
 	Shutdown)
 		confirm
 		log "Shutdown  " " -> $(uptime -p)" &&
-			sudo -A poweroff -i now;;
+			sudo -A poweroff -i now
+		;;
 	Suspend)
 		confirm
 		dmpc pause
@@ -45,7 +48,7 @@ case "$choice" in
 		playerctl --all-players pause
 		log "Suspend   " "" &&
 			sudo -A zzz
-		i3lock -eft -c 1d2021 -i ~/Storage/Pictures/lockscreen.png ;;
+		;;
 	Hibernate)
 		confirm
 		dmpc pause
@@ -53,10 +56,11 @@ case "$choice" in
 		playerctl --all-players pause
 		log "Hibernate " "" &&
 			sudo -A ZZZ
-		i3lock -eft -c 1d2021 -i ~/Storage/Pictures/lockscreen.png ;;
+		;;
 	Reboot)
 		confirm
 		log "Reboot    " "" &&
-			sudo -A reboot -i now ;;
+			sudo -A reboot -i now
+		;;
 	*) exit 2 ;;
 esac
