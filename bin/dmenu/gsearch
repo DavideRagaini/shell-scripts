@@ -1,0 +1,6 @@
+#!/bin/sh
+
+dmenu -p "Search:" <&- |
+    xargs -r -I % locate % |
+    dmenu -i -l 10 -p "Open:" |
+    xargs -r -I % opener %

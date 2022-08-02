@@ -1,6 +1,6 @@
 #!/bin/sh
 
-for i in $@; do
+for i in "$@"; do
     case $i in
         http* | *.html) setsid -f "$BROWSER" "$i" 2>/dev/null & ;;
         *.txt) $TERMINAL "$EDITOR" "$i" & ;;
@@ -9,10 +9,10 @@ for i in $@; do
         *.mkv | *.web | *.mp4 | *avi) setsid mpv -no-terminal "$i" & ;;
         *.mp3 | *.flac | *.opus | *mp3?source*) setsid mpv "$i" & ;;
         *.png | *.jpg | *.jpeg | *.gif) setsid nsxiv "$i" & ;;
-        *.tar*) tar tf "$file" | less ;;
-        *.zip) unzip -l "$file" | less ;;
-        *.rar) unrar l "$file" | less ;;
-        *.7z) 7z l "$file" | less ;;
+        *.tar*) tar tf "$i" | less ;;
+        *.zip) unzip -l "$i" | less ;;
+        *.rar) unrar l "$i" | less ;;
+        *.7z) 7z l "$i" | less ;;
         # .od[tsp]|*.doc|*.docx|*.ppt|*.pptx|*.xls|*.xlsx) libreoffice "$i" & ;;
         # [^/]*) sh -c "$i" ;;
         *)

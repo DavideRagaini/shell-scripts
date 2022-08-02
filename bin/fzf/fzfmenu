@@ -30,7 +30,7 @@ GEOM="$(printf "%dx%d" "$rows" "$colums")"
 
 
 # alacritty --class 'fzfmenu' --config-file="$HOME/.config/alacritty/fzfmenu.yml" -e sh -c "cat $input |
-st -n fzfmenu -f "FiraCode Nerd Font Mono:size=20" -g "$GEOM" -e sh -c "cat $input |
+st -n fzfmenu -f "Liberation Mono:size=20" -g "$GEOM" -e sh -c "cat $input |
 	fzf --border=rounded --margin=1% --multi --ansi -i --height=40 $(printf -- " '%s'" "$@" | sed "s/^ ''$//") |
 	tee $output" &
 disown
