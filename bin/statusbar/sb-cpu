@@ -8,11 +8,10 @@ case "$BLOCK_BUTTON" in
 esac
 
 LOAD="$(cut -d ' ' -f1-3 /proc/loadavg)"
-CORES=$(lscpu | awk '/^.*On-line CPU\(s\)/ {sub(",","-",$4); print $4}')
+CORES="$(cat /sys/devices/system/cpu/online)"
 R=$(shuf -i "$CORES" -n 1)
 CLOCK="$(cat /sys/devices/system/cpu/cpu"$R"/cpufreq/scaling_cur_freq)"
-TEMP="$(cat /sys/class/thermal/thermal_zone2/temp | cut -c -2)"
+TEMP="$(cut -c -2 /sys/class/thermal/thermal_zone3/temp)"
 [ "$CLOCK" -lt 1000000 ] && N=3
 CLOCK="$(echo "$CLOCK" | cut -c -${N:-4})"
-# [ "$(doas tlp-stat -s | awk '/Mode/ {print $3}')" = "AC" ] && FIRE=" "
-printf "%s %d@%s %d糖]" "$LOAD" "$R" "$CLOCK" "$TEMP"
+printf " %s %d@%s %d糖]" "$LOAD" "$R" "$CLOCK" "$TEMP"
