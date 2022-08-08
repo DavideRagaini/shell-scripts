@@ -18,7 +18,7 @@ fi
 
 case "$(readlink /sbin/init | cut -f3 -d'/')" in
 	systemd)
-		SHUTDOWN='systemctl shutdown'
+		SHUTDOWN='shutdown -h now'
 		SUSPEND='systemctl suspend'
 		HIBERNATE='systemctl Hibernate'
 		REBOOT='systemctl reboot';;
@@ -42,22 +42,22 @@ confirm() {
 case "$choice" in
 	Start) log "Start     " "" ;;
 	Resume) log "Resume    " "" ;;
-	dwm) kill -HUP "$(pgrep -u $USER "\bdwm$")" ;;
+	dwm) kill -HUP "$(pgrep -u "$USER" "\bdwm$")" ;;
 	dwmblocks) killall -q dwmblocks && setsid dwmblocks & ;;
 	Display) xset dpms force off ;;
-	Leave) kill -TERM "$(pgrep -u $USER "\bdwm$")" ;;
+	Leave) kill -TERM "$(pgrep -u "$USER" "\bdwm$")" ;;
 	Lock) confirm; lock ;;
 	Shutdown)
 		confirm
 		log "Shutdown  " " -> $(uptime -p)" &&
-			sudo -A "$SHUTDOWN" ;;
+			sudo -A sh -c "$SHUTDOWN" ;;
 	Suspend)
 		confirm
 		dmpc pause
 		tppctl pause_all
 		playerctl --all-players pause
 		log "Suspend   " "" &&
-			sudo -A "$SUSPEND"
+			sudo -A sh -c "$SUSPEND"
 		i3lock -eft -c 1d2021 -i ~/Storage/Pictures/lockscreen.png ;;
 	Hibernate)
 		confirm
@@ -65,11 +65,11 @@ case "$choice" in
 		tppctl pause_all
 		playerctl --all-players pause
 		log "Hibernate " "" &&
-			sudo -A "$HIBERNATE"
+			sudo -A sh -c "$HIBERNATE"
 		i3lock -eft -c 1d2021 -i ~/Storage/Pictures/lockscreen.png ;;
 	Reboot)
 		confirm
 		log "Reboot    " "" &&
-			sudo -A "$REBOOT" ;;
+			sudo -A sh -c "$REBOOT" ;;
 	*) notify-send "ERROR" && exit 2 ;;
 esac
