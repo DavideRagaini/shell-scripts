@@ -10,13 +10,8 @@ mpc status 2>/dev/null | grep -q playing &&
 	CHOSEN="$(printf 'Spotify\nLocal' | fzf --cycle --border --margin 10% --padding 10% --header='Choose music source')"
 
 case "$CHOSEN" in
-	Spotify)
-		spotifyd &&
-			exec spotify-tui ;;
-	ncmpcpp)
-		exec ncmpcpp ;;
-	Local)
-		exec ncmpcpp ;;
-	Sptui)
-		exec spotify-tui ;;
+	Spotify) spotifyd && exec spotify-tui ;;
+	Local) exec ncmpcpp ;;
+	Sptui) exec spotify-tui;;
+	*) notify-send "Something wrong"
 esac

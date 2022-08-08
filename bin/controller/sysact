@@ -16,8 +16,22 @@ else
 	choice="$1"
 fi
 
+case "$(readlink /sbin/init | cut -f3 -d'/')" in
+	systemd)
+		SHUTDOWN='systemctl shutdown'
+		SUSPEND='systemctl suspend'
+		HIBERNATE='systemctl Hibernate'
+		REBOOT='systemctl reboot';;
+	runit)
+		SHUTDOWN='shutdown -h now'
+		SUSPEND='zzz'
+		HIBERNATE='ZZZ'
+		REBOOT='reboot -i now';;
+	*) notify-send "Error: INIT SYSTEM not recognised" ;;
+esac
+
 log() {
-	printf "%s %s%s\n" "$1" "$(date '+%F %a %T')" "$2" >>"$HOME/.local/uptime"
+	printf "%s %s%s\n" "$1" "$(date '+%F %a %T')" "$2" >> "$HOME/.local/uptime"
 }
 
 confirm() {
@@ -32,35 +46,30 @@ case "$choice" in
 	dwmblocks) killall -q dwmblocks && setsid dwmblocks & ;;
 	Display) xset dpms force off ;;
 	Leave) kill -TERM "$(pgrep -u $USER "\bdwm$")" ;;
-	Lock)
-		confirm
-		lock
-		;;
+	Lock) confirm; lock ;;
 	Shutdown)
 		confirm
 		log "Shutdown  " " -> $(uptime -p)" &&
-			sudo -A poweroff -i now
-		;;
+			sudo -A "$SHUTDOWN" ;;
 	Suspend)
 		confirm
 		dmpc pause
 		tppctl pause_all
 		playerctl --all-players pause
 		log "Suspend   " "" &&
-			sudo -A zzz
-		;;
+			sudo -A "$SUSPEND"
+		i3lock -eft -c 1d2021 -i ~/Storage/Pictures/lockscreen.png ;;
 	Hibernate)
 		confirm
 		dmpc pause
 		tppctl pause_all
 		playerctl --all-players pause
 		log "Hibernate " "" &&
-			sudo -A ZZZ
-		;;
+			sudo -A "$HIBERNATE"
+		i3lock -eft -c 1d2021 -i ~/Storage/Pictures/lockscreen.png ;;
 	Reboot)
 		confirm
 		log "Reboot    " "" &&
-			sudo -A reboot -i now
-		;;
-	*) exit 2 ;;
+			sudo -A "$REBOOT" ;;
+	*) notify-send "ERROR" && exit 2 ;;
 esac

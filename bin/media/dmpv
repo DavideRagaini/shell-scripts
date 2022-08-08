@@ -6,6 +6,9 @@ enqueue
 eplay
 aplay
 last
+music
+save_music
+music_queue
 edit_queue
 edit_last
 lectures
@@ -17,11 +20,17 @@ else
 	CHOSEN="$1"
 	URL="$2"
 fi
+if [ $(command -v ts >/dev/null) ];then
+   TASK_SPOOLER="ts"
+else
+   TASK_SPOOLER="tsp"
+fi
 
 export TS_SOCKET="/tmp/ts_dmpv"
 VIDEOS_FOLDER="${XDG_VIDEOS_DIR:-$HOME/Storage/Videos}"
 PATH_QUEUE="$HOME/.config/mpv/queue"
 PATH_LAST="$HOME/.config/mpv/last"
+PATH_MUSIC="$HOME/.config/mpv/music"
 TITLE=""
 CHANNEL=""
 GEOM=""
@@ -38,7 +47,7 @@ add_to_queue() {
 	[ -z "$PLAYLIST" ] && PLAYLIST="1shot"
 	get_title
 	notify-send "$PLAYLIST:$TITLE $CHANNEL" "$URL"
-	printf "%s: %s [%-15s] «%s»\t%s\n" "$PLAYLIST" "$TITLE" "$CHANNEL" "$(date '+%k:%M %d/%m/%y')" "$URL" >>"$PATH_QUEUE"
+	printf "%s: %s [%-15s] «%s»\\t%s\\n" "$PLAYLIST" "$TITLE" "$CHANNEL" "$(date '+%k:%M %d/%m/%y')" "$URL" >>"$PATH_QUEUE"
 	sort -u "$PATH_QUEUE" -o "$PATH_QUEUE"
 }
 
@@ -60,8 +69,8 @@ save_to_last() {
 
 fplay() {
 	floating
-	notify-send "Working on:" "$TITLE «$CHANNEL»\n$URL"
-	ts -L "$TITLE «$CHANNEL»" mpv --no-terminal --geometry="$GEOM" --x11-name="mpvFloat" "$URL" >/dev/null
+	notify-send "Working on:" "$TITLE «$CHANNEL»\\n$URL"
+	$TASK_SPOOLER -L "$TITLE «$CHANNEL»" mpv --quiet --video=auto --geometry="$GEOM" --x11-name="mpvFloat" "$URL"
 }
 
 get_from_file(){
@@ -70,6 +79,15 @@ get_from_file(){
 	LINE="$(grep -w "$CHOSEN" "$FILE")"
 	TITLE="$(cut -f1 <<<"$LINE")"
 	URL="$(cut -f2 <<<"$LINE")"
+}
+
+save_music () {
+	get_title
+	printf "%s: %-20s: %s\\t%s\\n%s" "$(date '+%k:%M %d/%m/%y')" "$CHANNEL" "$TITLE" "$URL" "$(cat "$PATH_MUSIC")" >"$PATH_MUSIC"
+}
+
+music_play() {
+		mpv --vid=no --volume=60 --speed=1 --keep-open=no --loop-playlist "$URL"
 }
 
 case "$CHOSEN" in
@@ -101,12 +119,18 @@ case "$CHOSEN" in
 			mpv "$URL"
 		fi ;;
 	last) get_from_file "$PATH_LAST"
-		  notify-send "Working on:" "$TITLE «$CHANNEL»\n$URL"
+		  notify-send "Working on:" "$TITLE «$CHANNEL»\\n$URL"
 		  fplay	;;
+	music) save_music
+		   music_play ;;
+	music_save) save_music ;;
+	music_queue) get_from_file "$PATH_MUSIC"
+				 notify-send "Working on:" "$TITLE «$CHANNEL»\\n$URL"
+				 music_play ;;
 	last_lecture) mpv "$VIDEOS_FOLDER/Lectures/doing" ;;
 	edit_queue)	"$VISUAL" "$PATH_QUEUE" ;;
 	edit_last)	"$VISUAL" "$PATH_LAST" ;;
 	ts)	shift 1
-		ts $@ ;;
+		$TASK_SPOOLER "$@" ;;
 	*) notify-send "Something wrong..." ;;
 esac

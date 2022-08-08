@@ -1,0 +1,8 @@
+#!/bin/sh
+
+SESSION="dropdown"
+
+[ -z "$(tmux has-session -t $SESSION)" ] &&
+	tmux new-session -d -s $SESSION
+
+tmux attach-session -t $SESSION:0
