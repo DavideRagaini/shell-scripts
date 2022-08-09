@@ -22,7 +22,7 @@ case "$(readlink /sbin/init | cut -f3 -d'/')" in
 		SUSPEND='systemctl suspend'
 		HIBERNATE='systemctl Hibernate'
 		REBOOT='systemctl reboot';;
-	runit)
+	runit-init)
 		SHUTDOWN='shutdown -h now'
 		SUSPEND='zzz'
 		HIBERNATE='ZZZ'
