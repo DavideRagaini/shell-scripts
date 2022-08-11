@@ -16,19 +16,21 @@ else
 	choice="$1"
 fi
 
-case "$(readlink /sbin/init | cut -f3 -d'/')" in
-	systemd)
-		SHUTDOWN='shutdown -h now'
-		SUSPEND='systemctl suspend'
-		HIBERNATE='systemctl Hibernate'
-		REBOOT='systemctl reboot';;
-	runit-init)
-		SHUTDOWN='shutdown -h now'
-		SUSPEND='zzz'
-		HIBERNATE='ZZZ'
-		REBOOT='reboot -i now';;
-	*) notify-send "Error: INIT SYSTEM not recognised" ;;
-esac
+check_init() {
+	case "$(readlink /sbin/init | cut -f3 -d'/')" in
+		systemd)
+			SHUTDOWN='shutdown -h now'
+			SUSPEND='systemctl suspend'
+			HIBERNATE='systemctl Hibernate'
+			REBOOT='systemctl reboot';;
+		runit-init)
+			SHUTDOWN='shutdown -h now'
+			SUSPEND='zzz'
+			HIBERNATE='ZZZ'
+			REBOOT='reboot -i now';;
+		*) notify-send "Error: INIT SYSTEM not recognised" ;;
+	esac
+}
 
 log() {
 	printf "%s %s%s\n" "$1" "$(date '+%F %a %T')" "$2" >> "$HOME/.local/uptime"
@@ -49,6 +51,7 @@ case "$choice" in
 	Lock) confirm; lock ;;
 	Shutdown)
 		confirm
+		check_init
 		log "Shutdown  " " -> $(uptime -p)" &&
 			sudo -A sh -c "$SHUTDOWN" ;;
 	Suspend)
@@ -56,19 +59,24 @@ case "$choice" in
 		dmpc pause
 		tppctl pause_all
 		playerctl --all-players pause
+		check_init
 		log "Suspend   " "" &&
 			sudo -A sh -c "$SUSPEND"
-		i3lock -eft -c 1d2021 -i ~/Storage/Pictures/lockscreen.png ;;
+		i3lock -eft -c 1d2021 -i ~/Storage/Pictures/lockscreen.png
+		;;
 	Hibernate)
 		confirm
 		dmpc pause
 		tppctl pause_all
 		playerctl --all-players pause
+		check_init
 		log "Hibernate " "" &&
 			sudo -A sh -c "$HIBERNATE"
-		i3lock -eft -c 1d2021 -i ~/Storage/Pictures/lockscreen.png ;;
+		i3lock -eft -c 1d2021 -i ~/Storage/Pictures/lockscreen.png
+		;;
 	Reboot)
 		confirm
+		check_init
 		log "Reboot    " "" &&
 			sudo -A sh -c "$REBOOT" ;;
 	*) notify-send "ERROR" && exit 2 ;;
