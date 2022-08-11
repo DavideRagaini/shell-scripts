@@ -47,7 +47,7 @@ add_to_queue() {
 	[ -z "$PLAYLIST" ] && PLAYLIST="1shot"
 	get_title
 	notify-send "$PLAYLIST:$TITLE $CHANNEL" "$URL"
-	printf "%s: %s [%-15s] «%s»\\t%s\\n" "$PLAYLIST" "$TITLE" "$CHANNEL" "$(date '+%k:%M %d/%m/%y')" "$URL" >>"$PATH_QUEUE"
+	printf "%s: %s (%-15s) «%s»\\t%s\\n" "$PLAYLIST" "$TITLE" "$CHANNEL" "$(date '+%k:%M %d/%m/%y')" "$URL" >>"$PATH_QUEUE"
 	sort -u "$PATH_QUEUE" -o "$PATH_QUEUE"
 }
 
