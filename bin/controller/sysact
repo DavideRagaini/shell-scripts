@@ -21,7 +21,7 @@ check_init() {
 		systemd)
 			SHUTDOWN='shutdown -h now'
 			SUSPEND='systemctl suspend'
-			HIBERNATE='systemctl Hibernate'
+			HIBERNATE='systemctl hibernate'
 			REBOOT='systemctl reboot';;
 		runit-init)
 			SHUTDOWN='shutdown -h now'
