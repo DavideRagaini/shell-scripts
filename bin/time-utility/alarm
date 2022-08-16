@@ -1,7 +1,7 @@
 #!/bin/sh
 
 time="$(( $(date -d "$1" +%s) - $(date +%s) ))"
-minutes=$(( $((time/60))%60 ))
+minutes=$(( (time/60)%60 ))
 seconds=$(( time%60 ))
 notify-send "Sleep for $minutes:$seconds seconds" "Rings @ $1"
 sleep "$time"
