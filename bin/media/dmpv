@@ -20,14 +20,14 @@ else
 	CHOSEN="$1"
 	URL="$2"
 fi
-if [ $(command -v ts >/dev/null) ];then
-   TASK_SPOOLER="ts"
-else
+if [ "$(command -v ts)" == "" ];then
    TASK_SPOOLER="tsp"
+else
+   TASK_SPOOLER="ts"
 fi
 
 export TS_SOCKET="/tmp/ts_dmpv"
-VIDEOS_FOLDER="${XDG_VIDEOS_DIR:-$HOME/Storage/Videos}"
+VIDEOS="${XDG_VIDEOS_DIR:-$HOME/Storage/Videos}"
 PATH_QUEUE="$HOME/.config/mpv/queue"
 PATH_LAST="$HOME/.config/mpv/last"
 PATH_MUSIC="$HOME/.config/mpv/music"
@@ -102,22 +102,15 @@ case "$CHOSEN" in
 		   save_to_last
 		   fplay ;;
 	lectures)
-		LECTURES="$VIDEOS_FOLDER/Lectures"
-		CHOSEN="$(find "$LECTURES" -maxdepth 1 -type d | cut -d'/' -f7 | sed '/^$/d' | dmenu -i -l 10)" ||
+		CHOSEN="$(find "$VIDEOS" -type d -path "*/Lectures/*" | dmenu -i -l 10)" ||
 			exit
-		URL="$LECTURES/$CHOSEN"
-		mpv "$URL" '--title=${path} - mpv' ;;
+		mpv "$CHOSEN"
+		;;
 	local)
-		GENER="$VIDEOS_FOLDER"
-		DIR="$(find "$GENER" -maxdepth 1 -type d | cut -d'/' -f6 | dmenu -i -l 20)" || exit
-		if [ -d "$GENER$DIR" ]; then
-			CHOSEN="$(find "$GENER$DIR" | cut -d'/' -f8 | dmenu -i -l 20)" || exit
-			URL="$GENER$DIR/$CHOSEN"
-			mpv "$URL"
-		else
-			URL="$GENER$DIR"
-			mpv "$URL"
-		fi ;;
+		CHOSEN="$(find "$VIDEOS" -type d | dmenu -i -l 20)" ||
+			exit
+		mpv "$CHOSEN"
+		;;
 	last) get_from_file "$PATH_LAST"
 		  notify-send "Working on:" "$TITLE «$CHANNEL»\\n$URL"
 		  fplay	;;
@@ -127,7 +120,7 @@ case "$CHOSEN" in
 	music_queue) get_from_file "$PATH_MUSIC"
 				 notify-send "Working on:" "$TITLE «$CHANNEL»\\n$URL"
 				 music_play ;;
-	last_lecture) mpv "$VIDEOS_FOLDER/Lectures/doing" ;;
+	last_lecture) mpv "$VIDEOS/Lectures/doing" ;;
 	edit_queue)	"$VISUAL" "$PATH_QUEUE" ;;
 	edit_last)	"$VISUAL" "$PATH_LAST" ;;
 	ts)	shift 1
