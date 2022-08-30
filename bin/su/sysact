@@ -62,7 +62,7 @@ case "$choice" in
 		check_init
 		log "Suspend   " "" &&
 			sudo -A sh -c "$SUSPEND"
-		i3lock -eft -c 1d2021 -i ~/Storage/Pictures/lockscreen.png
+		# i3lock -eft -c 1d2021 -i ~/Storage/Pictures/lockscreen.png
 		;;
 	Hibernate)
 		confirm
@@ -72,7 +72,7 @@ case "$choice" in
 		check_init
 		log "Hibernate " "" &&
 			sudo -A sh -c "$HIBERNATE"
-		i3lock -eft -c 1d2021 -i ~/Storage/Pictures/lockscreen.png
+		# i3lock -eft -c 1d2021 -i ~/Storage/Pictures/lockscreen.png
 		;;
 	Reboot)
 		confirm

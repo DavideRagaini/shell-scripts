@@ -1,0 +1,51 @@
+#!/bin/sh
+
+RED='\033[0;31m'
+YELLOW='\033[0;33m'
+NC='\033[0m' # No Color
+BASE="/sys/devices/system/cpu"
+PRESENT=$(cat $BASE/present)
+
+set_function() {
+	for i in $(seq "$2" "$3")
+	do
+		echo "$1" > /sys/devices/system/cpu/cpu"$i"/online
+	done
+}
+
+state(){
+	printf "${RED} Enabled:  ${NC}%s\n${RED} Disabled: ${NC}%s\n" "$(cat $BASE/online)" "$(cat $BASE/offline)"
+}
+
+err() { echo "$RED Options:$NC
+$YELLOW Specify settings:$NC
+	$YELLOW -e: $NC End Core
+	$YELLOW -E: $NC Enable all Cores
+	$YELLOW -M: $NC Mono-Core mode
+	$YELLOW -D: $NC Dual-Core mode
+	$YELLOW -Q: $NC Quad-Core mode
+	$YELLOW -h: $NC Help" &&
+			state &&
+            exit 1 ;}
+
+STR="$(echo "$PRESENT" | cut -d'-' -f1)"
+AE="$(echo "$PRESENT" | cut -d'-' -f2)"
+
+while getopts "s:e:EDMQh" opts
+do case "${opts}" in
+# Specify settings:
+	e) END="${OPTARG}" ;;
+	E) END="$AE" ;;
+	M) END="$STR" ;;
+	D) END="$((STR + 1))" ;;
+	Q) END="$((STR + 3))" ;;
+	h) err ;;
+	*) printf "Invalid option: -%s\\n" "$OPTARG" && err ;;
+esac done
+
+[ -z "$*" ] && err
+
+set_function 1 "$STR" "$END"
+set_function 0 "$((END +1))" "$AE"
+
+state
