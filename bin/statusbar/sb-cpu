@@ -9,9 +9,14 @@ esac
 
 LOAD="$(cut -d ' ' -f1-3 /proc/loadavg)"
 CORES="$(cat /sys/devices/system/cpu/online)"
-R=$(shuf -i "$CORES" -n 1)
+R=$(shuf -i "$CORES" -n 1 2>/dev/null) ||
+    R="$CORES"
 CLOCK="$(cat /sys/devices/system/cpu/cpu"$R"/cpufreq/scaling_cur_freq)"
-TEMP="$(cut -c -2 /sys/class/thermal/thermal_zone3/temp)"
+if [ -d  /sys/class/thermal/thermal_zone* ]; then
+    TEMP=" $(cut -c -2 /sys/class/thermal/thermal_zone3/temp)"
+else
+    TEMP="$(sensors | awk '/temp/ {print $2}' | tr -d "\n" | sed 's/+/ /g; s/°C//g; s/\.[0-9]//g')"
+fi
 [ "$CLOCK" -lt 1000000 ] && N=3
 CLOCK="$(echo "$CLOCK" | cut -c -${N:-4})"
-printf " %s %d@%s %d糖]" "$LOAD" "$R" "$CLOCK" "$TEMP"
+printf " %s %d@%s%s糖]" "$LOAD" "$R" "$CLOCK" "$TEMP"
