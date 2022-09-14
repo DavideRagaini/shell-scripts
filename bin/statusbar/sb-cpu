@@ -7,13 +7,14 @@ case "$BLOCK_BUTTON" in
     6) "$TERMINAL" -e "$EDITOR" "$0" ;;
 esac
 
+ZONE=3
 LOAD="$(cut -d ' ' -f1-3 /proc/loadavg)"
 CORES="$(cat /sys/devices/system/cpu/online)"
 R=$(shuf -i "$CORES" -n 1 2>/dev/null) ||
     R="$CORES"
 CLOCK="$(cat /sys/devices/system/cpu/cpu"$R"/cpufreq/scaling_cur_freq)"
-if [ -d  /sys/class/thermal/thermal_zone* ]; then
-    TEMP=" $(cut -c -2 /sys/class/thermal/thermal_zone3/temp)"
+if [ -d  "/sys/class/thermal/thermal_zone$ZONE" ]; then
+    TEMP=" $(cut -c -2 /sys/class/thermal/thermal_zone$ZONE/temp)"
 else
     TEMP="$(sensors | awk '/temp/ {print $2}' | tr -d "\n" | sed 's/+/ /g; s/°C//g; s/\.[0-9]//g')"
 fi
