@@ -20,10 +20,10 @@ else
 	CHOSEN="$1"
 	URL="$2"
 fi
-if [ "$(command -v ts)" == "" ];then
-   TASK_SPOOLER="tsp"
+if [ "$(command -v ts)" == "" ]; then
+	TASK_SPOOLER="tsp"
 else
-   TASK_SPOOLER="ts"
+	TASK_SPOOLER="ts"
 fi
 
 export TS_SOCKET="/tmp/ts_dmpv"
@@ -55,10 +55,10 @@ floating() {
 	dim_screen="$(xrandr | awk '/current/ {sub(",","",$10); print $8$9$10}')"
 	dim_mon_x="$(echo "$dim_screen" | cut -d'x' -f1)"
 	dim_mon_y="$(echo "$dim_screen" | cut -d'x' -f2)"
-	dim_w_x="$((dim_mon_x/6))"
-	dim_w_y="$((dim_mon_y/6))"
+	dim_w_x="$((dim_mon_x / 6))"
+	dim_w_y="$((dim_mon_y / 6))"
 	x="$((dim_mon_x - dim_w_x - 5))"
-	y="$((dim_mon_y - dim_w_y - 40))"		# bottom bar
+	y="$((dim_mon_y - dim_w_y - 40))" # bottom bar
 	# y="$((dim_mon_y - dim_w_y - 5))"		# top bar
 	GEOM="$(printf "%sx%s+%s+%s" "$dim_w_x" "$dim_w_y" "$x" "$y")"
 }
@@ -73,7 +73,7 @@ fplay() {
 	$TASK_SPOOLER -L "$TITLE «$CHANNEL»" mpv --quiet --video=auto --geometry="$GEOM" --x11-name="mpvFloat" "$URL"
 }
 
-get_from_file(){
+get_from_file() {
 	FILE="${1}"
 	CHOSEN="$(cut -f1 "$FILE" | dmenu -i -l 20)" || exit
 	LINE="$(grep -w "$CHOSEN" "$FILE")"
@@ -87,20 +87,26 @@ save_music () {
 }
 
 music_play() {
-		mpv --vid=no --volume=60 --speed=1 --keep-open=no --loop-playlist "$URL"
+	mpv --vid=no --volume=60 --speed=1 --keep-open=no --loop-playlist "$URL"
 }
 
 case "$CHOSEN" in
-	queue) get_from_file "$PATH_QUEUE"
-		   save_to_last
-		   fplay ;;
-	eplay) save_to_last
-		   fplay &
-		   add_to_queue ;;
+	queue)
+		get_from_file "$PATH_QUEUE"
+		save_to_last
+		fplay
+		;;
+	eplay)
+		save_to_last
+		fplay &
+		add_to_queue
+		;;
 	enqueue) add_to_queue ;;
-	aplay) get_title
-		   save_to_last
-		   fplay ;;
+	aplay)
+		get_title
+		save_to_last
+		fplay
+		;;
 	lectures)
 		CHOSEN="$(find "$VIDEOS" -type d -path "*/Lectures/*" | dmenu -i -l 10)" ||
 			exit
@@ -111,19 +117,43 @@ case "$CHOSEN" in
 			exit
 		mpv "$CHOSEN"
 		;;
-	last) get_from_file "$PATH_LAST"
-		  notify-send "Working on:" "$TITLE «$CHANNEL»\\n$URL"
-		  fplay	;;
-	music) save_music
-		   music_play ;;
+	last)
+		get_from_file "$PATH_LAST"
+		notify-send "Working on:" "$TITLE «$CHANNEL»\\n$URL"
+		fplay
+		;;
+	music)
+		save_music
+		music_play
+		;;
 	music_save) save_music ;;
-	music_queue) get_from_file "$PATH_MUSIC"
-				 notify-send "Working on:" "$TITLE «$CHANNEL»\\n$URL"
-				 music_play ;;
+	music_queue)
+		get_from_file "$PATH_MUSIC"
+		notify-send "Working on:" "$TITLE «$CHANNEL»\\n$URL"
+		music_play
+		;;
 	last_lecture) mpv "$VIDEOS/Lectures/doing" ;;
-	edit_queue)	"$VISUAL" "$PATH_QUEUE" ;;
-	edit_last)	"$VISUAL" "$PATH_LAST" ;;
-	ts)	shift 1
-		$TASK_SPOOLER "$@" ;;
+	edit_queue) "$VISUAL" "$PATH_QUEUE" ;;
+	edit_last) "$VISUAL" "$PATH_LAST" ;;
+	info_queue)
+		get_from_file "$PATH_QUEUE"
+		TITLE="${TITLE% \«*}"
+		CHANNEL="$(echo "$TITLE" | sed 's/\».*//; s/.*\«//; s/\».*//')"
+		TITLE="${TITLE%% \«*}"
+		notify-send "Yanked:" "$TITLE «$CHANNEL»\\n$URL"
+		echo "[[$URL][$TITLE «$CHANNEL»]]" | xclip -i -selection clipboard
+		;;
+	info_last)
+		get_from_file "$PATH_LAST"
+		TITLE="$(echo "$TITLE" | cut -d' ' -f3-)"
+		CHANNEL="$(echo "$TITLE" | cut -d':' -f1 | tr -d ' ')"
+		TITLE="$(echo "$TITLE" | cut -d':' -f2- | cut -d' ' -f2-)"
+		notify-send "Yanked:" "$TITLE «$CHANNEL»\\n$URL"
+		echo "[[$URL][$TITLE «$CHANNEL»]]" | xclip -i -selection clipboard
+		;;
+	ts)
+		shift 1
+		$TASK_SPOOLER "$@"
+		;;
 	*) notify-send "Something wrong..." ;;
 esac

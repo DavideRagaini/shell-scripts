@@ -1,4 +1,5 @@
 #!/bin/sh
+set -x
 
 [ -z "$1" ] && echo "Missing arguments" && exit
 actions() {
@@ -14,24 +15,42 @@ actions() {
 }
 
 instances="$(find "/tmp/mpvSockets" -type s)"
-if [ "$(echo "$instances" | wc -l)" -eq 1 ]; then
-    actions "$1" "$instances"
-elif [ "$1" = "pause_all" ]; then
-    for i in $instances; do
-        echo '{ "command": ["set_property", "pause", true] }' |
-            socat - "$i";
-    done
-elif [ "$1" = "invert" ]; then
-    for i in $instances; do
-        echo '{ "command": ["cycle", "pause"] }' |
-            socat - "$i";
-    done
-else
-    list=" "
-    for i in $instances; do
-        title="$(echo '{ "command": ["get_property", "media-title"] }' | socat - "$i" | jq -r '.data')"
-        list="$(printf "%s%s (%s)\n " "$list" "$title" "$i")"
-    done
-    chosen="$(echo "$list" | sed '/^ $/d' | dmenu -i -l 5 -p "Toggle which?")"
-    actions "$1" "$(echo "$chosen" | sed 's/.*(\(.*\))/\1/')"
-fi
+
+case "$1" in
+    "pause_all")
+        for i in $instances; do
+            echo '{ "command": ["set_property", "pause", true] }' |
+                socat - "$i"
+        done
+        ;;
+    "invert")
+        for i in $instances; do
+            echo '{ "command": ["cycle", "pause"] }' |
+                socat - "$i"
+        done
+        ;;
+    "info")
+        for i in $instances; do
+            titles="$(echo '{ "command": ["get_property", "media-title"] }' | socat - "$i" | jq -r '.data')"
+            list="$(printf "%s%s (%s)\n " "$list" "$titles" "$i")"
+        done
+        chosen="$(echo "$list" | sed '/^ $/d' | dmenu -i -l 5 -p "Get info from?")"
+        info="$(echo "$chosen" | sed 's/.*(\(.*\))/\1/')"
+        title="$(echo '{ "command": ["get_property", "media-title"] }' | socat - "$info" | jq -r '.data')"
+        path="$(echo '{ "command": ["get_property", "path"] }' | socat - "$info" | jq -r '.data')"
+        echo "[[$path][$title]]" | xclip -i -selection clipboard
+        ;;
+    *)
+        if [ "$(echo "$instances" | wc -l)" -eq 1 ]; then
+            actions "$1" "$instances"
+        else
+            list=" "
+            for i in $instances; do
+                titles="$(echo '{ "command": ["get_property", "media-title"] }' | socat - "$i" | jq -r '.data')"
+                list="$(printf "%s%s (%s)\n " "$list" "$titles" "$i")"
+            done
+            chosen="$(echo "$list" | sed '/^ $/d' | dmenu -i -l 5 -p "Toggle which?")"
+            actions "$1" "$(echo "$chosen" | sed 's/.*(\(.*\))/\1/')"
+        fi
+        ;;
+esac

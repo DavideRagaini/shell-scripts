@@ -1,0 +1,3 @@
+#!/bin/sh
+
+yt-dlp --no-warnings --dump-single-json "$(xclip -o)" | jq -r '.entries | .[].title'
