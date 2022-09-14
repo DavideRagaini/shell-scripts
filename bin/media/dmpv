@@ -64,7 +64,7 @@ floating() {
 }
 
 save_to_last() {
-	printf "%s: %-20s: %s\t%s\n%s" "$(date '+%k:%M %d/%m/%y')" "$CHANNEL" "$TITLE" "$URL" "$(cat $PATH_LAST)" >"$PATH_LAST"
+	printf "%s: %-20s: %s\t%s\n%s" "$(date '+%k:%M %d/%m/%y')" "$CHANNEL" "$TITLE" "$URL" "$(cat "$PATH_LAST")" >"$PATH_LAST"
 }
 
 fplay() {
