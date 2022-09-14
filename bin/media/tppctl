@@ -1,5 +1,4 @@
 #!/bin/sh
-set -x
 
 [ -z "$1" ] && echo "Missing arguments" && exit
 actions() {
@@ -34,10 +33,15 @@ case "$1" in
             titles="$(echo '{ "command": ["get_property", "media-title"] }' | socat - "$i" | jq -r '.data')"
             list="$(printf "%s%s (%s)\n " "$list" "$titles" "$i")"
         done
-        chosen="$(echo "$list" | sed '/^ $/d' | dmenu -i -l 5 -p "Get info from?")"
+        if [ "$(echo "$titles" | wc -l)" -eq 1 ]; then
+            chosen="$(echo "$list" | sed '/^ $/d' )"
+        else
+            chosen="$(echo "$list" | sed '/^ $/d' | dmenu -i -l 5 -p "Get info from?")"
+        fi
         info="$(echo "$chosen" | sed 's/.*(\(.*\))/\1/')"
         title="$(echo '{ "command": ["get_property", "media-title"] }' | socat - "$info" | jq -r '.data')"
         path="$(echo '{ "command": ["get_property", "path"] }' | socat - "$info" | jq -r '.data')"
+        notify-send "Yanked:" "$title\n$path"
         echo "[[$path][$title]]" | xclip -i -selection clipboard
         ;;
     *)

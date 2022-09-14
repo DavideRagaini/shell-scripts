@@ -9,6 +9,8 @@ last
 music
 save_music
 music_queue
+info_queue
+info_last
 edit_queue
 edit_last
 lectures
