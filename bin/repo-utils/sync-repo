@@ -1,31 +1,42 @@
 #!/bin/sh
 
-base="$HOME/.local/src/"
-repos="dotfiles
+RED='\033[0;31m'
+YELLOW='\033[0;33m'
+NC='\033[0m' # No Color
+
+SRC_PATH="$HOME/.local/src"
+SRC_REPOS="dotfiles
 shell-scripts
 dwm
 startpage
-wiki
-nvim
 dwmblocks
+dwmblocks-async
 st
 dmenu"
 
-# sync all repos
-sync_repos() {
-    for i in "$@"
-    do
-        cd "$base/$i" && git pull
-    done
-}
+ORG="$HOME/Org"
 
 case "$1" in
 	all)
-		sync_repos "$repos" ;;
+        for i in $SRC_REPOS; do
+            echo "${RED}Pulling from:${YELLOW} $i ${NC} "
+            git -C "$SRC_PATH/$i" pull
+            echo
+        done
+
+        echo "${RED}Pulling from:${YELLOW} Org ${NC}"
+        git -C "$ORG" pull
+        ;;
 	mains)
-		sync_repos dotfiles shell-scripts ;;
-	sync)
-		sync_repos "$@" ;;
+        echo "${RED}Pulling from:${YELLOW} dotfiles ${NC}"
+        git -C "$SRC_PATH/dotfiles" pull
+
+        echo "${RED}Pulling from:${YELLOW} shell-scripts ${NC}"
+        git -C "$SRC_PATH/shell-scripts" pull
+
+        echo "${RED}Pulling from:${YELLOW} Org ${NC}"
+        git -C "$ORG" pull
+        ;;
 	*)
 		echo "sync what?" ;;
 esac
