@@ -1,17 +1,24 @@
 #!/bin/sh
+set -e
 
-cleanup() {
-	kill "$ueberzugpid"
-	pkill -f "tail -f \"LF_UEBERZUG_TEMPDIR\"" # kill tail zombie
-	rm -rf "$LF_UEBERZUG_TEMPDIR"
-}
+if [ -n "$DISPLAY" ]; then
+  export FIFO_UEBERZUG="${TMPDIR:-/tmp}/lf-ueberzug-$$"
 
-trap cleanup INT HUP QUIT TERM PWR EXIT
+  cleanup() {
+    exec 3>&-
+    rm "$FIFO_UEBERZUG"
+  }
 
-LF_UEBERZUG_TEMPDIR="$(mktemp -d -t lf-XXXXXX)"
-export LF_UEBERZUG_TEMPDIR
-mkfifo "$LF_UEBERZUG_TEMPDIR/fifo"
-tail -f "$LF_UEBERZUG_TEMPDIR/fifo" | ueberzug layer --silent &
-ueberzugpid=$!
-lf -command "source '${XDG_CONFIG_HOME:-$HOME/.config}/lf/lfrc'" "$@"
-cleanup
+  mkfifo "$FIFO_UEBERZUG"
+  ueberzug layer -s <"$FIFO_UEBERZUG" &
+  exec 3>"$FIFO_UEBERZUG"
+  trap cleanup EXIT
+
+  if ! [ -d "$HOME/.cache/lf" ]; then
+    mkdir -p "$HOME/.cache/lf"
+  fi
+
+  lf "$@" 3>&-
+else
+  exec lf "$@"
+fi
