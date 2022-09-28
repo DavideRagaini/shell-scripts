@@ -35,6 +35,14 @@ case $choice in
 		is_muted "$volstat" "MUTED"
 		vol="$(echo "$volstat" | cut -f2 -d' ')"
 		;;
+
+	wireplumber-old)
+		volstat="$(wpctl status | grep -E '\*' | sed -n 1p)"
+		# volstat="$(wpctl get-volume @DEFAULT_AUDIO_SINK@)"
+		is_muted "$volstat" "MUTED"
+		vol="$(echo "$volstat" | cut -d'.' -f3 | tr -d ']')"
+		# vol="$(echo "$volstat" | cut -f2 -d' ')"
+		;;
 esac
 
 printf "[%s %s]" "墳" "$vol"

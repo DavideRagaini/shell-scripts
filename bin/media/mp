@@ -8,14 +8,14 @@ mpc status 2>/dev/null | grep -q playing &&
 [ -z $CHOSEN ] &&
 	CHOSEN="$(printf 'Spotify\nLocal' | fzf --cycle --border --margin 10% --padding 10% --header='Choose music source')"
 
-if [ "$(command -v spotify-tui)"  == "" ]; then
-	SPOTIFY="spt"
+if [ "$(command -v spotify-tui)"  = "" ]; then
+		SPOTIFY="spt"
 	else
-	SPOTIFY="spotify-tui"
+		SPOTIFY="spotify-tui"
 fi
 
 case "$CHOSEN" in
-	Spotify) spotifyd && exec $SPOTIFY ;;
+	Spotify) spotifyd --autoplay && exec $SPOTIFY ;;
 	Local) exec ncmpcpp ;;
 	Sptui) exec $SPOTIFY ;;
 	*) notify-send "Something wrong"

@@ -8,9 +8,9 @@ SRC_PATH="$HOME/.local/src"
 SRC_REPOS="dotfiles
 shell-scripts
 dwm
-startpage
-dwmblocks
 dwmblocks-async
+dwmblocks
+startpage
 st
 dmenu"
 
@@ -18,14 +18,14 @@ ORG="$HOME/Org"
 
 case "$1" in
 	all)
+        echo "${RED}Pulling from:${YELLOW} Org ${NC}"
+        git -C "$ORG" pull
+
         for i in $SRC_REPOS; do
             echo "${RED}Pulling from:${YELLOW} $i ${NC} "
             git -C "$SRC_PATH/$i" pull
             echo
         done
-
-        echo "${RED}Pulling from:${YELLOW} Org ${NC}"
-        git -C "$ORG" pull
         ;;
 	mains)
         echo "${RED}Pulling from:${YELLOW} dotfiles ${NC}"

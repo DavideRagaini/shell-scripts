@@ -28,8 +28,6 @@ else
 	TASK_SPOOLER="ts"
 fi
 
-export TS_SOCKET="/tmp/ts_dmpv"
-VIDEOS="${XDG_VIDEOS_DIR:-$HOME/Storage/Videos}"
 PATH_QUEUE="$HOME/.config/mpv/queue"
 PATH_LAST="$HOME/.config/mpv/last"
 PATH_MUSIC="$HOME/.config/mpv/music"
@@ -72,6 +70,7 @@ save_to_last() {
 fplay() {
 	floating
 	notify-send "Working on:" "$TITLE «$CHANNEL»\\n$URL"
+	export TS_SOCKET="/tmp/ts_dmpv_video"
 	$TASK_SPOOLER -L "$TITLE «$CHANNEL»" mpv --quiet --video=auto --geometry="$GEOM" --x11-name="mpvFloat" "$URL"
 }
 
@@ -89,7 +88,8 @@ save_music () {
 }
 
 music_play() {
-	mpv --vid=no --volume=60 --speed=1 --keep-open=no --loop-playlist "$URL"
+	export TS_SOCKET="/tmp/ts_dmpv_music"
+	$TASK_SPOOLER -L "$TITLE «$CHANNEL»" mpv --vid=no --volume=60 --speed=1 --keep-open=no --loop-playlist "$URL"
 }
 
 case "$CHOSEN" in
@@ -110,11 +110,13 @@ case "$CHOSEN" in
 		fplay
 		;;
 	lectures)
+		VIDEOS="${XDG_VIDEOS_DIR:-$HOME/Storage/Videos}"
 		CHOSEN="$(find "$VIDEOS" -type d -path "*/Lectures/*" | dmenu -i -l 10)" ||
 			exit
 		mpv "$CHOSEN"
 		;;
 	local)
+		VIDEOS="${XDG_VIDEOS_DIR:-$HOME/Storage/Videos}"
 		CHOSEN="$(find "$VIDEOS" -type d | dmenu -i -l 20)" ||
 			exit
 		mpv "$CHOSEN"
@@ -153,7 +155,13 @@ case "$CHOSEN" in
 		notify-send "Yanked:" "$TITLE «$CHANNEL»\\n$URL"
 		echo "[[$URL][$TITLE «$CHANNEL»]]" | xclip -i -selection clipboard
 		;;
-	ts)
+	tsv)
+		export TS_SOCKET="/tmp/ts_dmpv_video"
+		shift 1
+		$TASK_SPOOLER "$@"
+		;;
+	tsm)
+		export TS_SOCKET="/tmp/ts_dmpv_music"
 		shift 1
 		$TASK_SPOOLER "$@"
 		;;
