@@ -1,6 +1,5 @@
 #!/bin/sh
 
-[ -z "$1" ] && echo "Missing arguments" && exit
 actions() {
     case $1 in
         toggle) echo cycle pause | socat - "$2" ;;
@@ -13,6 +12,7 @@ actions() {
     esac
 }
 
+[ -z "$1" ] && echo "Missing arguments" && exit
 instances="$(find "/tmp/mpvSockets" -type s)"
 
 case "$1" in
@@ -29,6 +29,15 @@ case "$1" in
         done
         ;;
     "info")
+        [ -z "$2" ] && echo "Property needed; exiting"
+        echo "$2"
+        for i in $instances; do
+            properties="$(echo "{ \"command\": [\"get_property\", \"${2}\"] }" | socat - "$i" | jq -r '.data')"
+            list="$(printf "%s%s (%s)\n " "$list" "$properties" "$i")"
+        done
+        echo "$list"
+        ;;
+    "title")
         for i in $instances; do
             titles="$(echo '{ "command": ["get_property", "media-title"] }' | socat - "$i" | jq -r '.data')"
             list="$(printf "%s%s (%s)\n " "$list" "$titles" "$i")"
@@ -41,8 +50,8 @@ case "$1" in
         info="$(echo "$chosen" | sed 's/.*(\(.*\))/\1/')"
         title="$(echo '{ "command": ["get_property", "media-title"] }' | socat - "$info" | jq -r '.data')"
         path="$(echo '{ "command": ["get_property", "path"] }' | socat - "$info" | jq -r '.data')"
-        notify-send "Yanked:" "$title\n$path"
-        echo "[[$path][$title]]" | xclip -i -selection clipboard
+        # notify-send "Yanked:" "$title\n$path"
+        echo "[[$path][$title]]" # | xclip -i -selection clipboard
         ;;
     *)
         if [ "$(echo "$instances" | wc -l)" -eq 1 ]; then

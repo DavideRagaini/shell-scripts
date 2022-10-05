@@ -16,26 +16,24 @@ dmenu"
 
 ORG="$HOME/Org"
 
+pull() {
+    [ -d "$1" ] &&
+        echo "${RED}Pulling from:${YELLOW} "$1" ${NC}" &&
+        git -C "$1" pull &&
+        echo
+}
+
 case "$1" in
 	all)
-        echo "${RED}Pulling from:${YELLOW} Org ${NC}"
-        git -C "$ORG" pull
-
+        pull "$ORG"
         for i in $SRC_REPOS; do
-            echo "${RED}Pulling from:${YELLOW} $i ${NC} "
-            git -C "$SRC_PATH/$i" pull
-            echo
+            pull "$SRC_PATH/$i"
         done
         ;;
 	mains)
-        echo "${RED}Pulling from:${YELLOW} dotfiles ${NC}"
-        git -C "$SRC_PATH/dotfiles" pull
-
-        echo "${RED}Pulling from:${YELLOW} shell-scripts ${NC}"
-        git -C "$SRC_PATH/shell-scripts" pull
-
-        echo "${RED}Pulling from:${YELLOW} Org ${NC}"
-        git -C "$ORG" pull
+        pull "$SRC_PATH/dotfiles"
+        pull "$SRC_PATH/shell-scripts"
+        pull "$ORG"
         ;;
 	*)
 		echo "sync what?" ;;
