@@ -1,2 +1,2 @@
 #!/bin/sh
-emacsclient -c -e "(dr/eagenda)" -F "((name . \"Eagenda\")(width . 200)(height . 45))"
+emacsclient -c -e "(dr/eagenda)" -F "((name . \"Eagenda\")(width . 200)(height . 55))"

@@ -1,2 +1,13 @@
 #!/bin/sh
-mpv --no-terminal --no-resume-playback --x11-name="mpvAlarm" --no-config --loop-file=2 "${XDG_VIDEOS_DIR:-$HOME/Storage/Videos}/alarm"
+
+ALARM="${XDG_VIDEOS_DIR:-$HOME/Storage/Videos}/alarm"
+MIMETYPE="$(file -Lb --mime-type "$ALARM" | cut -f1 -d'/')"
+
+if [ "$MIMETYPE" = 'audio' ]; then
+    ffplay -nodisp -hide_banner -loop 2 -loglevel 0 "$ALARM"
+elif [ "$MIMETYPE" = 'video' ]; then
+    mpv --no-terminal --no-resume-playback --x11-name="mpvAlarm" --no-config --loop-file=2 "$ALARM"
+else
+    echo "Select Audio/Video File"
+    notify-send "Select Audio/Video File"
+fi
