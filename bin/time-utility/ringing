@@ -4,7 +4,7 @@ ALARM="${XDG_VIDEOS_DIR:-$HOME/Storage/Videos}/alarm"
 MIMETYPE="$(file -Lb --mime-type "$ALARM" | cut -f1 -d'/')"
 
 if [ "$MIMETYPE" = 'audio' ]; then
-    ffplay -nodisp -hide_banner -loop 2 -loglevel 0 "$ALARM"
+    ffplay -nodisp -hide_banner -loop 2 "$ALARM"
 elif [ "$MIMETYPE" = 'video' ]; then
     mpv --no-terminal --no-resume-playback --x11-name="mpvAlarm" --no-config --loop-file=2 "$ALARM"
 else

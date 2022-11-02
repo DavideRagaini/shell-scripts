@@ -1,0 +1,14 @@
+#!/bin/sh
+
+while getopts "l:" arg; do
+    case "$arg" in
+        l) N_LINES=$OPTARG ;;
+        *) echo "Unknown Arg"; exit ;;
+    esac
+done
+
+ps -eo size,pid,user,command --sort -size |
+    awk '{ hr=$1/1024 ; printf("%13.2f Mb ",hr) } { for ( x=4 ; x<=NF ; x++ ) { printf("%s ",$x) } print "" }' |
+    cut -d "" -f2 |
+    cut -d "-" -f1 |
+    head -n $((N_LINES+1))
