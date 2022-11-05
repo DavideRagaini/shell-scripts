@@ -1,8 +1,20 @@
-#!/bin/sh
+#!/bin/bash
 RED='\033[0;31m'
 NC='\033[0m' # No Color
+N_LINES=10
 
-echo "${RED}CPU hogs${NC}"
-ps axch -o cmd:15,%cpu --sort=-%cpu | head
-echo "${RED}Memory hogs${NC}"
-ps axch -o cmd:15,%mem --sort=-%mem | head
+while getopts "l:" arg; do
+    case "$arg" in
+        l) N_LINES=$OPTARG ;;
+        *) echo "Unknown Arg"; exit ;;
+    esac
+done
+
+readarray CPU <<< "$(ps axch -o cmd:15,%cpu --sort=-%cpu)"
+readarray MEM <<< "$(ps axch -o cmd:15,%mem --sort=-%mem)"
+echo -e "     ${RED}CPU hogs\t               Memory hogs${NC}"
+for i in $(seq 0 $N_LINES)
+do
+    CPU_LINE="$(echo ${CPU[$i]} | sed 's/\n//')"
+    printf "%-15s %s   |   %s" "$(echo $CPU_LINE | cut -d' ' -f1)" "$(echo $CPU_LINE | cut -d' ' -f2)" "${MEM[$i]}"
+done
