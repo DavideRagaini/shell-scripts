@@ -2,12 +2,22 @@
 
 ALARM="${XDG_VIDEOS_DIR:-$HOME/Storage/Videos}/alarm"
 MIMETYPE="$(file -Lb --mime-type "$ALARM" | cut -f1 -d'/')"
+TIME="$(date '+%H:%M')"
+
+notify() {
+    echo "Alarm is ringing: $TIME"
+    notify-send -u critical "Alarm is ringing" "$TIME"
+}
 
 if [ "$MIMETYPE" = 'audio' ]; then
-    ffplay -nodisp -hide_banner -loop 2 "$ALARM"
+    ARGS="--no-video"
 elif [ "$MIMETYPE" = 'video' ]; then
-    mpv --no-terminal --no-resume-playback --x11-name="mpvAlarm" --no-config --loop-file=2 "$ALARM"
+    ARGS="--x11-name='mpvAlarm'"
 else
-    echo "Select Audio/Video File"
+    echo "Ringtone file not selected Audio/Video File"
     notify-send "Select Audio/Video File"
+    exit 1
 fi
+
+notify
+mpv --no-terminal --no-resume-playback --no-config --loop-file=5 "$ALARM"

@@ -1,4 +1,8 @@
 #!/bin/sh
+# TODO set function
+# TODO list all function
+# TODO Make more general porpouse via abstract api
+# TODO chosen variable strip function
 
 actions() {
     case $1 in
@@ -27,6 +31,17 @@ case "$1" in
             echo '{ "command": ["cycle", "pause"] }' |
                 socat - "$i"
         done
+        ;;
+    "set")
+        [ -z "$2" ] && echo "Property needed; exiting"
+        echo "$2"
+        for i in $instances; do
+            titles="$(echo '{ "command": ["get_property", "media-title"] }' | socat - "$i" | jq -r '.data')"
+            list="$(printf "%s%s (%s)\n " "$list" "$titles" "$i")"
+        done
+        chosen="$(echo "$list" | sed '/^ $/d' | dmenu -i -l 5 -p "Which to set?")"
+        chosen="$(echo "$list" | sed '/^ $/d' | dmenu -i -l 5 -p "Which to set?")"
+        echo "{ \"command\": [\"set_property\", \"${2}\", \"$3\"] }" | socat - "$chosen"
         ;;
     "info")
         [ -z "$2" ] && echo "Property needed; exiting"

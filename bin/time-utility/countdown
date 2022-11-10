@@ -1,9 +1,21 @@
 #!/bin/bash
 
+HOURS=0
+MINUTES=0
+SECONDS=0
+
+while getopts "h:m:s:" arg; do
+    case "$arg" in
+        h) HOURS=$OPTARG ;;
+        m) MINUTES=$OPTARG ;;
+        s) SECONDS=$OPTARG ;;
+        *) usage; exit ;;
+    esac
+done
+
 countdown() {
-	date1=$(($(date +%s) + $1))
+	date1=$(($(date +%s) + $HOURS*3600 + $MINUTES*60 + $SECONDS))
 	while [ "$date1" -ge "$(date +%s)" ]; do
-		## Is this more than 24h away?
 		days=$(($(($((date1 - $(date +%s))) * 1)) / 86400))
 		echo -ne "$days day(s) and $(date -u --date @$((date1 - $(date +%s))) +%H:%M:%S)\r"
 		sleep 1

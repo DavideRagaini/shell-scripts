@@ -1,4 +1,8 @@
 #!/bin/sh
+# TODO Pretty print
+# TODO Add Labels
+# TODO if no args then prompts time
+# TODO Add check if attached to terminal, then echo
 
 time="$(( $(date -d "$1" +%s) - $(date +%s) ))"
 minutes=$(( (time/60)%60 ))
@@ -6,3 +10,31 @@ seconds=$(( time%60 ))
 notify-send "Sleep for $minutes:$seconds seconds" "Rings @ $1"
 sleep "$time"
 ringing
+
+# HOURS=0
+# MINUTES=0
+# SECONDS=0
+# LABEL='Alarm'
+
+# while getopts "h:m:s:l:" arg; do
+#     case "$arg" in
+#         h) HOURS=$OPTARG ;;
+#         m) MINUTES=$OPTARG ;;
+#         s) SECONDS=$OPTARG ;;
+#         l) LABEL=$OPTARG ;;
+#         t) TIMESTAMP="$(( $(date -d "$OPTARG" +%s) - $(date +%s) ))"
+#            minutes=$(( (time/60)%60 ))
+#            seconds=$(( time%60 )) ;;
+#         *) usage; exit ;;
+#     esac
+# done
+
+# if [ -z $TIMESTAMP ]; then
+#     TIME=$(($(date +%s) + $HOURS*3600 + $MINUTES*60 + $SECONDS))
+# else
+#     TIME=TIMESTAMP
+# fi
+# echo "$LABEL: Sleep for $minutes:$seconds seconds. Rings @ $1"
+# [ -n "$DISPLAY" ] && notify-send "$LABEL: Sleep for $MINUTES:$SECONDS" "Rings @ $1"
+# sleep "$TIME"
+# ringing
