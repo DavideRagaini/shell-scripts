@@ -4,7 +4,7 @@
 
 # transmission-daemon sometimes fails to take remote requests in its first moments, hence the sleep.
 
-[ "$( pidof -q transmission-daemon )" ] ||
+pidof -q transmission-daemon ||
 	(transmission-daemon &&
 		notify-send "Starting transmission daemon..." &&
 		sleep 3)

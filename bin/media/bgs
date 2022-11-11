@@ -1,3 +1,4 @@
 #!/usr/bin/env sh
+set -x
 BGS_DIR=${XDG_MUSIC_DIR:-$HOME/Storage/Music}
-mpv --no-config --no-terminal --shuffle --loop-playlist=inf --input-ipc-server='/tmp/mpvSockets/background' '$BGS_DIR/BACKGROUNDS/'
+mpv --no-config --no-terminal --shuffle --loop-playlist=inf --input-ipc-server='/tmp/mpvSockets/background' "$BGS_DIR/BACKGROUNDS/"
