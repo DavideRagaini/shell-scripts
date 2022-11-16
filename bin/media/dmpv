@@ -76,7 +76,11 @@ fplay() {
 
 get_from_file() {
 	FILE="${1}"
-	CHOSEN="$(cut -f1 "$FILE" | dmenu -i -l 20)" || exit
+	if [ "$2" = 'sort' ]; then
+		CHOSEN="$(cut -f1 "$FILE" | shuf | dmenu -i -l 20)" || exit
+	else
+		CHOSEN="$(cut -f1 "$FILE" | dmenu -i -l 20)" || exit
+	fi
 	LINE="$(grep -w "$CHOSEN" "$FILE")"
 	TITLE="$(cut -f1 <<<"$LINE")"
 	URL="$(cut -f2 <<<"$LINE")"
@@ -94,7 +98,7 @@ music_play() {
 
 case "$CHOSEN" in
 	queue)
-		get_from_file "$PATH_QUEUE"
+		get_from_file "$PATH_QUEUE" sort
 		save_to_last
 		fplay
 		;;

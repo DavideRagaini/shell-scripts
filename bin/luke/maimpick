@@ -1,6 +1,6 @@
 #!/bin/sh
 
-name="$(date '+%y%m%d-%H%M-%S').png"
+name="$(date '+%y_%m_%d-%H_%M_%S').png"
 xclip_cmd="xclip -sel clip -t image/png"
 directory="$(fdfind -td -E octave -E Packages -E perl5 -E "*/lost+found" -E "*/Music/*" "^[0-9a-zA-Z]*" $HOME)"
 [ -d "$HOME/Screenshots/" ] && default="$HOME/Screenshots/\\n"
