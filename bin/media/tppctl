@@ -1,84 +1,81 @@
 #!/bin/sh
-# TODO set function
-# TODO list all function
-# TODO Make more general porpouse via abstract api
-# TODO chosen variable strip function
-
-actions() {
-    case $1 in
-        toggle) echo cycle pause | socat - "$2" ;;
-        play) echo '{ "command": ["set_property", "pause", false] }' | socat - "$2" ;;
-        pause) echo '{ "command": ["set_property", "pause", true] }' | socat - "$2" ;;
-        next) echo playlist-next | socat - "$2" ;;
-        prev) echo playlist-prev | socat - "$2" ;;
-        fseek) echo seek 10 | socat - "$2" ;;
-        bseek) echo seek -10 | socat - "$2" ;;
-    esac
-}
 
 [ -z "$1" ] && echo "Missing arguments" && exit
-instances="$(find "/tmp/mpvSockets" -type s)"
+SOCKETS="$(find "/tmp/mpvSockets" -type s)"
+
+set_all() {
+    for i in $SOCKETS; do
+        echo "${1}" |
+            socat -d - "$i"
+    done
+}
+
+choose_instance() {
+    if [ "$(echo "$SOCKETS" | wc -l)" -eq 1 ]; then
+        CHOSEN="$SOCKETS"
+    else
+        for i in $SOCKETS; do
+            TITLES="$(echo '{ "command": ["get_property", "media-title"] }' | socat -d - "$i" | jq -r '.data')"
+            LIST="${LIST}${TITLES} (${i})\n"
+        done
+        CHOSEN="$(echo "${LIST}" | dmenu -i -l 5 -p "$1")"
+    fi
+    CHOSEN=${CHOSEN#*(}
+    CHOSEN=${CHOSEN%)*}
+}
 
 case "$1" in
-    "pause_all")
-        for i in $instances; do
-            echo '{ "command": ["set_property", "pause", true] }' |
-                socat - "$i"
-        done
+    toggle)
+        choose_instance "Toggle:"
+        echo cycle pause | socat -d - "$CHOSEN"
         ;;
-    "invert")
-        for i in $instances; do
-            echo '{ "command": ["cycle", "pause"] }' |
-                socat - "$i"
-        done
+    play) choose_instance "Play:"
+          echo '{ "command": ["set_property", "pause", "false"] }' |
+              socat -d - "$CHOSEN"
         ;;
-    "set")
-        [ -z "$2" ] && echo "Property needed; exiting"
-        echo "$2"
-        for i in $instances; do
-            titles="$(echo '{ "command": ["get_property", "media-title"] }' | socat - "$i" | jq -r '.data')"
-            list="$(printf "%s%s (%s)\n " "$list" "$titles" "$i")"
-        done
-        chosen="$(echo "$list" | sed '/^ $/d' | dmenu -i -l 5 -p "Which to set?")"
-        chosen="$(echo "$list" | sed '/^ $/d' | dmenu -i -l 5 -p "Which to set?")"
-        echo "{ \"command\": [\"set_property\", \"${2}\", \"$3\"] }" | socat - "$chosen"
+    pause) choose_instance "Pause:"
+          echo '{ "command": ["set_property", "pause", "true"] }' |
+              socat -d - "$CHOSEN"
         ;;
-    "info")
-        [ -z "$2" ] && echo "Property needed; exiting"
-        echo "$2"
-        for i in $instances; do
-            properties="$(echo "{ \"command\": [\"get_property\", \"${2}\"] }" | socat - "$i" | jq -r '.data')"
-            list="$(printf "%s%s (%s)\n " "$list" "$properties" "$i")"
-        done
-        echo "$list"
+    pauseall) set_all '{ "command": ["set_property", "pause", true] }' ;;
+    invert) set_all '{ "command": ["cycle", "pause"] }' ;;
+    prev) choose_instance "Previous:"
+          echo "playlist-next" | socat -d - "$CHOSEN"
         ;;
-    "title")
-        for i in $instances; do
-            titles="$(echo '{ "command": ["get_property", "media-title"] }' | socat - "$i" | jq -r '.data')"
-            list="$(printf "%s%s (%s)\n " "$list" "$titles" "$i")"
-        done
-        if [ "$(echo "$titles" | wc -l)" -eq 1 ]; then
-            chosen="$(echo "$list" | sed '/^ $/d' )"
-        else
-            chosen="$(echo "$list" | sed '/^ $/d' | dmenu -i -l 5 -p "Get info from?")"
-        fi
-        info="$(echo "$chosen" | sed 's/.*(\(.*\))/\1/')"
-        title="$(echo '{ "command": ["get_property", "media-title"] }' | socat - "$info" | jq -r '.data')"
-        path="$(echo '{ "command": ["get_property", "path"] }' | socat - "$info" | jq -r '.data')"
-        # notify-send "Yanked:" "$title\n$path"
-        echo "[[$path][$title]]" # | xclip -i -selection clipboard
+    next) choose_instance "Next:"
+          echo "playlist-prev" | socat -d - "$CHOSEN"
         ;;
-    *)
-        if [ "$(echo "$instances" | wc -l)" -eq 1 ]; then
-            actions "$1" "$instances"
-        else
-            list=" "
-            for i in $instances; do
-                titles="$(echo '{ "command": ["get_property", "media-title"] }' | socat - "$i" | jq -r '.data')"
-                list="$(printf "%s%s (%s)\n " "$list" "$titles" "$i")"
-            done
-            chosen="$(echo "$list" | sed '/^ $/d' | dmenu -i -l 5 -p "Toggle which?")"
-            actions "$1" "$(echo "$chosen" | sed 's/.*(\(.*\))/\1/')"
-        fi
+    info) choose_instance "Info:"
+          TITLE="$(echo '{ "command": ["get_property", "media-title"] }' | socat -d - "$CHOSEN" | jq -r '.data')"
+          PATH="$(echo '{ "command": ["get_property", "path"] }' | socat -d - "$CHOSEN" | jq -r '.data')"
+          echo "[[$PATH][$TITLE]]" # | xclip -i -selection clipboard
+          ;;
+    seek) choose_instance "Seek:"
+          echo seek "$1" | socat -d - "$2"
         ;;
+    get) PROPERTY="$(echo "{ \"command\": [\"get_property\", \"${1}\"] }" | socat -d - "$2" | jq -r '.data')"
+         notify-send "Get Property" "$1: $PROPERTY"
+        ;;
+    'set') PROPERTY="$(echo ${1} | cut -d' ' -f1)"
+           VALUE="$(echo ${1} | cut -d' ' -f2)"
+           notify-send "Set Property" "$PROPERTY: $VALUE"
+           echo "{ \"command\": [\"set_property\", \"$PROPERTY\", \"$VALUE\"] }" |
+        socat -d - "$CHOSEN"
+        ;;
+    help)
+      echo \
+"MPV IPC Socket Basic Controller
+
+tppctl Options [property]
+
+Options:
+  toggle / play / pause
+  pause all / invert
+  prev /next
+  get [property]
+  set [property]
+  info [property]
+  seek [property]
+  help"
+      exit ;;
 esac

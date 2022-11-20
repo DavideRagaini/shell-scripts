@@ -1,4 +1,55 @@
-#!/usr/bin/env sh
-set -x
-BGS_DIR=${XDG_MUSIC_DIR:-$HOME/Storage/Music}
-mpv --no-config --no-terminal --shuffle --loop-playlist=inf --input-ipc-server='/tmp/mpvSockets/background' "$BGS_DIR/BACKGROUNDS/"
+#!/bin/sh
+
+SOCKET='/tmp/mpv-bgs'
+
+usage() {
+    echo \
+"Usage: BackGroundSound
+[-h]                        help
+[-t]                        toggle playback
+[-g GET_PROPERTY]           get property
+[-s SET_PROPERTY]           set property"
+}
+
+notify() {
+    if [ -n "$DISPLAY" ]; then
+        notify-send "$1" "$2"
+    else
+        echo "$PROPERTY"
+    fi
+}
+
+getp() {
+    PROPERTY="$(echo "{ \"command\": [\"get_property\", \"${1}\"] }" | socat - "$SOCKET" | jq -r '.data')"
+    notify "BGS Get Property" "$1: $PROPERTY"
+}
+
+setp() {
+    PROPERTY="$(echo ${1} | cut -d' ' -f1)"
+    VALUE="$(echo ${1} | cut -d' ' -f2)"
+    notify "BGS Set Property" "$PROPERTY: $VALUE"
+    echo "{ \"command\": [\"set_property\", \"$PROPERTY\", \"$VALUE\"] }" |
+        socat - "$SOCKET"
+}
+
+start_bgs() {
+    mpv --no-config \
+        --no-terminal \
+        --shuffle \
+        --loop-playlist=inf \
+        --volume=90 \
+        --input-ipc-server="$SOCKET" \
+        "${XDG_MUSIC_DIR:-$HOME/Storage/Music}/BACKGROUNDS/"
+    notify 'BGS exits'
+}
+
+while getopts "Shtg:s:v:" arg; do
+    case "$arg" in
+        S) start_bgs ;;
+        g) getp "$OPTARG" ;;
+        s) setp "${OPTARG}" ;;
+        v) setp "volume ${OPTARG}" ;;
+        t) echo cycle pause | socat - "$SOCKET" ;;
+        h) usage; exit ;;
+    esac
+done
