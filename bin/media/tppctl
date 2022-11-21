@@ -20,8 +20,8 @@ choose_instance() {
         done
         CHOSEN="$(echo "${LIST}" | dmenu -i -l 5 -p "$1")"
     fi
-    CHOSEN=${CHOSEN#*(}
-    CHOSEN=${CHOSEN%)*}
+    CHOSEN="${CHOSEN#*(}"
+    CHOSEN="${CHOSEN%)*}"
 }
 
 case "$1" in
@@ -51,13 +51,15 @@ case "$1" in
           echo "[[$PATH][$TITLE]]" # | xclip -i -selection clipboard
           ;;
     seek) choose_instance "Seek:"
-          echo seek "$1" | socat -d - "$2"
+          echo seek "$2" | socat -d - "$CHOSEN"
         ;;
-    get) PROPERTY="$(echo "{ \"command\": [\"get_property\", \"${1}\"] }" | socat -d - "$2" | jq -r '.data')"
-         notify-send "Get Property" "$1: $PROPERTY"
+    get) choose_instance "Get:"
+         PROPERTY="$(echo "{ \"command\": [\"get_property\", \"${2}\"] }" | socat -d - "$CHOSEN" | jq -r '.data')"
+         notify-send "Get Property" "$2: $PROPERTY"
         ;;
-    'set') PROPERTY="$(echo ${1} | cut -d' ' -f1)"
-           VALUE="$(echo ${1} | cut -d' ' -f2)"
+    'set') choose_instance "Set:"
+           PROPERTY="$(echo ${2} | cut -d' ' -f1)"
+           VALUE="$(echo ${2} | cut -d' ' -f2)"
            notify-send "Set Property" "$PROPERTY: $VALUE"
            echo "{ \"command\": [\"set_property\", \"$PROPERTY\", \"$VALUE\"] }" |
         socat -d - "$CHOSEN"

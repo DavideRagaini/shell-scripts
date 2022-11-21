@@ -1,22 +1,36 @@
 #!/bin/sh
-pidof -q spotifyd &&
-	CHOSEN="Sptui"
 
-mpc status 2>/dev/null | grep -q playing &&
+if ([ "$(pidof -q librespot)" ] || [ "$(pidof -q spotifyd)" ]);then
+	CHOSEN="sptui"
+elif [ "$(mpc status 2>/dev/null | grep -q playing)" ]; then
 	CHOSEN="Local"
-
-[ -z $CHOSEN ] &&
+else
 	CHOSEN="$(printf 'Spotify\nLocal' | fzf --cycle --border --margin 10% --padding 10% --header='Choose music source')"
-
-if [ "$(command -v spotify-tui)"  = "" ]; then
-		SPOTIFY="spt"
-	else
-		SPOTIFY="spotify-tui"
 fi
 
 case "$CHOSEN" in
-	Spotify) spotifyd --autoplay && exec $SPOTIFY ;;
 	Local) exec ncmpcpp ;;
-	Sptui) exec $SPOTIFY ;;
+	Spotify)
+		if [ "$(command -v 'librespot')" ]; then
+		setsid -f librespot \
+			--c ~/Storage/.cache/librespot \
+			--backend pulseaudio \
+			--cache-size-limit 1G \
+			--name tinkerboard \
+			--device-type computer \
+			--initial-volume 81 \
+			# --enable-volume-normalisation \
+			# --normalisation-pregain -2 \
+			--bitrate 320
+		elif [ "$(command -v 'spotifyd')" ]; then
+			setsid -f spotifyd
+		fi ;;
+	sptui)
+		if [ "$(command -v spotify-tui)" ]; then
+			FRONTEND="spotify-tui"
+		else
+			FRONTEND='/home/davide/.local/share/cargo/bin/spt'
+		fi
+		exec $FRONTEND ;;
 	*) notify-send "Something wrong"
 esac
