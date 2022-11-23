@@ -64,6 +64,7 @@ case "$1" in
            echo "{ \"command\": [\"set_property\", \"$PROPERTY\", \"$VALUE\"] }" |
         socat -d - "$CHOSEN"
         ;;
+    direct) echo "${OPTARG}" | socat -d - "$SOCKET" ;;
     help)
       echo \
 "MPV IPC Socket Basic Controller
@@ -76,6 +77,7 @@ Options:
   prev /next
   get [property]
   set [property]
+  direct [string]
   info [property]
   seek [property]
   help"

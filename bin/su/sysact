@@ -41,6 +41,13 @@ confirm() {
 		exit 1
 }
 
+pause_players() {
+	dmpc pause
+	tppctl pause_all
+	bgs -t
+	playerctl --all-players pause
+}
+
 case "$choice" in
 	Start) log "Start     " "" ;;
 	Resume) log "Resume    " "" ;;
@@ -56,9 +63,7 @@ case "$choice" in
 			sudo -A sh -c "$SHUTDOWN" ;;
 	Suspend)
 		confirm
-		dmpc pause
-		tppctl pause_all
-		playerctl --all-players pause
+		pause_players
 		check_init
 		log "Suspend   " "" &&
 			sudo -A sh -c "$SUSPEND"
@@ -66,9 +71,7 @@ case "$choice" in
 		;;
 	Hibernate)
 		confirm
-		dmpc pause
-		tppctl pause_all
-		playerctl --all-players pause
+		pause_players
 		check_init
 		log "Hibernate " "" &&
 			sudo -A sh -c "$HIBERNATE"

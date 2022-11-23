@@ -1,17 +1,23 @@
 #!/bin/sh
 
 CACHE="$HOME/.cache/via"
+LAST="$HOME/.cache/via-last"
 
 build_cache() {
     # fd -c never -t f -E "Storage" -E "Projects" -E "Torrents" -E "Laboratorio Automazione" -E "Programmazione ad Oggetti" --base-directory "$HOME" >"$CACHE"
     # find "$HOME" -type f -iname "*.pdf" -not -path "./.*/*" -not -path "./Storage/*" >"$CACHE"
     locate -ri "$HOME/.*.pdf$" | sed "s@$HOME@"'~''@; /~\/\..*$/d' >"$CACHE"
+    printf '' >"$LAST"
 }
 
 reader() {
-    file="$(fzfmenu <"$CACHE")"
+    cache="$(cat $CACHE)"
+    last="$(cat $LAST)"
+    file="$(printf "%s\n-------\n%s" "$last" "$cache" | fzfmenu)"
     [ -n "$file" ] &&
-        zathura "$file"
+        last="$(grep -v "$file" "$LAST")" &&
+        printf "%s\n%s" "$file" "$last" >"$LAST" &&
+        exec zathura "$file"
 }
 
 case "$1" in

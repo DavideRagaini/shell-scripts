@@ -1,0 +1,28 @@
+#!/bin/sh
+
+#Minimum available memory limit, MB
+THRESHOLD=500
+
+#Check time interval, sec
+INTERVAL=30
+
+while :
+do
+
+    mem=$(free -m)
+    free=$(echo $mem | awk '/^Mem:/{print $4}')
+    buffers=$(echo $mem | awk '/^Mem:/{print $6}')
+    cached=$(echo $mem | '/^Mem:/{print $7}')
+    available=$(echo $mem | awk '/^-\/+/{print $4}')
+
+    message="Free $free""MB"", buffers $buffers""MB"", cached $cached""MB"", available $available""MB"""
+
+    if [ $available -lt $THRESHOLD ]
+        then
+        ### MODIFY THIS NOTIFICATION METHOD FOR YOUR OS
+        notify-send "Memory is running out!" "$message"
+    fi
+
+    sleep $INTERVAL
+
+done
