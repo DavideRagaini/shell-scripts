@@ -16,8 +16,9 @@ chmod 600 "$input" "$output"
 # already.
 # you can also set window dimensions via -g '=COLSxROWS', see man st.
 
-mod_x=17
-mod_y=38
+size=11
+mod_x=$size
+mod_y=$(( size * 2 ))
 padding=1
 
 dim_screen="$(xrandr | awk '/current/ {sub(",","",$10); print $8$9$10}')"
@@ -30,8 +31,8 @@ GEOM="$(printf "%dx%d" "$rows" "$colums")"
 
 
 # alacritty --class 'fzfmenu' --config-file="$HOME/.config/alacritty/fzfmenu.yml" -e sh -c "cat $input |
-st -n fzfmenu -f "Liberation Mono:size=20" -g "$GEOM" -e sh -c "cat $input |
-	fzf --border=rounded --margin=1% --multi --ansi -i --height=40 $(printf -- " '%s'" "$@" | sed "s/^ ''$//") |
+st -n fzfmenu -f "Liberation Mono:size=$size" -g "$GEOM" -e sh -c "cat $input |
+	fzf --border=rounded --margin=1% --multi --ansi -i --height=$((size * 6)) $(printf -- " '%s'" "$@" | sed "s/^ ''$//") |
 	tee $output" &
 disown
 

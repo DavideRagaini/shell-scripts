@@ -1,7 +1,7 @@
 #!/bin/sh
 
-CACHE="$HOME/.cache/via"
-LAST="$HOME/.cache/via-last"
+CACHE="$HOME/.cache/via/database"
+LAST="$HOME/.cache/via/history"
 
 build_cache() {
     # fd -c never -t f -E "Storage" -E "Projects" -E "Torrents" -E "Laboratorio Automazione" -E "Programmazione ad Oggetti" --base-directory "$HOME" >"$CACHE"
@@ -11,13 +11,18 @@ build_cache() {
 }
 
 reader() {
-    cache="$(cat $CACHE)"
-    last="$(cat $LAST)"
-    file="$(printf "%s\n-------\n%s" "$last" "$cache" | fzfmenu)"
-    [ -n "$file" ] &&
-        last="$(grep -v "$file" "$LAST")" &&
-        printf "%s\n%s" "$file" "$last" >"$LAST" &&
+    cache="$(cat "$CACHE")"
+    last="$(cat "$LAST")"
+    file="$(printf "%s\n------------\n%s" "$last" "$cache" | fzfmenu)"
+    if [ -n "$file" ]; then
+        if grep -q "$file" "$LAST"; then
+            last="$(grep -v "$file" "$LAST")"
+            printf "%s\n%s\n" "$file" "$last" >"$LAST"
+        else
+            printf "%s\n" "$file" | sort -r >>"$LAST"
+        fi
         exec zathura "$file"
+    fi
 }
 
 case "$1" in

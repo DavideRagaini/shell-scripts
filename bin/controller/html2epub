@@ -1,0 +1,7 @@
+#!/bin/sh
+
+if [ -f metadata.xml ]; then
+    pandoc -f html -t epub3 --epub-metadata=metadata.xml -o "$1".epub "$1"
+else
+    pandoc -f html -t epub3 -o "$1".epub "$1"
+fi
