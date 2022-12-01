@@ -1,7 +1,8 @@
 #!/bin/sh
 
-CACHE="$HOME/.cache/via/database"
-LAST="$HOME/.cache/via/history"
+DIR="$HOME/.cache/via"
+CACHE="$DIR/database"
+LAST="$DIR/history"
 
 build_cache() {
     # fd -c never -t f -E "Storage" -E "Projects" -E "Torrents" -E "Laboratorio Automazione" -E "Programmazione ad Oggetti" --base-directory "$HOME" >"$CACHE"
@@ -26,14 +27,8 @@ reader() {
 }
 
 case "$1" in
-    -r)
-        build_cache &&
-            reader
-        ;;
-    -ro)
-        build_cache
-        ;;
-    *)
-        reader
-        ;;
+    -r) build_cache && reader ;;
+    -d) build_cache ;;
+    -i) mkdir -p "$DIR";;
+     *) reader ;;
 esac

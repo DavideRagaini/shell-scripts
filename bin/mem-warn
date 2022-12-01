@@ -1,28 +1,40 @@
 #!/bin/sh
 
-#Minimum available memory limit, MB
-THRESHOLD=500
+usage() {
+    echo \
+"Defaults:
+ - Threshold = (total mememory)/4
+ - Interval = 30 seconfs
+Usage:
+[-i]     set update interval
+[-t]     set threshold"
+}
 
-#Check time interval, sec
 INTERVAL=30
+THRESHOLD=$(awk '/MemTotal:/{hr=$2/4000 ; printf("%.f",hr)}' /proc/meminfo)
+ICON="/usr/share/icons/Paper/48x48@2x/status/dialog-warning.png"
+while getopts "i:t:" arg; do
+    case "$arg" in
+        i) INTERVAL=$OPTARG ;;
+        t) THRESHOLD=$OPTARG ;;
+        h|*) usage; exit ;;
+    esac
+done
 
 while :
 do
-
     mem=$(free -m)
-    free=$(echo $mem | awk '/^Mem:/{print $4}')
-    buffers=$(echo $mem | awk '/^Mem:/{print $6}')
-    cached=$(echo $mem | '/^Mem:/{print $7}')
-    available=$(echo $mem | awk '/^-\/+/{print $4}')
-
-    message="Free $free""MB"", buffers $buffers""MB"", cached $cached""MB"", available $available""MB"""
-
-    if [ $available -lt $THRESHOLD ]
-        then
-        ### MODIFY THIS NOTIFICATION METHOD FOR YOUR OS
-        notify-send "Memory is running out!" "$message"
+    available=$(echo "$mem" | awk '/Mem:/{print $7}')
+    if [ $available -lt $THRESHOLD ]; then
+        notify-send \
+            -i "$ICON"
+            "Memory is running low!" \
+    elif [ $available -le $((THRESHOLD/2)) ]
+        notify-send \
+            --urgency=critical \
+            -i "$ICON" \
+            "Critical! Memory is running out!" \
+            "Terminate something"
     fi
-
     sleep $INTERVAL
-
 done

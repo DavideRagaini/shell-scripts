@@ -40,10 +40,10 @@ case "$1" in
     pauseall) set_all '{ "command": ["set_property", "pause", true] }' ;;
     invert) set_all '{ "command": ["cycle", "pause"] }' ;;
     prev) choose_instance "Previous:"
-          echo "playlist-next" | socat -d - "$CHOSEN"
+          echo "playlist-prev" | socat -d - "$CHOSEN"
         ;;
     next) choose_instance "Next:"
-          echo "playlist-prev" | socat -d - "$CHOSEN"
+          echo "playlist-next" | socat -d - "$CHOSEN"
         ;;
     info) choose_instance "Info:"
           TITLE="$(echo '{ "command": ["get_property", "media-title"] }' | socat -d - "$CHOSEN" | jq -r '.data')"

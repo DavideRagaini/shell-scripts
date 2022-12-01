@@ -13,11 +13,11 @@ usage() {
 }
 
 notify() {
-    if [ -n "$DISPLAY" ]; then
-        notify-send "$1" "$2"
-    else
+    # if [ -n "$DISPLAY" ]; then
+    #     notify-send "$1" "$2"
+    # else
         echo "$PROPERTY"
-    fi
+    # fi
 }
 
 getp() {
@@ -46,12 +46,14 @@ start_bgs() {
 
 [ -z "$1" ] && start_bgs
 
-while getopts "Shtg:s:d:v:" arg; do
+while getopts "Shnptg:s:d:v:" arg; do
     case "$arg" in
         S) start_bgs ;;
         g) getp "$OPTARG" ;;
         s) setp "${OPTARG}" ;;
         d) echo "${OPTARG}" | socat -d - "$SOCKET" ;;
+        p) echo "playlist-prev" | socat -d - "$SOCKET" ;;
+        n) echo "playlist-next" | socat -d - "$SOCKET" ;;
         v) [ $OPTARG -gt 150 ] &&
                echo "Volume too Loud, exit" &&
                exit

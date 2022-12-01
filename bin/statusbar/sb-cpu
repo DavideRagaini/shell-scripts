@@ -18,6 +18,8 @@ if [ -d  "/sys/class/thermal/thermal_zone$ZONE" ]; then
 else
     TEMP="$(sensors | awk '/temp/ {print $2}' | tr -d "\n" | sed 's/+/ /g; s/°C//g; s/\.[0-9]//g')"
 fi
+[ $TEMP -gt 70 ] &&
+    notify-send -i '/usr/share/icons/Paper/512x512/status/gtk-dialog-warning.png' "CPU Temp High!"
 [ "$CLOCK" -lt 1000000 ] && N=3
 CLOCK="$(echo "$CLOCK" | cut -c -${N:-4})"
 printf " %s %d@%s%s糖]" "$LOAD" "$R" "$CLOCK" "$TEMP"
