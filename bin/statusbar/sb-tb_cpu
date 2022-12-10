@@ -11,4 +11,4 @@ if [ $CUR_MAX_FRQ -ge 1000000 ]; then
       CUR_MAX_FRQ="$(cut -c -3 <<<$CUR_MAX_FRQ)"
 fi
 
-printf '[%s %s-%s]-' "$CUR_GOVERNOR" "$CUR_MIN_FRQ" "$CUR_MAX_FRQ"
+printf '[%s %s-%s]' "$CUR_GOVERNOR" "$CUR_MIN_FRQ" "$CUR_MAX_FRQ"

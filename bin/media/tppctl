@@ -69,9 +69,10 @@ case "$1" in
       echo \
 "MPV IPC Socket Basic Controller
 
+USAGE:
 tppctl Options [property]
 
-Options:
+OPTIONS:
   toggle / play / pause
   pause all / invert
   prev /next

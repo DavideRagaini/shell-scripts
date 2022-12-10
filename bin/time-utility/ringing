@@ -4,10 +4,6 @@ ALARM="${XDG_VIDEOS_DIR:-$HOME/Storage/Videos}/alarm"
 MIMETYPE="$(file -Lb --mime-type "$ALARM" | cut -f1 -d'/')"
 TIME="$(date '+%H:%M')"
 
-notify() {
-    echo "Alarm is ringing: $TIME"
-    notify-send -u critical "Alarm is ringing" "$TIME"
-}
 
 if [ "$MIMETYPE" = 'audio' ]; then
     ARGS="--no-video"
@@ -19,5 +15,11 @@ else
     exit 1
 fi
 
-notify
-mpv --no-terminal --no-resume-playback --no-config --loop-file=5 "$ALARM"
+echo "Alarm is ringing: $TIME"
+notify-send -u critical "Alarm is ringing" "$TIME"
+mpv --no-terminal \
+    --no-resume-playback \
+    --no-config \
+    --loop-file=5 \
+    "$ARGS" \
+    "$ALARM"

@@ -36,9 +36,15 @@ CHANNEL=""
 GEOM=""
 
 get_title() {
-	JSON="$(yt-dlp --no-warnings --dump-single-json "$URL")"
-	TITLE="$(jq -r '.title' <<<"$JSON")"
-	CHANNEL="$(jq -r '.uploader,.channel' <<<"$JSON" | uniq -i | sed '/null/d')"
+	if ! command -v pipe-viewer &>/dev/null; then
+		INFO="$(pipe-viewer --no-interactive --extract '*TITLE* (*AUTHOR*)' "$URL")"
+		TITLE="$(cut -d' ' -f1 <<< $INFO)"
+		CHANNEL="$(cut -d' ' -f2 <<< $INFO)"
+	else
+		JSON="$(yt-dlp --no-warnings --dump-single-json "$URL")"
+		TITLE="$(jq -r '.title' <<<"$JSON")"
+		CHANNEL="$(jq -r '.uploader,.channel' <<<"$JSON" | uniq -i | sed '/null/d')"
+	fi
 	([ "$TITLE" = 'null' ] || [ -z "$TITLE" ]) && notify-send "could not retrieve title" && exit
 }
 

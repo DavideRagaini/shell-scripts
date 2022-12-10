@@ -6,6 +6,7 @@ usage() {
     echo \
 "Usage: BackGroundSound
 [-h]                        help
+[-i]                        info
 [-t]                        toggle playback
 [-g GET_PROPERTY]           get property
 [-s SET_PROPERTY]           set property
@@ -46,11 +47,18 @@ start_bgs() {
 
 [ -z "$1" ] && start_bgs
 
-while getopts "Shnptg:s:d:v:" arg; do
+while getopts "Shnptig:s:d:v:" arg; do
     case "$arg" in
         S) start_bgs ;;
         g) getp "$OPTARG" ;;
         s) setp "${OPTARG}" ;;
+        i) echo "Title:           $(getp media-title)"
+           echo "Path:            $(getp path)"
+           echo "Time:            $(getp duration)"
+           echo "Time pos:        $(getp time-pos)"
+           echo "Time remaining:  $(getp time-remaining)"
+           echo "Percent pos:     $(getp percent-pos)"
+           ;;
         d) echo "${OPTARG}" | socat -d - "$SOCKET" ;;
         p) echo "playlist-prev" | socat -d - "$SOCKET" ;;
         n) echo "playlist-next" | socat -d - "$SOCKET" ;;

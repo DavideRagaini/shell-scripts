@@ -5,14 +5,14 @@
 # MIT License
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy of this
-# software and associated documentation files (the "Software"), to deal in the Software 
+# software and associated documentation files (the "Software"), to deal in the Software
 # without restriction, including without limitation the rights to use, copy, modify, merge,
 # publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons
 # to whom the Software is furnished to do so, subject to the following conditions:
-# 
+#
 # The above copyright notice and this permission notice shall be included in all copies or
 # substantial portions of the Software.
-# 
+#
 # THE SOFTWARE IS PROVIDED *AS IS*, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
 # INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
 # PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE
@@ -32,7 +32,7 @@ TEMP_DIR=./.cbz-merger
 case $parameter in
     -i|--input)
     INPUT="$2"
-    shift 
+    shift
     shift
     ;;
     -o|--output)
@@ -117,7 +117,7 @@ if [ -z "$OUTPUT_FILE" ]; then
 fi
 
 if [ -d "$TEMP_DIR" ]; then
-    if [ "$CLEAN_TEMP" ]; then 
+    if [ "$CLEAN_TEMP" ]; then
         echo Cleaning $TEMP_DIR
         rm -rf $TEMP_DIR
     else
@@ -127,7 +127,7 @@ if [ -d "$TEMP_DIR" ]; then
 fi
 
 if [ -f "$OUTPUT_FILE" ]; then
-    if [ "$OVERRIDE" ]; then 
+    if [ "$OVERRIDE" ]; then
         echo Removing $OUTPUT_FILE
         rm -f $OUTPUT_FILE
     else
