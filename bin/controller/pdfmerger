@@ -1,35 +1,38 @@
 #!/bin/sh
 
-out_file="output-merge.pdf"
-tmp_dir="/tmp/pdftk_unite"
-bookmarks_file="$tmp_dir/bookmarks.txt"
-bookmarks_fmt="BookmarkBegin
-BookmarkTitle: %s
-BookmarkLevel: 1
-BookmarkPageNumber: 1
-"
+if [ "$1" = "-gs" ]; then
+    shift 1
+    gs \
+        -sDEVICE=pdfwrite \
+        -dCompatibilityLevel=1.4 \
+        -dPDFSETTINGS=/default \
+        -dNOPAUSE \
+        -dQUIET \
+        -dBATCH \
+        -dDetectDuplicateImages \
+        -dCompressFonts=true \
+        -r150 \
+        -sOutputFile=output.pdf \
+        $@
+else
+    out_file="output-merge.pdf"
+    tmp_dir="/tmp/pdftk_unite"
+    bookmarks_file="$tmp_dir/bookmarks.txt"
+    bookmarks_fmt="BookmarkBegin
+    BookmarkTitle: %s
+    BookmarkLevel: 1
+    BookmarkPageNumber: 1
+    "
 
-rm -rf "$tmp_dir"
-mkdir -p "$tmp_dir"
+    rm -rf "$tmp_dir"
+    mkdir -p "$tmp_dir"
 
-for f in *.pdf; do
-    echo "Bookmarking $f..."
-    title="${f%.*}"
-    printf "$bookmarks_fmt" "$title" > "$bookmarks_file"
-    pdftk "$f" update_info "$bookmarks_file" output "$tmp_dir/$f"
-done
+    for f in *.pdf; do
+        echo "Bookmarking $f..."
+        title="${f%.*}"
+        printf "$bookmarks_fmt" "$title" > "$bookmarks_file"
+        pdftk "$f" update_info "$bookmarks_file" output "$tmp_dir/$f"
+    done
 
-pdftk "$tmp_dir"/*.pdf cat output "$out_file"
-
-# gs \
-#     -sDEVICE=pdfwrite \
-#     -dCompatibilityLevel=1.4 \
-#     -dPDFSETTINGS=/default \
-#     -dNOPAUSE \
-#     -dQUIET \
-#     -dBATCH \
-#     -dDetectDuplicateImages \
-#     -dCompressFonts=true \
-#     -r150 \
-#     -sOutputFile=output.pdf \
-#     $@
+    pdftk "$tmp_dir"/*.pdf cat output "$out_file"
+fi

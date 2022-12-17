@@ -1,0 +1,40 @@
+#!/bin/sh
+
+usage() {
+    echo \
+"Defaults:
+ - Threshold = (total mememory)/4
+ - Interval = 30 seconfs
+Usage:
+[-i]     set update interval
+[-t]     set threshold"
+}
+
+INTERVAL=30
+THRESHOLD=$(awk '/MemTotal:/{hr=$2/4000 ; printf("%.f",hr)}' /proc/meminfo)
+ICON="/usr/share/icons/Paper/48x48@2x/status/dialog-warning.png"
+while getopts "i:t:" arg; do
+    case "$arg" in
+        i) INTERVAL=$OPTARG ;;
+        t) THRESHOLD=$OPTARG ;;
+        h|*) usage; exit ;;
+    esac
+done
+
+while :
+do
+    mem=$(free -m)
+    available=$(echo "$mem" | awk '/Mem:/{print $7}')
+    if [ $available -lt $THRESHOLD ]; then
+        notify-send \
+            -i "$ICON"
+            "Memory is running low!" \
+    elif [ $available -le $((THRESHOLD/2)) ]
+        notify-send \
+            --urgency=critical \
+            -i "$ICON" \
+            "Critical! Memory is running out!" \
+            "Terminate something"
+    fi
+    sleep $INTERVAL
+done
