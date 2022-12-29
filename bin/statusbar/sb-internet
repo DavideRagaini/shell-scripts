@@ -10,7 +10,7 @@ case $BLOCK_BUTTON in
 " ;;
 esac
 
-    wifiicon="" &&
 [ "$(nmcli radio wifi)" = "enabled" ] &&
-    signal=" $(awk '/s*w/ {print int($3 * 100 / 70) "%" }' /proc/net/wireless) "
-printf "[ %s%s%s]" "$wifiicon" "$signal" "$(sed "s/down/❎/;s/up/🌐/;s/unknown//" /sys/class/net/e*/operstate)"
+    wifiicon="" &&
+    signal="$(awk '/wlp*/ {print int($3 * 100 / 70) "%" }' /proc/net/wireless) "
+printf "[%s%s%s]" "$wifiicon" "$signal" "$(sed "s/down/❎/;s/up//;s/unknown//" /sys/class/net/e*/operstate)"

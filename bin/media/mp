@@ -1,8 +1,10 @@
 #!/bin/sh
 
-if ([ "$(pidof -q librespot)" ] || [ "$(pidof -q spotifyd)" ]);then
+if pidof librespot; then
 	CHOSEN="sptui"
-elif [ "$(mpc status 2>/dev/null | grep -q playing)" ]; then
+elif pidof spotifyd; then
+	CHOSEN="sptui"
+elif [ "$(mpc status '%status%')" = 'playing' ]; then
 	CHOSEN="Local"
 else
 	CHOSEN="$(printf 'Spotify\nLocal' | fzf --cycle --border --margin 10% --padding 10% --header='Choose music source')"
@@ -11,7 +13,7 @@ fi
 case "$CHOSEN" in
 	Local) exec ncmpcpp ;;
 	Spotify)
-		if [ "$(command -v 'librespot')" ]; then
+		if command -v 'librespot'; then
 		setsid -f librespot \
 			--c ~/Storage/.cache/librespot \
 			--backend pulseaudio \
@@ -19,14 +21,14 @@ case "$CHOSEN" in
 			--name tinkerboard \
 			--device-type computer \
 			--initial-volume 81 \
+			--bitrate 320
 			# --enable-volume-normalisation \
 			# --normalisation-pregain -2 \
-			--bitrate 320
-		elif [ "$(command -v 'spotifyd')" ]; then
+		elif command -v 'spotifyd'; then
 			setsid -f spotifyd
 		fi ;;
 	sptui)
-		if [ "$(command -v spotify-tui)" ]; then
+		if command -v spotify-tui; then
 			FRONTEND="spotify-tui"
 		else
 			FRONTEND='/home/davide/.local/share/cargo/bin/spt'

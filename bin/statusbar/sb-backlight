@@ -3,4 +3,4 @@
 cb=$(cat /sys/class/backlight/"$1"/brightness)
 mb=$(cat /sys/class/backlight/"$1"/max_brightness)
 rb=$(($cb * 100 / $mb))
-printf "[$rb]"
+printf "[ $rb]"
