@@ -18,9 +18,9 @@ case "$CHOSEN" in
 			--c ~/Storage/.cache/librespot \
 			--backend pulseaudio \
 			--cache-size-limit 1G \
-			--name tinkerboard \
+			--name "$(hostname)" \
 			--device-type computer \
-			--initial-volume 81 \
+			--initial-volume 71 \
 			--bitrate 320
 			# --enable-volume-normalisation \
 			# --normalisation-pregain -2 \

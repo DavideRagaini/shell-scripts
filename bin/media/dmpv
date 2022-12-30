@@ -36,10 +36,10 @@ CHANNEL=""
 GEOM=""
 
 get_title() {
-	if ! command -v pipe-viewer &>/dev/null; then
-		INFO="$(pipe-viewer --no-interactive --extract '*TITLE* (*AUTHOR*)' "$URL")"
-		TITLE="$(cut -d' ' -f1 <<< $INFO)"
-		CHANNEL="$(cut -d' ' -f2 <<< $INFO)"
+	if which pipe-viewer &>/dev/null; then
+		INFO="$(pipe-viewer --no-interactive --extract '*TITLE*»*AUTHOR*' "$URL")"
+		TITLE="${INFO%%»*}"
+		CHANNEL="${INFO##*»}"
 	else
 		JSON="$(yt-dlp --no-warnings --dump-single-json "$URL")"
 		TITLE="$(jq -r '.title' <<<"$JSON")"
@@ -49,11 +49,11 @@ get_title() {
 }
 
 add_to_queue() {
-	PLAYLIST="$(: | dmenu -p "Name of the playlist?")"
+	PLAYLIST="$(» | dmenu -p "Name of the playlist?")"
 	[ -z "$PLAYLIST" ] && PLAYLIST="1shot"
 	get_title
-	notify-send "$PLAYLIST:$TITLE $CHANNEL" "$URL"
-	printf "%s: %s (%-15s) «%s»\\t%s\\n" "$PLAYLIST" "$TITLE" "$CHANNEL" "$(date '+%k:%M %d/%m/%y')" "$URL" >>"$PATH_QUEUE"
+	notify-send "$PLAYLIST» $TITLE “$CHANNEL”" "$URL"
+	printf "%s» %s “%-15s” %s\\t%s\\n" "$PLAYLIST" "$TITLE" "$CHANNEL" "$(date '+%k:%M %d/%m/%y')" "$URL" >>"$PATH_QUEUE"
 	sort -u "$PATH_QUEUE" -o "$PATH_QUEUE"
 }
 
@@ -70,14 +70,14 @@ floating() {
 }
 
 save_to_last() {
-	printf "%s: %-20s: %s\t%s\n%s" "$(date '+%k:%M %d/%m/%y')" "$CHANNEL" "$TITLE" "$URL" "$(cat "$PATH_LAST")" >"$PATH_LAST"
+	printf "%s» %-20s» %s\t%s\n%s" "$(date '+%k:%M %d/%m/%y')" "$CHANNEL" "$TITLE" "$URL" "$(cat "$PATH_LAST")" >"$PATH_LAST"
 }
 
 fplay() {
 	floating
-	notify-send "Working on:" "$TITLE «$CHANNEL»\\n$URL"
+	notify-send "Working on:" "$TITLE “$CHANNEL”\\n$URL"
 	export TS_SOCKET="/tmp/ts_dmpv_video"
-	$TASK_SPOOLER -L "$TITLE «$CHANNEL»" mpv --quiet --video=auto --geometry="$GEOM" --x11-name="mpvFloat" "$URL"
+	$TASK_SPOOLER -L "$TITLE “$CHANNEL”" mpv --quiet --video=auto --geometry="$GEOM" --x11-name="mpvFloat" "$URL"
 }
 
 get_from_file() {
@@ -94,12 +94,12 @@ get_from_file() {
 
 save_music () {
 	get_title
-	printf "%s: %-20s: %s\\t%s\\n%s" "$(date '+%k:%M %d/%m/%y')" "$CHANNEL" "$TITLE" "$URL" "$(cat "$PATH_MUSIC")" >"$PATH_MUSIC"
+	printf "%s» %-20s» %s\\t%s\\n%s" "$(date '+%k:%M %d/%m/%y')" "$CHANNEL" "$TITLE" "$URL" "$(cat "$PATH_MUSIC")" >"$PATH_MUSIC"
 }
 
 music_play() {
 	export TS_SOCKET="/tmp/ts_dmpv_music"
-	$TASK_SPOOLER -L "$TITLE «$CHANNEL»" mpv --vid=no --volume=60 --speed=1 --keep-open=no --loop-playlist "$URL"
+	$TASK_SPOOLER -L "$TITLE “$CHANNEL”" mpv --vid=no --volume=60 --speed=1 --keep-open=no --loop-playlist "$URL"
 }
 
 case "$CHOSEN" in
@@ -133,7 +133,7 @@ case "$CHOSEN" in
 		;;
 	last)
 		get_from_file "$PATH_LAST"
-		notify-send "Working on:" "$TITLE «$CHANNEL»\\n$URL"
+		notify-send "Working on:" "$TITLE “$CHANNEL”\\n$URL"
 		fplay
 		;;
 	music)
@@ -143,7 +143,7 @@ case "$CHOSEN" in
 	music_save) save_music ;;
 	music_queue)
 		get_from_file "$PATH_MUSIC"
-		notify-send "Working on:" "$TITLE «$CHANNEL»\\n$URL"
+		notify-send "Working on:" "$TITLE “$CHANNEL”\\n$URL"
 		music_play
 		;;
 	last_lecture) mpv "$VIDEOS/Lectures/doing" ;;
@@ -151,19 +151,20 @@ case "$CHOSEN" in
 	edit_last) "$VISUAL" "$PATH_LAST" ;;
 	info_queue)
 		get_from_file "$PATH_QUEUE"
-		TITLE="${TITLE% \«*}"
-		CHANNEL="$(echo "$TITLE" | sed 's/\».*//; s/.*\«//; s/\».*//')"
-		TITLE="${TITLE%% \«*}"
-		notify-send "Yanked:" "$TITLE «$CHANNEL»\\n$URL"
-		echo "[[$URL][$TITLE «$CHANNEL»]]" | xclip -i -selection clipboard
+		TITLE="${TITLE% \“*}"
+		CHANNEL="$(sed 's/\”.*//; s/.*\“//' <<<"$TITLE")"
+		TITLE="${TITLE%% \“*}"
+		notify-send "Yanked:" "$TITLE “$CHANNEL”\\n$URL"
+		printf "[[%s][%s “%s”]]" "$URL" "$TITLE" "$CHANNEL" | xclip -i -selection clipboard
 		;;
 	info_last)
 		get_from_file "$PATH_LAST"
-		TITLE="$(echo "$TITLE" | cut -d' ' -f3-)"
-		CHANNEL="$(echo "$TITLE" | cut -d':' -f1 | tr -d ' ')"
-		TITLE="$(echo "$TITLE" | cut -d':' -f2- | cut -d' ' -f2-)"
-		notify-send "Yanked:" "$TITLE «$CHANNEL»\\n$URL"
-		echo "[[$URL][$TITLE «$CHANNEL»]]" | xclip -i -selection clipboard
+		CHANNEL="${TITLE%»*}"
+		CHANNEL="${CHANNEL#*»}"
+		CHANNEL="$(sed -e 's/[[:space:]]*$//' <<<"${CHANNEL}")"
+		TITLE="${TITLE##*»}"
+		notify-send "Yanked:" "$TITLE “$CHANNEL”\\n$URL"
+		printf "[[%s][%s “%s”]]" "$URL" "$TITLE" "$CHANNEL" | xclip -i -selection clipboard
 		;;
 	tsv)
 		export TS_SOCKET="/tmp/ts_dmpv_video"
@@ -177,3 +178,5 @@ case "$CHOSEN" in
 		;;
 	*) notify-send "Something wrong..." ;;
 esac
+
+exit 0
