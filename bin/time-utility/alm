@@ -7,24 +7,31 @@ uts2date() {
     HTIME="$(date -d @"$1")"
 }
 
+own_time() {
+    TIMESTAMP="$(( $(date -d "$1" +%s) - $(date +%s) ))"
+    MINUTES=$(( (TIMESTAMP/60)%60 ))
+    SECONDS=$(( TIMESTAMP%60 ))
+}
+
 HOURS=0
 MINUTES=0
 SECONDS=0
+HTIME=0
 LABEL='Alarm'
 
-while getopts "h:m:s:l:t:" arg; do
+while getopts "h:m:s:l:t:T" arg; do
     case "$arg" in
         h) HOURS=$OPTARG ;;
         m) MINUTES=$OPTARG ;;
         s) SECONDS=$OPTARG ;;
         l) LABEL=$OPTARG ;;
-        t) TIMESTAMP="$(( $(date -d "$OPTARG" +%s) - $(date +%s) ))"
-           MINUTES=$(( (TIMESTAMP/60)%60 ))
-           SECONDS=$(( TIMESTAMP%60 )) ;;
-        *) echo "asdfdf"
-            exit ;;
+        t) own_time "$OPTARG" ;;
+        T) own_time "$(» | dmenu -p "Time?")" ;;
+        *) echo help ;;
     esac
 done
+
+[ -z "$1" ] && own_time "$(» | dmenu -p "Time?")"
 
 if [ -z $TIMESTAMP ]; then
     [ -z $HOURS ] && [ -z $MINUTES ] && [ -z $SECONDS ] && exit
@@ -36,7 +43,10 @@ fi
 uts2date "$(( $(date '+%s') + TIME))"
 echo "$LABEL:\nSleeps for $MINUTES:$SECONDS.\nRings @\n$HTIME"
 [ -n "$DISPLAY" ] &&
-    notify-send "$LABEL:\nSleeps for $MINUTES:$SECONDS" "\nRings @\n$HTIME"
+    notify-send "$LABEL: Sleeps for $MINUTES:$SECONDS" "\nRings @\n$HTIME"
 
 sleep "$TIME"
 ringing
+SNOOZE="$(» | dmenu -p "Snooze for?")"
+[ -n "$SNOOZE" ] && alm -m "$SNOOZE"
+exit 0
