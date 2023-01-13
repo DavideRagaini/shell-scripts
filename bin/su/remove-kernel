@@ -12,6 +12,6 @@ export FZF_DEFAULT_OPTS="--layout=reverse \
 list="$(vkpurge list | fzf)"
 
 selected="$(echo $list | sed 's/^/ /')"
-printf "\033[0;31mREMOVING:\033[0m\n%s\n\n" "$selected"
+printf "\033[0;31mREMOVING:\033[0m%s\n\n" "$selected"
 
 sudo -A vkpurge rm $list
