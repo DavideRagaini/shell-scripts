@@ -65,7 +65,6 @@ floating() {
 	dim_w_y="$((dim_mon_y / 6))"
 	x="$((dim_mon_x - dim_w_x - 5))"
 	y="$((dim_mon_y - dim_w_y - 25))" # bottom bar
-	# y="$((dim_mon_y - dim_w_y - 5))"		# top bar
 	GEOM="$(printf "%sx%s+%s+%s" "$dim_w_x" "$dim_w_y" "$x" "$y")"
 }
 

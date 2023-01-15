@@ -1,0 +1,11 @@
+#!/bin/sh
+
+if [ "$(nmcli radio wifi)" = 'enabled'  ] ; then
+    nmcli radio wifi off
+    notify-send -i "/usr/share/icons/Paper/48x48@2x/status/connect_no.png" "Wireless" "Disabled"
+    echo 'wifi off'
+else
+    nmcli radio wifi on
+    notify-send -i "/usr/share/icons/Paper/48x48@2x/devices/network-wireless.png" "Wireless" "Enabled"
+    echo 'wifi on'
+fi
