@@ -76,6 +76,7 @@ fplay() {
 	floating
 	notify-send "Working on:" "$TITLE “$CHANNEL”\\n$URL"
 	export TS_SOCKET="/tmp/ts_dmpv_video"
+	export TS_SLOTS=2
 	$TASK_SPOOLER -L "$TITLE “$CHANNEL”" mpv --quiet --video=auto --geometry="$GEOM" --x11-name="mpvFloat" "$URL"
 }
 
