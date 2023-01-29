@@ -20,8 +20,8 @@ case "$CHOSEN" in
 			--cache-size-limit 1G \
 			--name "$(hostname)" \
 			--device-type computer \
-			--initial-volume 71 \
 			--bitrate 320
+			# --initial-volume 71 \
 			# --enable-volume-normalisation \
 			# --normalisation-pregain -2 \
 		elif command -v 'spotifyd'; then

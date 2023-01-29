@@ -1,34 +1,57 @@
-#!/bin/sh
+#!/bin/bash
 
 DIR="$HOME/.cache/via"
 CACHE="$DIR/database"
 LAST="$DIR/history"
+FMENU='fmenu -B'
 
-build_cache() {
-    # fd -c never -t f -E "Storage" -E "Projects" -E "Torrents" -E "Laboratorio Automazione" -E "Programmazione ad Oggetti" --base-directory "$HOME" >"$CACHE"
-    # find "$HOME" -type f -iname "*.pdf" -not -path "./.*/*" -not -path "./Storage/*" >"$CACHE"
-    locate -ri "$HOME/.*.pdf$" | sed "s@$HOME@"'~''@; /~\/\..*$/d' >"$CACHE"
-    printf '' >"$LAST"
+build_cache_all() {
+    locate -ri "$HOME/.*$" >"$CACHE-all"
+    printf '' >"$LAST-all"
 }
 
-reader() {
-    cache="$(cat "$CACHE")"
-    last="$(cat "$LAST")"
-    file="$(printf "%s\n------------\n%s" "$last" "$cache" | fzfmenu)"
-    if [ -n "$file" ]; then
-        if grep -q "$file" "$LAST"; then
-            last="$(grep -v "$file" "$LAST")"
-            printf "%s\n%s\n" "$file" "$last" >"$LAST"
-        else
-            printf "%s\n" "$file" | sort -r >>"$LAST"
-        fi
-        exec zathura "$file"
-    fi
+open_all(){
+    cache="$(cat "$CACHE-all")"
+    last="$(cat "$LAST-all")"
+    file="$(printf "%s\n------------\n%s" "$last" "$cache" | $FMENU)"
+    [ -z "$file" ] && exit
+    exec opener "$file"
+}
+
+build_cache_docs() {
+    locate -ri "$HOME/.*.pdf$" | sed "s@$HOME@"'~''@; /~\/\..*$/d' >"$CACHE-docs"
+    printf '' >"$LAST-docs"
+}
+
+open_docs() {
+    cache="$(cat "$CACHE-docs")"
+    last="$(cat "$LAST-docs")"
+    file="$(cat $CACHE-docs | $FMENU)"
+    exec zathura "$file"
+    file="$(printf "%s\n------------\n%s" "$last" "$cache" | $FMENU)"
+    # if [ -n "$file" ]; then
+    #     if grep -q "$file" "$LAST-docs"; then
+    #         last="$(grep -v "$file" "$LAST-docs")"
+    #         printf "%s\n%s\n" "$file" "$last" >"$LAST-docs"
+    #     else
+    #         printf "%s\n" "$file" | sort -r >>"$LAST-docs"
+    #     fi
+    #     [ -z "$file" ] && exit
+    # fi
+}
+
+search() {
+    fzf <<< "$(locate -ri "$HOME/.*$1.*")"
+    exec opener "$file"
 }
 
 case "$1" in
-    -r) build_cache && reader ;;
-    -d) build_cache ;;
-    -i) mkdir -p "$DIR";;
-     *) reader ;;
+    -D) build_cache_all ;;
+    -d) build_cache_docs ;;
+    -A) build_cache_all && open_all ;;
+    -R) build_cache_docs && reader ;;
+    -a) open_all ;;
+    -e) search "$2" ;;
+    -r) open_docs ;;
+     *) open_all ;;
 esac

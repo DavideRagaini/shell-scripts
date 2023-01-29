@@ -9,6 +9,7 @@ last
 music
 save_music
 music_queue
+get_title
 info_queue
 info_last
 edit_queue
@@ -36,7 +37,7 @@ CHANNEL=""
 GEOM=""
 
 get_title() {
-	if which pipe-viewer &>/dev/null; then
+	if which pipe-viewer; then
 		INFO="$(pipe-viewer --no-interactive --extract '*TITLE*»*AUTHOR*' "$URL")"
 		TITLE="${INFO%%»*}"
 		CHANNEL="${INFO##*»}"
@@ -146,6 +147,10 @@ case "$CHOSEN" in
 		notify-send "Working on:" "$TITLE “$CHANNEL”\\n$URL"
 		music_play
 		;;
+	title) get_title
+		   notify-send "Working on:" "[[$URL][$TITLE - “$CHANNEL”]]"
+		   printf "[[%s][%s]]" "$URL" "$TITLE" | xclip -i -selection clipboard
+		   ;;
 	last_lecture) mpv "$VIDEOS/Lectures/doing" ;;
 	edit_queue) "$VISUAL" "$PATH_QUEUE" ;;
 	edit_last) "$VISUAL" "$PATH_LAST" ;;

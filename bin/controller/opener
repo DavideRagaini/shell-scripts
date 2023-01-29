@@ -27,6 +27,7 @@ for i in "$@"; do
                 text/html) $BROWSER "$i" & ;;
                 text/* | inode/x-empty | message/rfc822) $TERMINAL "$EDITOR" "$i" & ;;
                 video/*) setsid mpv "$i" -quiet >/dev/null 2>&1 & ;;
+                inode/directory) $TERMINAL sh -c "cd $i" ;;
                 *) notify-send "Type not set" && exit 1 ;;
                     # image/x-xcf) setsid -f gimp "$i" >/dev/null 2>&1 ;;
                     # inode/directory)
@@ -34,7 +35,6 @@ for i in "$@"; do
                     # 	$TERMINAL &
                     # 	cd - || exit
                     # 	;;
-            esac
-            ;;
+            esac ;;
     esac
 done

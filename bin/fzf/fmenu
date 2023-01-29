@@ -1,14 +1,21 @@
 #!/bin/bash
 
-CONFIG="${XDG_CONFIG_HOME:-~/.config}/fzfmenu/fzfrc"
-if [ -f "$CONFIG" ]; then
-    # load config
-    . "$CONFIG"
-fi
-
-awkVal() {
-    awk -v Val="$1" 'BEGIN{FS=OFS=" "} {for(i=1;i<=NF;i++){if($i==Val){print $(i+1);next}}}'
-}
+export FZF_DEFAULT_OPTS="--layout=reverse \
+--info=inline \
+--height=100% \
+--multi \
+--prompt='» ' \
+--pointer='▶' \
+--marker='✓' \
+--bind '?:toggle-preview' \
+--bind 'ctrl-space:print-query' \
+--bind 'ctrl-a:select-all' \
+--bind 'ctrl-y:execute-silent(echo {+} | xclip -selection clipboard -i)' \
+--bind 'ctrl-r:replace-query' \
+--bind 'ctrl-e:execute(vim {+})'
+--bind 'ctrl-v:execute(bat {+})'"
+# --preview-window=:nohidden \
+# --preview \"fzf-previewer {}\"
 
 input=$(mktemp -u --suffix .fzfmenu.input)
 output=$(mktemp -u --suffix .fzfmenu.output)
@@ -16,7 +23,7 @@ mkfifo "$input"
 mkfifo "$output"
 chmod 600 $input $output
 
-SIZE=20
+SIZE=16
 mod_x=$SIZE
 mod_y=$((SIZE*5))
 padding=$SIZE
@@ -28,46 +35,29 @@ dim_mon_y=$(echo "$dim_screen" | cut -d'x' -f2)
 rows=$((padding + (dim_mon_x / mod_x)))
 colums=$((padding + (dim_mon_y / mod_y)))
 GEOM="$(printf "%dx%d" "$rows" "$colums")"
-FONT="Liberation Mono:size=$SIZE"
+FONT="Fantasque Sans Mono:size=$SIZE:style=Bold"
+FLOATING_TERMINAL='st -c fzfmenu -n fzfmenu '
+EXEC_FLAG=' -e '
 
-while getopts "fbiSMBp:l:w:f:g:" opt; do case "${opt}" in
+while getopts "fbiSMBpc:l:w:f:g:e:" opt; do case "${opt}" in
     i) FZF_OPTS="$FZF_OPTS -$opt"  ;;
     l) FZF_OPTS="$FZF_OPTS --height $OPTARG" ;;
     p) FZF_OPTS="$FZF_OPTS --header $OPTARG" ;;
     g) GEOM="$OPTARG" ;;
     f) FONT="$OPTARG" ;;
-    S) GEOM="40x15" ;;
-    M) GEOM="90x20" ;;
-    B) GEOM="110x30" ;;
+    c) FLOATING_TERMINAL='fzf' ;;
+    e) EXEC_FLAG="$OPTARG" ;;
+    S) GEOM="50x20" ;;
+    M) GEOM="10x30" ;;
+    B) GEOM="130x40" ;;
     w) TERM_OPTS="-into $OPTARG" ;;
     b) printf '%s\n' "${0##*/}: option $opt ignored" ;;
     *) printf '%s\n' "${0##*/}: invalid option $opt" >&2 ; exit 1 ;;
 esac done
 shift $(( OPTIND -1 ))
 
-# add options from config and replace others if necesary
-runHeight=$(printf '%s\n' $FZF_OPTS | awkVal "height")
-if [ -z "$runHeight" ] || [ "${runHeight%\%}" -le 50 ]; then
-    FZF_OPTS="$FZF_OPTS $FZF_HEIGHT"
-fi
-
-runPrompt=$(printf '%s\n' $FZF_OPTS | awkVal "heder")
-if [ -z "$runPrompt" ]; then
-    FZF_OPTS="$FZF_OPTS $FZF_HEADER"
-fi
-
-FZF_OPTS="$FZF_OPTS $FZF_MENU_OPTS"
-FZF_OPTS="$FZF_OPTS $FZF_COLORS"
-
+FZF_OPTS="$FZF_OPTS $FZF_MENU_OPTS $FZF_COLORS"
 export FZF_OPTS
-
-
-if [ -z "$FLOATING_TERMINAL" ]; then
-    FLOATING_TERMINAL='st -c fzfmenu -n fzfmenu '
-fi
-if [ -z "$EXEC_FLAG" ]; then
-    EXEC_FLAG=' -e '
-fi
 
 $FLOATING_TERMINAL $TERM_OPTS -g "$GEOM" -f "$FONT" $EXEC_FLAG sh -c "cat $input | \
     fzf $FZF_OPTS | \
