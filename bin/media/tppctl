@@ -56,6 +56,7 @@ case "$1" in
     get) choose_instance "Get:"
          PROPERTY="$(echo "{ \"command\": [\"get_property\", \"${2}\"] }" | socat -d - "$CHOSEN" | jq -r '.data')"
          notify-send "Get Property" "$2: $PROPERTY"
+         echo "$PROPERTY"
         ;;
     'set') choose_instance "Set:"
            PROPERTY="$(echo ${2} | cut -d' ' -f1)"

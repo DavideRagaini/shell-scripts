@@ -4,7 +4,7 @@ if pidof librespot; then
 	CHOSEN="sptui"
 elif pidof spotifyd; then
 	CHOSEN="sptui"
-elif mpc status '%status%' = 'playing'; then
+elif mpc status | grep playing = 'playing'; then
 	CHOSEN="Local"
 else
 	CHOSEN="$(printf 'Spotify\nLocal' | fzf --cycle --border --margin 10% --padding 10% --header='Choose music source')"
@@ -20,8 +20,8 @@ case "$CHOSEN" in
 			--cache-size-limit 1G \
 			--name "$(hostname)" \
 			--device-type computer \
+			--initial-volume 100 \
 			--bitrate 320
-			# --initial-volume 71 \
 			# --enable-volume-normalisation \
 			# --normalisation-pregain -2 \
 		elif command -v 'spotifyd'; then

@@ -37,7 +37,11 @@ CHANNEL=""
 GEOM=""
 
 get_title() {
-	if which pipe-viewer; then
+	if grep -q 'playlist' <<<"$URL"; then
+		JSON="$(yt-dlp --no-warnings --dump-single-json "$URL")"
+		TITLE="$(jq -r '.title' <<<"$JSON")"
+		CHANNEL="$(jq -r '.uploader,.channel' <<<"$JSON" | uniq -i | sed '/null/d')"
+	elif which pipe-viewer; then
 		INFO="$(pipe-viewer --no-interactive --extract '*TITLE*»*AUTHOR*' "$URL")"
 		TITLE="${INFO%%»*}"
 		CHANNEL="${INFO##*»}"
@@ -149,7 +153,7 @@ case "$CHOSEN" in
 		;;
 	title) get_title
 		   notify-send "Working on:" "[[$URL][$TITLE - “$CHANNEL”]]"
-		   printf "[[%s][%s]]" "$URL" "$TITLE" | xclip -i -selection clipboard
+		   printf "[[%s][%s]]" "$URL" "$TITLE - “$CHANNEL”" | xclip -i -selection clipboard
 		   ;;
 	last_lecture) mpv "$VIDEOS/Lectures/doing" ;;
 	edit_queue) "$VISUAL" "$PATH_QUEUE" ;;
