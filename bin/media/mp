@@ -4,7 +4,7 @@ if pidof librespot; then
 	CHOSEN="sptui"
 elif pidof spotifyd; then
 	CHOSEN="sptui"
-elif mpc status | grep playing = 'playing'; then
+elif mpc status | grep -q playing; then
 	CHOSEN="Local"
 else
 	CHOSEN="$(printf 'Spotify\nLocal' | fzf --cycle --border --margin 10% --padding 10% --header='Choose music source')"
