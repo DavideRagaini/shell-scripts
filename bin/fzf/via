@@ -26,18 +26,18 @@ build_cache_docs() {
 open_docs() {
     cache="$(cat "$CACHE-docs")"
     last="$(cat "$LAST-docs")"
-    file="$(cat $CACHE-docs | $FMENU)"
-    exec zathura "$file"
     file="$(printf "%s\n------------\n%s" "$last" "$cache" | $FMENU)"
-    # if [ -n "$file" ]; then
-    #     if grep -q "$file" "$LAST-docs"; then
-    #         last="$(grep -v "$file" "$LAST-docs")"
-    #         printf "%s\n%s\n" "$file" "$last" >"$LAST-docs"
-    #     else
-    #         printf "%s\n" "$file" | sort -r >>"$LAST-docs"
-    #     fi
-    #     [ -z "$file" ] && exit
-    # fi
+    if [ -n "$file" ]; then
+        if grep -q "$file" "$LAST-docs"; then
+            last="$(grep -v "$file" "$LAST-docs")"
+            printf "%s\n%s\n" "$file" "$last" >"$LAST-docs"
+        else
+            printf "%s\n" "$file" | sort -r >>"$LAST-docs"
+        fi
+    else
+        exit
+    fi
+    exec zathura "$file"
 }
 
 search() {

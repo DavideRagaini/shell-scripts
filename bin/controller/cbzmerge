@@ -1,0 +1,102 @@
+#!/bin/sh
+
+usage() {
+    cat << EOF
+USAGE:
+    cbzmerger [OPTIONS] [DIRECTORY]
+
+DESCRIPTION:
+    By defaults needs only the directory conteining the spare cbz files,
+    extact on /tmp/cbzmerge.XXXXXX and produce a unified file named according
+    to the given directory.
+
+    This script does the following following for each .cbz file (configurable via -e  or --extension):
+    1. Extract files to --temp-dir (-t)
+    2. Rename files to cbz filename_filename.
+        e.g. if there was a file 018.png inside Chapter1.cbz
+        it would be renamed to Chapter1.cbz018.png
+    3. Add renamed files to --output
+
+    The renaming is done to keep ordering and not have duplicates inside the cbz file.
+OPTIONS:
+    -i ARG               Input directory. (default: DIRECTORY)
+    -o ARG               Output file. (default: DIRECTORY.cbz)
+    -e ARG               Extension. (default: .cbz)
+    -t ARG               Temp directory where files get extracted. (default: /tmp/cbzmerge.XXXXXX)
+    -T ARG               As previous and create temp directory.
+    -C                   Clean the temp directory before merging the files.
+    -O                   Override the --output file if it exist.
+EOF
+    exit 0
+}
+
+# Defaults
+EXTENSION=cbz
+INPUT="$1"
+OUTPUT="$1"
+
+while getopts "cOChi:o:e:t:T:" opt; do case "${opt}" in
+    i) INPUT="$OPTARG" ;;
+    o) OUTPUT="$OPTARG" ;;
+    e) EXTENSION="$OPTARG" ;;
+    t) TEMP_DIR="$OPTARG" ;;
+    T) TEMP_DIR="$OPTARG"; mkdir "$TEMP_DIR" ;;
+    c) CLEAN_TEMP=1 ;;
+    O) OVERRIDE=1 ;;
+    C) CHRONOLOGICAL=1 ;;
+    h) usage ;;
+esac; done
+
+[ -z "$INPUT" ] &&
+    echo 'Input parameter required. See --help '&&
+    exit 1
+[ -z "$OUTPUT" ] &&
+    echo 'Output parameter required. See --help' &&
+    exit 1
+
+if [ -d "$TEMP_DIR" ]; then
+    if [ "$CLEAN_TEMP" ]; then
+        echo "Cleaning $TEMP_DIR"
+        rm -rf $TEMP_DIR
+    else
+        echo "Temp dir $TEMP_DIR already exists, remove it or add --clean-temp"
+        exit 1
+    fi
+else
+    TEMP_DIR="$(mktemp -d /tmp/cbzmerge.XXXXXX)"
+fi
+
+if [ -f "$OUTPUT" ]; then
+    if [ $OVERRIDE ]; then
+        echo "Removing $OUTPUT"
+        rm -f $OUTPUT
+    else
+        echo "Output File $OUTPUT already exists."
+        echo 'Remove it or add --override.'
+        exit 1
+    fi
+fi
+
+if [ $CHRONOLOGICAL ]; then
+    FILES=$(ls -rt "$INPUT"/*$EXTENSION)
+else
+    FILES=$(ls -v "$INPUT"/*$EXTENSION)
+fi
+
+for FILE in $FILES; do
+    printf "Extracting %s\r" "$(basename "$FILE")"
+    unzip -q -d "$TEMP_DIR/$(basename "$FILE" | cut -f1 -d'.')" "$FILE"
+done
+printf "                                                                              \r"
+echo 'Done Extracting'
+
+MERGING_TEMP_DIR="$(mktemp -d /tmp/cbzmerge-merging.XXXXXX)"
+for CHAPTER in $TEMP_DIR/*; do
+    for FILE in $CHAPTER/*;  do
+        mv $FILE $MERGING_TEMP_DIR/$(basename $CHAPTER)_$(basename $FILE)
+    done
+done
+trap 'rm -rf -- "$TEMP_DIR" "$MERGING_TEMP_DIR"' EXIT
+echo 'Merging into one file'
+find "$MERGING_TEMP_DIR" -type f | sort -V | zip -qjur -@ "$OUTPUT"
+mv "$OUTPUT.zip" "$(basename $OUTPUT).$EXTENSION"
