@@ -3,100 +3,74 @@
 usage() {
     cat << EOF
 USAGE:
-    cbzmerger [OPTIONS] [DIRECTORY]
+    cbzmerger [-h] -i input-name -o output name -t tempdir [-p 4] [-s 1000]
+    cbzmerger [-h] -a input name -t tempdir [-p 4] [-s 1000]
 
 DESCRIPTION:
-    By defaults needs only the directory conteining the spare cbz files,
-    extact on /tmp/cbzmerge.XXXXXX and produce a unified file named according
-    to the given directory.
+    Levereges GNU Parallel for the fastest execution (check it out is awesome).
+    Parallelize extraction creating -p 'n' jobs (default: nproc).
+    Merges files extracted into chunks containing -s 'm' max files (default: 2000).
+    Tests each file produced using zip -T.
+    If no temp dir is given, creates automatically mktemp directory and cleans it at exit time
+        (without eventual errors).
 
-    This script does the following following for each .cbz file (configurable via -e  or --extension):
-    1. Extract files to --temp-dir (-t)
-    2. Rename files to cbz filename_filename.
-        e.g. if there was a file 018.png inside Chapter1.cbz
-        it would be renamed to Chapter1.cbz018.png
-    3. Add renamed files to --output
-
-    The renaming is done to keep ordering and not have duplicates inside the cbz file.
 OPTIONS:
-    -i ARG               Input directory. (default: DIRECTORY)
-    -o ARG               Output file. (default: DIRECTORY.cbz)
-    -e ARG               Extension. (default: .cbz)
-    -t ARG               Temp directory where files get extracted. (default: /tmp/cbzmerge.XXXXXX)
-    -T ARG               As previous and create temp directory.
-    -C                   Clean the temp directory before merging the files.
-    -O                   Override the --output file if it exist.
+    -h              this help page.
+    -i value        input folder.
+    -o value        output name.
+    -a value        use the same given name as input and output (short for -i same-name -o same-name).
+    -t value        temp dir name (default: mktemp).
+    -p value        number of extraction jobs (default: nproc).
+    -s value        split output file into smaller each containing [OPTARG] files (default: 2000).
 EOF
     exit 0
 }
 
-# Defaults
-EXTENSION=cbz
-INPUT="$1"
-OUTPUT="$1"
-
-while getopts "cOChi:o:e:t:T:" opt; do case "${opt}" in
-    i) INPUT="$OPTARG" ;;
-    o) OUTPUT="$OPTARG" ;;
-    e) EXTENSION="$OPTARG" ;;
-    t) TEMP_DIR="$OPTARG" ;;
-    T) TEMP_DIR="$OPTARG"; mkdir "$TEMP_DIR" ;;
-    c) CLEAN_TEMP=1 ;;
-    O) OVERRIDE=1 ;;
-    C) CHRONOLOGICAL=1 ;;
+while getopts "hi:a:A:o:t:p:s:" opt
+do case "${opt}" in
     h) usage ;;
+    a) INPUT=${OPTARG}
+       OUTPUT=${INPUT}
+       [ -z "$INPUT" ] &&
+           echo 'Input/Output parameters required. See --help '&&
+           exit 1 ;;
+    A) TEMP_DIR="$OPTARG"
+       mkdir -p "$TEMP_DIR"
+       INPUT="$OPTARG-split"
+       [ -z "$INPUT" ] &&
+           echo 'Input/Output parameters required. See --help '&&
+           exit 1
+       OUTPUT=${OPTARG}
+       mv "$OPTARG" "$INPUT"
+       ;;
+    i) INPUT=${OPTARG}
+       [ -z "$INPUT" ] &&
+           echo 'Input parameter required. See --help '&&
+           exit 1 ;;
+    o) OUTPUT=${OPTARG}
+       [ -z "$OUTPUT" ] &&
+           echo 'Output parameter required. See --help' &&
+           exit 1 ;;
+    p) PROCS="$OPTARG" ;;
+    t) TEMP_DIR=${OPTARG}
+       mkdir -p "$TEMP_DIR" ;;
+    s) SPLIT_EACH="${OPTARG}" ;;
+    *) usage ;;
 esac; done
 
-[ -z "$INPUT" ] &&
-    echo 'Input parameter required. See --help '&&
-    exit 1
-[ -z "$OUTPUT" ] &&
-    echo 'Output parameter required. See --help' &&
-    exit 1
+[ -z "$TEMP_DIR" ] &&
+    echo "Using mktemp" &&
+    TEMP_DIR="$(mktemp -d /tmp/cbzmerge.XXXXXX)" &&
+    echo "Cleaning afterward $TEMP_DIR" &&
+    trap 'rm -rf -- "$TEMP_DIR"' EXIT
+printf "Working Directory: %s\nExtracting files\n" "$TEMP_DIR"
 
-if [ -d "$TEMP_DIR" ]; then
-    if [ "$CLEAN_TEMP" ]; then
-        echo "Cleaning $TEMP_DIR"
-        rm -rf $TEMP_DIR
-    else
-        echo "Temp dir $TEMP_DIR already exists, remove it or add --clean-temp"
-        exit 1
-    fi
-else
-    TEMP_DIR="$(mktemp -d /tmp/cbzmerge.XXXXXX)"
-fi
+find "$INPUT" -type f -iname "*.cbz" |
+    parallel --progress -j"${PROCS:-$(nproc)}" unzip -qn -d "$TEMP_DIR/{/.}" {} # >/dev/null 2>&1
+printf "Done Extracting\nMerging files\n"
 
-if [ -f "$OUTPUT" ]; then
-    if [ $OVERRIDE ]; then
-        echo "Removing $OUTPUT"
-        rm -f $OUTPUT
-    else
-        echo "Output File $OUTPUT already exists."
-        echo 'Remove it or add --override.'
-        exit 1
-    fi
-fi
-
-if [ $CHRONOLOGICAL ]; then
-    FILES=$(ls -rt "$INPUT"/*$EXTENSION)
-else
-    FILES=$(ls -v "$INPUT"/*$EXTENSION)
-fi
-
-for FILE in $FILES; do
-    printf "Extracting %s\r" "$(basename "$FILE")"
-    unzip -q -d "$TEMP_DIR/$(basename "$FILE" | cut -f1 -d'.')" "$FILE"
-done
-printf "                                                                              \r"
-echo 'Done Extracting'
-
-MERGING_TEMP_DIR="$(mktemp -d /tmp/cbzmerge-merging.XXXXXX)"
-for CHAPTER in $TEMP_DIR/*; do
-    for FILE in $CHAPTER/*;  do
-        mv $FILE $MERGING_TEMP_DIR/$(basename $CHAPTER)_$(basename $FILE)
-    done
-done
-trap 'rm -rf -- "$TEMP_DIR" "$MERGING_TEMP_DIR"' EXIT
-echo 'Merging into one file'
-find "$MERGING_TEMP_DIR" -type f | sort -V | zip -qjur -@ "$OUTPUT"
-mv "$OUTPUT.zip" "$(basename $OUTPUT).$EXTENSION"
+find "$TEMP_DIR" -type f | sort -V |
+    parallel --progress --keep-order --pipe -N "${SPLIT_EACH:-2000}" zip -qDur -@ "$OUTPUT{#}"
+parallel mv "{}" "{.}.cbz" ::: $OUTPUT*[0-9].zip
+echo 'Testing output file'
+parallel --progress zip -T ::: $OUTPUT*[0-9].cbz

@@ -1,34 +1,5 @@
 #!/bin/bash
 
-if [ -z "$1" ]; then
-	CMDS="queue
-enqueue
-eplay
-aplay
-last
-music
-save_music
-music_queue
-get_title
-info_queue
-info_last
-edit_queue
-edit_last
-lectures
-local
-last_lecture"
-	CHOSEN="$(dmenu -i <<<"$CMDS")" || exit
-	URL="$(xclip -selection clipboard -o)" >/dev/null
-else
-	CHOSEN="$1"
-	URL="$2"
-fi
-if [ "$(command -v ts)" == "" ]; then
-	TASK_SPOOLER="tsp"
-else
-	TASK_SPOOLER="ts"
-fi
-
 PATH_QUEUE="$HOME/.config/mpv/queue"
 PATH_LAST="$HOME/.config/mpv/last"
 PATH_MUSIC="$HOME/.config/mpv/music"
@@ -41,7 +12,7 @@ get_title() {
 		JSON="$(yt-dlp --no-warnings --dump-single-json "$URL")"
 		TITLE="$(jq -r '.title' <<<"$JSON")"
 		CHANNEL="$(jq -r '.uploader,.channel' <<<"$JSON" | uniq -i | sed '/null/d')"
-	elif which pipe-viewer; then
+	elif command -v pipe-viewer >/dev/null 2>&1; then
 		INFO="$(pipe-viewer --no-interactive --extract '*TITLE*»*AUTHOR*' "$URL")"
 		TITLE="${INFO%%»*}"
 		CHANNEL="${INFO##*»}"
@@ -106,6 +77,35 @@ music_play() {
 	export TS_SOCKET="/tmp/ts_dmpv_music"
 	$TASK_SPOOLER -L "$TITLE “$CHANNEL”" mpv --vid=no --volume=60 --speed=1 --keep-open=no --loop-playlist "$URL"
 }
+
+if [ -z "$1" ]; then
+	CMDS="queue
+enqueue
+eplay
+aplay
+last
+music
+save_music
+music_queue
+get_title
+info_queue
+info_last
+edit_queue
+edit_last
+lectures
+local
+last_lecture"
+	CHOSEN="$(dmenu -i <<<"$CMDS")" || exit
+	URL="$(xclip -selection clipboard -o)" >/dev/null
+else
+	CHOSEN="$1"
+	URL="$2"
+fi
+if command -v tsp >/dev/null 2>&1; then
+	TASK_SPOOLER="tsp"
+else
+	TASK_SPOOLER="ts"
+fi
 
 case "$CHOSEN" in
 	queue)
@@ -187,5 +187,3 @@ case "$CHOSEN" in
 		;;
 	*) notify-send "Something wrong..." ;;
 esac
-
-exit 0
