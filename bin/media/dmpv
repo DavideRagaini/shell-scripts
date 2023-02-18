@@ -53,7 +53,11 @@ fplay() {
 	notify-send "Working on:" "$TITLE “$CHANNEL”\\n$URL"
 	export TS_SOCKET="/tmp/ts_dmpv_video"
 	export TS_SLOTS=2
-	$TASK_SPOOLER -L "$TITLE “$CHANNEL”" mpv --quiet --video=auto --geometry="$GEOM" --x11-name="mpvFloat" "$URL"
+	if command -v pipe-viewer >/dev/null 2>&1; then
+		$TASK_SPOOLER -L "$TITLE “$CHANNEL”" mpv --quiet --video=auto --geometry="$GEOM" --x11-name="mpvFloat" "$URL" 2>&1 >/dev/null
+	else
+		$TASK_SPOOLER -L "$TITLE “$CHANNEL”" pipe-viewer "$URL" 2>&1 >/dev/null
+	fi
 }
 
 get_from_file() {
@@ -126,7 +130,7 @@ case "$CHOSEN" in
 		;;
 	lectures)
 		VIDEOS="${XDG_VIDEOS_DIR:-$HOME/Storage/Videos}"
-		CHOSEN="$(find "$VIDEOS" -type d -path "*/Lectures/*" | dmenu -i -l 10)" ||
+		CHOSEN="$(find "$VIDEOS/Lectures" -maxdepth 1 | dmenu -i -l 10)" ||
 			exit
 		mpv "$CHOSEN"
 		;;
