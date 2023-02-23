@@ -35,13 +35,11 @@ do case "${opt}" in
            echo 'Input/Output parameters required. See --help '&&
            exit 1 ;;
     A) TEMP_DIR="$OPTARG"
-       mkdir -p "$TEMP_DIR"
-       INPUT="$OPTARG-split"
-       [ -z "$INPUT" ] &&
-           echo 'Input/Output parameters required. See --help '&&
-           exit 1
        OUTPUT=${OPTARG}
-       mv "$OPTARG" "$INPUT"
+       [ ! -d "$OPTARG-split" ] &&
+           INPUT="$OPTARG-split" &&
+           mv "$OPTARG" "$INPUT"
+       mkdir -p $TEMP_DIR
        ;;
     i) INPUT=${OPTARG}
        [ -z "$INPUT" ] &&
@@ -58,19 +56,23 @@ do case "${opt}" in
     *) usage ;;
 esac; done
 
+RED='\033[0;31m'
+YELLOW='\033[0;33m'
+NC='\033[0m' # No Color
+
 [ -z "$TEMP_DIR" ] &&
     echo "Using mktemp" &&
     TEMP_DIR="$(mktemp -d /tmp/cbzmerge.XXXXXX)" &&
     echo "Cleaning afterward $TEMP_DIR" &&
-    trap 'rm -rf -- "$TEMP_DIR"' EXIT
-printf "Working Directory: %s\nExtracting files\n" "$TEMP_DIR"
+    trap 'rm -rf -- "${TEMP_DIR@Q}"' EXIT
+printf "$RED Working Directory:$NC %s\n$YELLOW Extracting files $NC\n" "$TEMP_DIR"
 
 find "$INPUT" -type f -iname "*.cbz" |
     parallel --progress -j"${PROCS:-$(nproc)}" unzip -qn -d "$TEMP_DIR/{/.}" {} # >/dev/null 2>&1
-printf "Done Extracting\nMerging files\n"
+printf "$RED Done Extracting\n$YELLOW Merging files$NC\n"
 
 find "$TEMP_DIR" -type f | sort -V |
-    parallel --progress --keep-order --pipe -N "${SPLIT_EACH:-2000}" zip -qDur -@ "$OUTPUT{#}"
+    parallel --progress --keep-order --pipe -N "${SPLIT_EACH:-1000}" zip -qDur -@ "$OUTPUT{#}"
 parallel mv "{}" "{.}.cbz" ::: $OUTPUT*[0-9].zip
-echo 'Testing output file'
+echo "$RED Testing output file$NC"
 parallel --progress zip -T ::: $OUTPUT*[0-9].cbz

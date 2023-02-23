@@ -8,16 +8,16 @@ CHANNEL=""
 GEOM=""
 
 get_title() {
-	if grep -q 'playlist' <<<"$URL"; then
-		JSON="$(yt-dlp --no-warnings --dump-single-json "$URL")"
+	if grep -q 'playlist' <<<"$URL" 2>&1; then
+		JSON="$(yt-dlp --no-warnings --dump-single-json "$URL" 2>&1)"
 		TITLE="$(jq -r '.title' <<<"$JSON")"
 		CHANNEL="$(jq -r '.uploader,.channel' <<<"$JSON" | uniq -i | sed '/null/d')"
 	elif command -v pipe-viewer >/dev/null 2>&1; then
-		INFO="$(pipe-viewer --no-interactive --extract '*TITLE*»*AUTHOR*' "$URL")"
+		INFO="$(pipe-viewer --no-interactive --extract '*TITLE*»*AUTHOR*' "$URL" 2>&1)"
 		TITLE="${INFO%%»*}"
 		CHANNEL="${INFO##*»}"
 	else
-		JSON="$(yt-dlp --no-warnings --dump-single-json "$URL")"
+		JSON="$(yt-dlp --no-warnings --dump-single-json "$URL" 2>&1)"
 		TITLE="$(jq -r '.title' <<<"$JSON")"
 		CHANNEL="$(jq -r '.uploader,.channel' <<<"$JSON" | uniq -i | sed '/null/d')"
 	fi
@@ -39,8 +39,10 @@ floating() {
 	dim_mon_y="$(echo "$dim_screen" | cut -d'x' -f2)"
 	dim_w_x="$((dim_mon_x / 6))"
 	dim_w_y="$((dim_mon_y / 6))"
-	x="$((dim_mon_x - dim_w_x - 5))"
-	y="$((dim_mon_y - dim_w_y - 25))" # bottom bar
+	x_padding=3
+	y_padding=3
+	x="$((dim_mon_x - dim_w_x - x_padding))"
+	y="$((dim_mon_y - dim_w_y - y_padding))"
 	GEOM="$(printf "%sx%s+%s+%s" "$dim_w_x" "$dim_w_y" "$x" "$y")"
 }
 
@@ -49,14 +51,15 @@ save_to_last() {
 }
 
 fplay() {
-	floating
+	check_ts
 	notify-send "Working on:" "$TITLE “$CHANNEL”\\n$URL"
 	export TS_SOCKET="/tmp/ts_dmpv_video"
 	export TS_SLOTS=2
 	if command -v pipe-viewer >/dev/null 2>&1; then
-		$TASK_SPOOLER -L "$TITLE “$CHANNEL”" mpv --quiet --video=auto --geometry="$GEOM" --x11-name="mpvFloat" "$URL" 2>&1 >/dev/null
+		$TASK_SPOOLER -L "$TITLE “$CHANNEL”" pipe-viewer "$URL" >/dev/null 2>&1
 	else
-		$TASK_SPOOLER -L "$TITLE “$CHANNEL”" pipe-viewer "$URL" 2>&1 >/dev/null
+		floating
+		$TASK_SPOOLER -L "$TITLE “$CHANNEL”" mpv --quiet --video=auto --geometry="$GEOM" --x11-name="mpvFloat" "$URL" >/dev/null 2>&1
 	fi
 }
 
@@ -78,8 +81,20 @@ save_music () {
 }
 
 music_play() {
+	check_ts
 	export TS_SOCKET="/tmp/ts_dmpv_music"
 	$TASK_SPOOLER -L "$TITLE “$CHANNEL”" mpv --vid=no --volume=60 --speed=1 --keep-open=no --loop-playlist "$URL"
+}
+
+check_ts() {
+	if command -v tsp >/dev/null 2>&1; then
+		TASK_SPOOLER="tsp"
+	elif command -v ts >/dev/null 2>&1; then
+		TASK_SPOOLER="ts"
+	else
+		notify-send "Task spooler not found"
+		exit
+	fi
 }
 
 if [ -z "$1" ]; then
@@ -104,11 +119,6 @@ last_lecture"
 else
 	CHOSEN="$1"
 	URL="$2"
-fi
-if command -v tsp >/dev/null 2>&1; then
-	TASK_SPOOLER="tsp"
-else
-	TASK_SPOOLER="ts"
 fi
 
 case "$CHOSEN" in
@@ -155,10 +165,11 @@ case "$CHOSEN" in
 		notify-send "Working on:" "$TITLE “$CHANNEL”\\n$URL"
 		music_play
 		;;
-	title) get_title
-		   notify-send "Working on:" "[[$URL][$TITLE - “$CHANNEL”]]"
-		   printf "[[%s][%s]]" "$URL" "$TITLE - “$CHANNEL”" | xclip -i -selection clipboard
-		   ;;
+	title)
+		get_title
+		notify-send "Working on:" "[[$URL][$TITLE - “$CHANNEL”]]"
+		printf "[[%s][%s]]" "$URL" "$TITLE - “$CHANNEL”" | xclip -i -selection clipboard
+		;;
 	last_lecture) mpv "$VIDEOS/Lectures/doing" ;;
 	edit_queue) "$VISUAL" "$PATH_QUEUE" ;;
 	edit_last) "$VISUAL" "$PATH_LAST" ;;
@@ -182,11 +193,13 @@ case "$CHOSEN" in
 	tsv)
 		export TS_SOCKET="/tmp/ts_dmpv_video"
 		shift 1
+		check_ts
 		$TASK_SPOOLER "$@"
 		;;
 	tsm)
 		export TS_SOCKET="/tmp/ts_dmpv_music"
 		shift 1
+		check_ts
 		$TASK_SPOOLER "$@"
 		;;
 	*) notify-send "Something wrong..." ;;
