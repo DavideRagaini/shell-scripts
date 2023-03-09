@@ -6,6 +6,7 @@ PATH_MUSIC="$HOME/.config/mpv/music"
 TITLE=""
 CHANNEL=""
 GEOM=""
+export TMPDIR="/tmp/dmpv"
 
 get_title() {
 	if grep -q 'playlist' <<<"$URL" 2>&1; then
@@ -53,10 +54,14 @@ save_to_last() {
 fplay() {
 	check_ts
 	notify-send "Working on:" "$TITLE “$CHANNEL”\\n$URL"
-	export TS_SOCKET="/tmp/ts_dmpv_video"
+	export TS_SOCKET="$TMPDIR/video_socket"
 	export TS_SLOTS=2
+	mkdir -p $TMPDIR /tmp/thumbfast
 	if command -v pipe-viewer >/dev/null 2>&1; then
 		$TASK_SPOOLER -L "$TITLE “$CHANNEL”" pipe-viewer "$URL" >/dev/null 2>&1
+	elif grep -q -e yewtu -e youtube; then
+		floating
+		mpv --quiet --video=auto --geometry="$GEOM" --x11-name="mpvFloat" "$URL" >/dev/null 2>&1
 	else
 		floating
 		$TASK_SPOOLER -L "$TITLE “$CHANNEL”" mpv --quiet --video=auto --geometry="$GEOM" --x11-name="mpvFloat" "$URL" >/dev/null 2>&1
@@ -82,7 +87,7 @@ save_music () {
 
 music_play() {
 	check_ts
-	export TS_SOCKET="/tmp/ts_dmpv_music"
+	export TS_SOCKET="$TMPDIR/music_socket"
 	$TASK_SPOOLER -L "$TITLE “$CHANNEL”" mpv --vid=no --volume=60 --speed=1 --keep-open=no --loop-playlist "$URL"
 }
 
@@ -191,13 +196,13 @@ case "$CHOSEN" in
 		printf "[[%s][%s “%s”]]" "$URL" "$TITLE" "$CHANNEL" | xclip -i -selection clipboard
 		;;
 	tsv)
-		export TS_SOCKET="/tmp/ts_dmpv_video"
+		export TS_SOCKET="$TMPDIR/video_socket"
 		shift 1
 		check_ts
 		$TASK_SPOOLER "$@"
 		;;
 	tsm)
-		export TS_SOCKET="/tmp/ts_dmpv_music"
+		export TS_SOCKET="$TMPDIR/music_socket"
 		shift 1
 		check_ts
 		$TASK_SPOOLER "$@"
