@@ -37,7 +37,7 @@ open_docs() {
     else
         exit
     fi
-    exec zathura "$file"
+    exec zathura --fork "$file"
 }
 
 search() {

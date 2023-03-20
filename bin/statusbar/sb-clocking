@@ -1,0 +1,8 @@
+#!/bin/sh
+
+TIME="$(emacsclient --eval '(if (org-clock-is-active) (org-clock-get-clock-string)))')"
+[ -z "$TIME" ] && exit
+[ "$TIME" = 'nil' ] && exit
+TIME="${TIME#*\" }"
+TIME="${TIME%\"*}"
+echo "[$TIME]  "

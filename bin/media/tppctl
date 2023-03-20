@@ -65,7 +65,8 @@ case "$1" in
            echo "{ \"command\": [\"set_property\", \"$PROPERTY\", \"$VALUE\"] }" |
         socat -d - "$CHOSEN"
         ;;
-    direct) echo "${OPTARG}" | socat -d - "$SOCKET" ;;
+    direct) echo "$2" | socat -d - "$SOCKET" ;;
+    add) echo "{ command: [ "loadfile", "$2", "append-play" ] }" | nc.openbsd -NU "$SOCKET" ;;
     help)
       echo \
 "MPV IPC Socket Basic Controller

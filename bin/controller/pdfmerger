@@ -33,6 +33,5 @@ else
         printf "$bookmarks_fmt" "$title" > "$bookmarks_file"
         pdftk "$f" update_info "$bookmarks_file" output "$tmp_dir/$f"
     done
-
     pdftk "$tmp_dir"/*.pdf cat output "$out_file"
 fi

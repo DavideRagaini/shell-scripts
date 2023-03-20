@@ -1,0 +1,12 @@
+#!/bin/sh
+
+while [ ! "$(emacsclient --eval '(org-clock-is-active)')" = 'nil' ]
+do
+    pkill -RTMIN+9 "${STATUSBAR:-dwmblocks}"
+    echo 'Updating dwmblocks clocking'
+    sleep 1m
+done
+
+sleep 5
+echo 'Closing dwmblocks clocking'
+pkill -RTMIN+9 "${STATUSBAR:-dwmblocks}"

@@ -150,8 +150,10 @@ case "$CHOSEN" in
 		mpv "$CHOSEN"
 		;;
 	local)
-		VIDEOS="${XDG_VIDEOS_DIR:-$HOME/Storage/Videos}"
-		CHOSEN="$(find "$VIDEOS" -type d | dmenu -i -l 20)" ||
+		VIDEOS1="$(find ${XDG_VIDEOS_DIR:-$HOME/Storage/Videos} -type d -maxdepth 2)"
+		VIDEOS2="$(find "$HOME/Storage/Archive/Torrents/Complete" -type d -maxdepth 2)"
+		VIDEOS="${VIDEOS1}\n${VIDEOS2}"
+		CHOSEN="$(printf "%s" "$VIDEOS" | dmenu -i -l 20)" ||
 			exit
 		mpv "$CHOSEN"
 		;;
