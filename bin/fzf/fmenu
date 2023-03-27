@@ -56,7 +56,7 @@ while getopts "fbiSMBpc:l:w:f:g:e:" opt; do case "${opt}" in
 esac done
 shift $(( OPTIND -1 ))
 
-FZF_OPTS="$FZF_OPTS $FZF_MENU_OPTS $FZF_COLORS"
+FZF_OPTS="-e $FZF_OPTS $FZF_MENU_OPTS $FZF_COLORS"
 export FZF_OPTS
 
 $FLOATING_TERMINAL $TERM_OPTS -g "$GEOM" -f "$FONT" $EXEC_FLAG sh -c "cat $input | \

@@ -9,28 +9,16 @@ GEOM=""
 export TMPDIR="/tmp/dmpv"
 
 get_title() {
-	if grep -q 'playlist' <<<"$URL" 2>&1; then
-		JSON="$(yt-dlp --no-warnings --dump-single-json "$URL" 2>&1)"
-		TITLE="$(jq -r '.title' <<<"$JSON")"
-		CHANNEL="$(jq -r '.uploader,.channel' <<<"$JSON" | uniq -i | sed '/null/d')"
-	elif command -v pipe-viewer >/dev/null 2>&1; then
-		INFO="$(pipe-viewer --no-interactive --extract '*TITLE*»*AUTHOR*' "$URL" 2>&1)"
-		TITLE="${INFO%%»*}"
-		CHANNEL="${INFO##*»}"
-	else
-		JSON="$(yt-dlp --no-warnings --dump-single-json "$URL" 2>&1)"
-		TITLE="$(jq -r '.title' <<<"$JSON")"
-		CHANNEL="$(jq -r '.uploader,.channel' <<<"$JSON" | uniq -i | sed '/null/d')"
-	fi
-	([ "$TITLE" = 'null' ] || [ -z "$TITLE" ]) && notify-send "could not retrieve title" && exit
+    INFO="$(yt-dlp --playlist-end=1 --print "%(uploader,channel)-25s%(playlist_title,title)-100s" $URL)"
+	[ -z "$INFO" ] && notify-send "could not retrieve title" && exit
 }
 
 add_to_queue() {
 	PLAYLIST="$(» | dmenu -p "Name of the playlist?")"
 	[ -z "$PLAYLIST" ] && PLAYLIST="1shot"
 	get_title
-	notify-send "$PLAYLIST» $TITLE “$CHANNEL”" "$URL"
-	printf "%s» %s “%-15s” %s\\t%s\\n" "$PLAYLIST" "$TITLE" "$CHANNEL" "$(date '+%k:%M %d/%m/%y')" "$URL" >>"$PATH_QUEUE"
+	notify-send "$PLAYLIST» $INFO" "$URL"
+	printf "%s» %s “%-15s” %s\\t%s\\n" "$PLAYLIST" "$INFO" "$(date '+%k:%M %d/%m/%y')" "$URL" >>"$PATH_QUEUE"
 	sort -u "$PATH_QUEUE" -o "$PATH_QUEUE"
 }
 
@@ -48,47 +36,51 @@ floating() {
 }
 
 save_to_last() {
-	printf "%s» %-20s» %s\t%s\n%s" "$(date '+%k:%M %d/%m/%y')" "$CHANNEL" "$TITLE" "$URL" "$(cat "$PATH_LAST")" >"$PATH_LAST"
+	printf "%-14s\t%s\t%-70s\n%s" \
+		"$(date '+%k:%M %d/%m/%y')" \
+		"$(yt-dlp --playlist-end=1 --print "%(uploader,channel)-25s%(playlist_title,title)-100s" $1)" \
+		"$1" \
+		"$(cat "$PATH_LAST")" >"$PATH_LAST"
 }
 
 fplay() {
 	check_ts
-	notify-send "Working on:" "$TITLE “$CHANNEL”\\n$URL"
+	notify-send "Working on:" "$INFO\\n$URL"
 	export TS_SOCKET="$TMPDIR/video_socket"
 	export TS_SLOTS=2
 	mkdir -p $TMPDIR /tmp/thumbfast
 	if command -v pipe-viewer >/dev/null 2>&1; then
-		$TASK_SPOOLER -L "$TITLE “$CHANNEL”" pipe-viewer "$URL" >/dev/null 2>&1
+		$TASK_SPOOLER -L "$INFO" pipe-viewer "$URL" >/dev/null 2>&1
 	elif grep -q -e yewtu -e youtube; then
 		floating
 		mpv --quiet --video=auto --geometry="$GEOM" --x11-name="mpvFloat" "$URL" >/dev/null 2>&1
 	else
 		floating
-		$TASK_SPOOLER -L "$TITLE “$CHANNEL”" mpv --quiet --video=auto --geometry="$GEOM" --x11-name="mpvFloat" "$URL" >/dev/null 2>&1
+		$TASK_SPOOLER -L "$INFO" mpv --quiet --video=auto --geometry="$GEOM" --x11-name="mpvFloat" "$URL" >/dev/null 2>&1
 	fi
 }
 
 get_from_file() {
 	FILE="${1}"
 	if [ "$2" = 'sort' ]; then
-		CHOSEN="$(cut -f1 "$FILE" | shuf | dmenu -i -l 20)" || exit
+		CHOSEN="$(cut -f2 "$FILE" | shuf | dmenu -i -l 20)" || exit
 	else
-		CHOSEN="$(cut -f1 "$FILE" | dmenu -i -l 20)" || exit
+		CHOSEN="$(cut -f2 "$FILE" | dmenu -i -l 20)" || exit
 	fi
 	LINE="$(grep -w "$CHOSEN" "$FILE")"
-	TITLE="$(cut -f1 <<<"$LINE")"
-	URL="$(cut -f2 <<<"$LINE")"
+	TITLE="$(cut -f2 <<<"$LINE")"
+	URL="$(cut -f3 <<<"$LINE")"
 }
 
 save_music () {
 	get_title
-	printf "%s» %-20s» %s\\t%s\\n%s" "$(date '+%k:%M %d/%m/%y')" "$CHANNEL" "$TITLE" "$URL" "$(cat "$PATH_MUSIC")" >"$PATH_MUSIC"
+	printf "%s» %-20s» %s\\t%s\\n%s" "$(date '+%k:%M %d/%m/%y')" "$INFO" "$URL" "$(cat "$PATH_MUSIC")" >"$PATH_MUSIC"
 }
 
 music_play() {
 	check_ts
 	export TS_SOCKET="$TMPDIR/music_socket"
-	$TASK_SPOOLER -L "$TITLE “$CHANNEL”" mpv --vid=no --volume=60 --speed=1 --keep-open=no --loop-playlist "$URL"
+	$TASK_SPOOLER -L "$INFO" mpv --vid=no --volume=60 --speed=1 --keep-open=no --loop-playlist "$URL"
 }
 
 check_ts() {
@@ -159,7 +151,7 @@ case "$CHOSEN" in
 		;;
 	last)
 		get_from_file "$PATH_LAST"
-		notify-send "Working on:" "$TITLE “$CHANNEL”\\n$URL"
+		notify-send "Working on:" "$INFO\\n$URL"
 		fplay
 		;;
 	music)
@@ -169,32 +161,31 @@ case "$CHOSEN" in
 	music_save) save_music ;;
 	music_queue)
 		get_from_file "$PATH_MUSIC"
-		notify-send "Working on:" "$TITLE “$CHANNEL”\\n$URL"
+		notify-send "Working on:" "$INFO\\n$URL"
 		music_play
 		;;
 	title)
 		get_title
-		notify-send "Working on:" "[[$URL][$TITLE - “$CHANNEL”]]"
-		printf "[[%s][%s]]" "$URL" "$TITLE - “$CHANNEL”" | xclip -i -selection clipboard
+		notify-send "Working on:" "[[$URL][$INFO]]"
+		printf "[[%s][%s]]" "$URL" "$INFO" | xclip -i -selection clipboard
 		;;
 	last_lecture) mpv "$VIDEOS/Lectures/doing" ;;
 	edit_queue) "$VISUAL" "$PATH_QUEUE" ;;
 	edit_last) "$VISUAL" "$PATH_LAST" ;;
 	info_queue)
 		get_from_file "$PATH_QUEUE"
-		TITLE="${TITLE% \“*}"
-		CHANNEL="$(sed 's/\”.*//; s/.*\“//' <<<"$TITLE")"
-		TITLE="${TITLE%% \“*}"
-		notify-send "Yanked:" "$TITLE “$CHANNEL”\\n$URL"
-		printf "[[%s][%s “%s”]]" "$URL" "$TITLE" "$CHANNEL" | xclip -i -selection clipboard
+		TITLE="$(cut -f2 | sed 's/{  }+//' <<< $TITLE)"
+		URL="$(cut -f3 <<< $TITLE)"
+		notify-send "Yanked:" "$INFO\\n$URL"
+		printf "[[%s][%s “%s”]]" "$URL" "$INFO" | xclip -i -selection clipboard
 		;;
 	info_last)
 		get_from_file "$PATH_LAST"
-		CHANNEL="${TITLE%»*}"
-		CHANNEL="${CHANNEL#*»}"
+		CHANNEL="${TITLE%   *}"
+		CHANNEL="${CHANNEL#*   }"
 		CHANNEL="$(sed -e 's/[[:space:]]*$//' <<<"${CHANNEL}")"
-		TITLE="${TITLE##*»}"
-		notify-send "Yanked:" "$TITLE “$CHANNEL”\\n$URL"
+		TITLE="${TITLE##*   }"
+		notify-send "Yanked:" "$INFO\\n$URL"
 		printf "[[%s][%s “%s”]]" "$URL" "$TITLE" "$CHANNEL" | xclip -i -selection clipboard
 		;;
 	tsv)

@@ -3,7 +3,7 @@
 DIR="$HOME/.cache/via"
 CACHE="$DIR/database"
 LAST="$DIR/history"
-FMENU='fmenu -B'
+MENU='dmenu -i -l 15'
 
 build_cache_all() {
     locate -ri "$HOME/.*$" >"$CACHE-all"
@@ -13,7 +13,7 @@ build_cache_all() {
 open_all(){
     cache="$(cat "$CACHE-all")"
     last="$(cat "$LAST-all")"
-    file="$(printf "%s\n------------\n%s" "$last" "$cache" | $FMENU)"
+    file="$(printf "%s\n------------\n%s" "$last" "$cache" | $MENU)"
     [ -z "$file" ] && exit
     exec opener "$file"
 }
@@ -26,7 +26,7 @@ build_cache_docs() {
 open_docs() {
     cache="$(cat "$CACHE-docs")"
     last="$(cat "$LAST-docs")"
-    file="$(printf "%s\n------------\n%s" "$last" "$cache" | $FMENU)"
+    file="$(printf "%s\n------------\n%s" "$last" "$cache" | $MENU)"
     if [ -n "$file" ]; then
         if grep -q "$file" "$LAST-docs"; then
             last="$(grep -v "$file" "$LAST-docs")"

@@ -1,8 +1,8 @@
-#!/bin/bash
+#!/bin/sh
 
 PID="$(wmctrl -lxp | awk '/ mpvFloat.mpv /{print $3}')"
 if [ -n "$PID" ]; then
-    notify-send "dmpv2 Status" "$(echo "{ \"command\": [ \"loadfile\", \"$1\", \"append-play\" ] }" | socat -d - "/tmp/mpvSockets/$PID" 2>&1 | jq -M)"
+    notify-send "Queue Append Status" "$(echo "{ \"command\": [ \"loadfile\", \"$1\", \"append-play\" ] }" | socat -d - "/tmp/mpvSockets/$PID" 2>&1 | jq -M)"
 else
     dim_screen="$(xrandr | awk '/current/ {sub(",","",$10); print $8$9$10}')"
     dim_mon_x="$(echo "$dim_screen" | cut -d'x' -f1)"
@@ -15,22 +15,12 @@ else
     setsid -f mpv --no-terminal --video=auto --geometry="$GEOM" --x11-name="mpvFloat" "$1"
 fi
 
-TITLE=""
-CHANNEL=""
-if grep -q 'playlist' <<<"$1" 2>&1; then
-    JSON="$(yt-dlp --no-warnings --dump-single-json "$1" 2>&1)"
-    TITLE="$(jq -r '.title' <<<"$JSON")"
-    CHANNEL="$(jq -r '.uploader,.channel' <<<"$JSON" | uniq -i | sed '/null/d')"
-elif command -v pipe-viewer >/dev/null 2>&1; then
-    INFO="$(pipe-viewer --no-interactive --extract '*TITLE*»*AUTHOR*' "$1" 2>&1)"
-    TITLE="${INFO%%»*}"
-    CHANNEL="${INFO##*»}"
-else
-    JSON="$(yt-dlp --no-warnings --dump-single-json "$1" 2>&1)"
-    TITLE="$(jq -r '.title' <<<"$JSON")"
-    CHANNEL="$(jq -r '.uploader,.channel' <<<"$JSON" | uniq -i | sed '/null/d')"
-fi
-
-([ "$TITLE" = 'null' ] || [ -z "$TITLE" ]) && notify-send "could not retrieve title" && exit
+INFO="$(yt-dlp --playlist-end=1 --print "%(uploader,channel)-25s%(playlist_title,title)-100s" $1 2>&1)"
+[ $? -gt 0 ] && notify-send "Added to Queue" "$INFO" && exit
+notify-send "Added to Queue" "$(echo $INFO | sed  -e 's/{ }+$//')"
 PATH_LAST="$HOME/.config/mpv/last"
-printf "%s» %-20s» %s\t%s\n%s" "$(date '+%k:%M %d/%m/%y')" "$CHANNEL" "$TITLE" "$1" "$(cat "$PATH_LAST")" >"$PATH_LAST"
+printf "%-14s\t%s\t%-70s\n%s" \
+    "$(date '+%k:%M %d/%m/%y')" \
+    "$INFO"\
+    "$1" \
+    "$(cat "$PATH_LAST")" >"$PATH_LAST"
