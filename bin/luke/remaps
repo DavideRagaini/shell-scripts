@@ -1,12 +1,10 @@
 #!/bin/sh
 
 xset r rate 300 50
-setxkbmap -layout us -variant altgr-intl -option ctrl:swapcaps,altwin:swap_lalt_lwin,altwin:menu_win
+setxkbmap -layout 'us' -variant 'altgr-intl' \
+    -option 'ctrl:swapcaps,altwin:swap_lalt_lwin,altwin:menu_win'
 killall xcape 2>/dev/null
 xcape -e 'Super_L=Escape'
-xmodmap -e 'keycode 38 = a A a A agrave Agrave aacute aacute'
-xmodmap -e 'keycode 26 = e E e E egrave Egrave eacute eacute'
-xmodmap -e 'keycode 31 = i I i I igrave Igrave iacute iacute'
-xmodmap -e 'keycode 32 = o O o O ograve Ograve oacute oacute'
-xmodmap -e 'keycode 30 = u U u U ugrave Ugrave uacute uacute'
-xset -q | grep "Caps Lock:\s*on" && xdotool key Caps_Lock
+[ -f "$HOME/.config/x11/xmodmap" ] &&
+    xmodmap "$HOME/.config/x11/xmodmap"
+# xset -q | grep "Caps Lock:\s*on" && xdotool key Caps_Lock
