@@ -16,7 +16,8 @@ geometry() {
 
 PID="$(wmctrl -lxp | awk '/ mpvFloat.mpv /{print $3}')"
 if [ -n "$PID" ]; then
-    notify-send "Queue Append Status" "$(echo "{ \"command\": [ \"loadfile\", \"$1\", \"append-play\" ] }" | socat -d - "/tmp/mpvSockets/$PID" 2>&1 | jq -M)"
+    echo "{ \"command\": [ \"loadfile\", \"$1\", \"append-play\" ] }" | socat -d - "/tmp/mpvSockets/$PID" >/dev/null 2>&1
+    # notify-send "Queue Append Status" "$(echo "{ \"command\": [ \"loadfile\", \"$1\", \"append-play\" ] }" | socat -d - "/tmp/mpvSockets/$PID" 2>&1 | jq -M)"
 else
     [ -n "$GEOM_FLAG" ] && geometry
     setsid -f mpv --no-terminal --video=auto --geometry="$GEOM" --x11-name="mpvFloat" "$1"

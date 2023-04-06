@@ -4,72 +4,80 @@
 SOCKETS="$(find "/tmp/mpvSockets" -type s)"
 
 set_all() {
-    for i in $SOCKETS; do
-        echo "${1}" |
-            socat -d - "$i"
-    done
+  for i in $SOCKETS; do
+    echo "${1}" |
+      socat -d - "$i"
+  done
 }
 
 choose_instance() {
-    if [ "$(echo "$SOCKETS" | wc -l)" -eq 1 ]; then
-        CHOSEN="$SOCKETS"
-    else
-        for i in $SOCKETS; do
-            TITLES="$(echo '{ "command": ["get_property", "media-title"] }' | socat -d - "$i" | jq -r '.data')"
-            LIST="${LIST}${TITLES} (${i})\n"
-        done
-        CHOSEN="$(echo "${LIST}" | dmenu -i -l 5 -p "$1")"
-    fi
-    CHOSEN="${CHOSEN#*(}"
-    CHOSEN="${CHOSEN%)*}"
+  if [ "$(echo "$SOCKETS" | wc -l)" -eq 1 ]; then
+    CHOSEN="$SOCKETS"
+  else
+    for i in $SOCKETS; do
+      TITLES="$(echo '{ "command": ["get_property", "media-title"] }' | socat -d - "$i" | jq -r '.data')"
+      LIST="${LIST}${TITLES} (${i})\n"
+    done
+    CHOSEN="$(echo "${LIST}" | dmenu -i -l 5 -p "$1")"
+  fi
+  CHOSEN="${CHOSEN##*(}"
+  CHOSEN="${CHOSEN%%)*}"
 }
 
 case "$1" in
-    toggle)
-        choose_instance "Toggle:"
-        echo cycle pause | socat -d - "$CHOSEN"
-        ;;
-    play) choose_instance "Play:"
-          echo '{ "command": ["set_property", "pause", "false"] }' |
-              socat -d - "$CHOSEN"
-        ;;
-    pause) choose_instance "Pause:"
-          echo '{ "command": ["set_property", "pause", "true"] }' |
-              socat -d - "$CHOSEN"
-        ;;
-    pauseall) set_all '{ "command": ["set_property", "pause", true] }' ;;
-    invert) set_all '{ "command": ["cycle", "pause"] }' ;;
-    prev) choose_instance "Previous:"
-          echo "playlist-prev" | socat -d - "$CHOSEN"
-        ;;
-    next) choose_instance "Next:"
-          echo "playlist-next" | socat -d - "$CHOSEN"
-        ;;
-    info) choose_instance "Info:"
-          TITLE="$(echo '{ "command": ["get_property", "media-title"] }' | socat -d - "$CHOSEN" | jq -r '.data')"
-          PATH="$(echo '{ "command": ["get_property", "path"] }' | socat -d - "$CHOSEN" | jq -r '.data')"
-          echo "[[$PATH][$TITLE]]" # | xclip -i -selection clipboard
-          ;;
-    seek) choose_instance "Seek:"
-          echo seek "$2" | socat -d - "$CHOSEN"
-        ;;
-    get) choose_instance "Get:"
-         PROPERTY="$(echo "{ \"command\": [\"get_property\", \"${2}\"] }" | socat -d - "$CHOSEN" | jq -r '.data')"
-         notify-send "Get Property" "$2: $PROPERTY"
-         echo "$PROPERTY"
-        ;;
-    'set') choose_instance "Set:"
-           PROPERTY="$(echo ${2} | cut -d' ' -f1)"
-           VALUE="$(echo ${2} | cut -d' ' -f2)"
-           notify-send "Set Property" "$PROPERTY: $VALUE"
-           echo "{ \"command\": [\"set_property\", \"$PROPERTY\", \"$VALUE\"] }" |
-        socat -d - "$CHOSEN"
-        ;;
-    direct) echo "$2" | socat -d - "$SOCKET" ;;
-    add) echo "{ command: [ "loadfile", "$2", "append-play" ] }" | nc.openbsd -NU "$SOCKET" ;;
-    help)
-      echo \
-"MPV IPC Socket Basic Controller
+  toggle)
+    choose_instance "Toggle:"
+    echo cycle pause | socat -d - "$CHOSEN"
+    ;;
+  play)
+    choose_instance "Play:"
+    echo '{ "command": ["set_property", "pause", "false"] }' |
+      socat -d - "$CHOSEN"
+    ;;
+  pause)
+    choose_instance "Pause:"
+    echo '{ "command": ["set_property", "pause", "true"] }' |
+      socat -d - "$CHOSEN"
+    ;;
+  pauseall) set_all '{ "command": ["set_property", "pause", true] }' ;;
+  invert) set_all '{ "command": ["cycle", "pause"] }' ;;
+  prev)
+    choose_instance "Previous:"
+    echo "playlist-prev" | socat -d - "$CHOSEN"
+    ;;
+  next)
+    choose_instance "Next:"
+    echo "playlist-next" | socat -d - "$CHOSEN"
+    ;;
+  info)
+    choose_instance "Info:"
+    TITLE="$(echo '{ "command": ["get_property", "media-title"] }' | socat -d - "$CHOSEN" | jq -r '.data')"
+    PATH="$(echo '{ "command": ["get_property", "path"] }' | socat -d - "$CHOSEN" | jq -r '.data')"
+    echo "[[$PATH][$TITLE]]" # | xclip -i -selection clipboard
+    ;;
+  seek)
+    choose_instance "Seek:"
+    echo seek "$2" | socat -d - "$CHOSEN"
+    ;;
+  get)
+    choose_instance "Get:"
+    PROPERTY="$(echo "{ \"command\": [\"get_property\", \"${2}\"] }" | socat -d - "$CHOSEN" | jq -r '.data')"
+    notify-send "Get Property" "$2: $PROPERTY"
+    echo "$PROPERTY"
+    ;;
+  'set')
+    choose_instance "Set:"
+    PROPERTY="$(echo ${2} | cut -d' ' -f1)"
+    VALUE="$(echo ${2} | cut -d' ' -f2)"
+    notify-send "Set Property" "$PROPERTY: $VALUE"
+    echo "{ \"command\": [\"set_property\", \"$PROPERTY\", \"$VALUE\"] }" |
+      socat -d - "$CHOSEN"
+    ;;
+  direct) echo "$2" | socat -d - "$CHOSEN" ;;
+  add) echo "{ command: [ \"loadfile\", \"$2\", \"append-play\" ] }" | nc.openbsd -NU "$CHOSEN" ;;
+  help)
+    echo \
+      "MPV IPC Socket Basic Controller
 
 USAGE:
 tppctl Options [property]
@@ -84,5 +92,6 @@ OPTIONS:
   info [property]
   seek [property]
   help"
-      exit ;;
+    exit
+    ;;
 esac

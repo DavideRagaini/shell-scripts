@@ -10,7 +10,8 @@ export TMPDIR="/tmp/dmpv"
 
 get_title() {
     INFO="$(yt-dlp --playlist-end=1 --print "%(uploader,channel)-25s%(playlist_title,title)-100s" $URL)"
-	[ -z "$INFO" ] && notify-send "could not retrieve title" && exit
+	[ $? -gt 0 ] && notify-send "Added to Queue" "$INFO" && exit
+	notify-send "Added to Queue" "$INFO"
 }
 
 add_to_queue() {
@@ -18,7 +19,7 @@ add_to_queue() {
 	[ -z "$PLAYLIST" ] && PLAYLIST="1shot"
 	get_title
 	notify-send "$PLAYLIST» $INFO" "$URL"
-	printf "%s» %s “%-15s” %s\\t%s\\n" "$PLAYLIST" "$INFO" "$(date '+%k:%M %d/%m/%y')" "$URL" >>"$PATH_QUEUE"
+	printf "%s\t%s\t%s\t%s\n" "$PLAYLIST" "$INFO" "$(date '+%k:%M %d/%m/%y')" "$URL" >>"$PATH_QUEUE"
 	sort -u "$PATH_QUEUE" -o "$PATH_QUEUE"
 }
 
@@ -49,15 +50,17 @@ fplay() {
 	export TS_SOCKET="$TMPDIR/video_socket"
 	export TS_SLOTS=2
 	mkdir -p $TMPDIR /tmp/thumbfast
-	if command -v pipe-viewer >/dev/null 2>&1; then
-		$TASK_SPOOLER -L "$INFO" pipe-viewer "$URL" >/dev/null 2>&1
-	elif grep -q -e yewtu -e youtube; then
-		floating
-		mpv --quiet --video=auto --geometry="$GEOM" --x11-name="mpvFloat" "$URL" >/dev/null 2>&1
-	else
-		floating
-		$TASK_SPOOLER -L "$INFO" mpv --quiet --video=auto --geometry="$GEOM" --x11-name="mpvFloat" "$URL" >/dev/null 2>&1
-	fi
+	mpv --no-terminal "$URL"
+	# $TASK_SPOOLER -L "$INFO" mpv --no-terminal "$URL" >/dev/null 2>&1
+	# if command -v pipe-viewer >/dev/null 2>&1; then
+	# 	$TASK_SPOOLER -L "$INFO" pipe-viewer "$URL" >/dev/null 2>&1
+	# elif grep -q -e yewtu -e youtube; then
+	# 	# floating
+	# 	mpv --no-terminal --video=auto --geometry="$GEOM" --x11-name="mpvFloat" "$URL"
+	# else
+	# 	floating
+	# 	$TASK_SPOOLER -L "$INFO" mpv --no-terminal --video=auto --geometry="$GEOM" --x11-name="mpvFloat" "$URL"
+	# fi
 }
 
 get_from_file() {

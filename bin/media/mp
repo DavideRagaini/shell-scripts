@@ -6,6 +6,11 @@ elif pidof spotifyd; then
 	CHOSEN="sptui"
 elif mpc status | grep -q playing; then
 	CHOSEN="Local"
+elif [ "$1" = 'down' ]; then
+	pkill librespot
+	pkill spotifyd
+	pkill spotify-tui
+	exit
 else
 	CHOSEN="$(printf 'Spotify\nLocal' | fzf --cycle --border --margin 10% --padding 10% --header='Choose music source')"
 fi

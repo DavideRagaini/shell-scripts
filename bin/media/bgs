@@ -27,8 +27,8 @@ getp() {
 }
 
 setp() {
-    PROPERTY="$(echo ${1} | cut -d' ' -f1)"
-    VALUE="$(echo ${1} | cut -d' ' -f2)"
+    PROPERTY="$(echo "$1" | cut -d' ' -f1)"
+    VALUE="$(echo "$1" | cut -d' ' -f2)"
     notify "BGS Set Property" "$PROPERTY: $VALUE"
     echo "{ \"command\": [\"set_property\", \"$PROPERTY\", \"$VALUE\"] }" |
         socat -d - "$SOCKET"
@@ -62,7 +62,7 @@ while getopts "Shnptig:s:d:v:" arg; do
         d) echo "${OPTARG}" | socat -d - "$SOCKET" ;;
         p) echo "playlist-prev" | socat -d - "$SOCKET" ;;
         n) echo "playlist-next" | socat -d - "$SOCKET" ;;
-        v) [ $OPTARG -gt 150 ] &&
+        v) [ "$OPTARG" -gt 150 ] &&
                echo "Volume too Loud, exit" &&
                exit
            setp "volume ${OPTARG}" ;;

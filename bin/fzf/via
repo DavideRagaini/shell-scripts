@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 DIR="$HOME/.cache/via"
 CACHE="$DIR/database"
@@ -41,7 +41,7 @@ open_docs() {
 }
 
 search() {
-    fzf <<< "$(locate -ri "$HOME/.*$1.*")"
+    locate -ri "$HOME/.*$1.*" | fzf -e
     exec opener "$file"
 }
 

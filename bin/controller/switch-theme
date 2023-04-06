@@ -4,16 +4,16 @@ CURRENT="$HOME/.cache/current_theme"
 
 dark_theme() {
     sed -i 's/light/dark/' ~/.config/alacritty/alacritty.yml
-    xrdb -load ~/.config/x11/Xresources
-    emacsclient --eval '(load-theme (quote doom-dracula))'
+    xrdb -override ~/.config/x11/Xresources
+    emacsclient --eval '(load-theme (quote modus-vivendi))'
     # qutebrowser :"set colors.webpage.darkmode.enabled true;; restart"
     echo dark > "$CURRENT"
 }
 
 light_theme () {
     sed -i 's/dark/light/' ~/.config/alacritty/alacritty.yml
-    xrdb -load ~/.config/x11/Xresources_Light
-    emacsclient --eval '(load-theme (quote doom-one-light))'
+    xrdb -override ~/.config/x11/Xresources_Light
+    emacsclient --eval '(load-theme (quote leuven))'
     # qutebrowser :"set colors.webpage.darkmode.enabled false;; restart"
     echo light > "$CURRENT"
 }
