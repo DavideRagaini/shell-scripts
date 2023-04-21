@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 HOURS=0
 MINUTES=0
@@ -13,10 +13,10 @@ while getopts "h:m:s:" arg; do
     esac
 done
 
-date1=$(($(date +%s) + $HOURS*3600 + $MINUTES*60 + $SECONDS))
+date1=$(($(date +%s) + HOURS*3600 + MINUTES*60 + SECONDS))
 while [ "$date1" -ge "$(date +%s)" ]; do
     days=$(($(($((date1 - $(date +%s))) * 1)) / 86400))
-    echo -ne "$days day(s) and $(date -u --date @$((date1 - $(date +%s))) +%H:%M:%S)\r"
+    printf "%s day(s) and %s\r" "$days" "$(date -u --date @$((date1 - $(date +%s))) +%H:%M:%S)"
     sleep 1
 done
 ringing

@@ -9,6 +9,7 @@ for i in "$@"; do
         *.mkv | *.web | *.mp4 | *avi) setsid mpv -no-terminal "$i" & ;;
         *.mp3 | *.flac | *.opus | *mp3?source*) setsid mpv "$i" & ;;
         *.png | *.jpg | *.jpeg | *.gif) setsid nsxiv "$i" & ;;
+        *.cbz) setsid -f zathura "$i" | less ;;
         *.tar*) tar tf "$i" | less ;;
         *.zip) unzip -l "$i" | less ;;
         *.rar) unrar l "$i" | less ;;

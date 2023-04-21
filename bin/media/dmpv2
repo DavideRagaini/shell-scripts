@@ -1,34 +1,35 @@
 #!/bin/sh
 
-GEOM_FLAG=0
-GEOM=''
-geometry() {
-    dim_screen="$(xrandr | awk '/current/ {sub(",","",$10); print $8$9$10}')"
-    dim_mon_x="$(echo "$dim_screen" | cut -d'x' -f1)"
-    dim_mon_y="$(echo "$dim_screen" | cut -d'x' -f2)"
-    dim_w_x="$((dim_mon_x / 6))"
-    dim_w_y="$((dim_mon_y / 6))"
-    x="$((dim_mon_x - dim_w_x - 3))"
-    y="$((dim_mon_y - dim_w_y - 3))"
-    GEOM="$(printf "%sx%s+%s+%s" "$dim_w_x" "$dim_w_y" "$x" "$y")"
-    setsid -f mpv --no-terminal --video=auto --geometry="$GEOM" --x11-name="mpvFloat" "$1"
-}
-
 PID="$(wmctrl -lxp | awk '/ mpvFloat.mpv /{print $3}')"
 if [ -n "$PID" ]; then
-    echo "{ \"command\": [ \"loadfile\", \"$1\", \"append-play\" ] }" | socat -d - "/tmp/mpvSockets/$PID" >/dev/null 2>&1
-    # notify-send "Queue Append Status" "$(echo "{ \"command\": [ \"loadfile\", \"$1\", \"append-play\" ] }" | socat -d - "/tmp/mpvSockets/$PID" 2>&1 | jq -M)"
+    echo "{ \"command\": [ \"loadfile\", \"$1\", \"append-play\" ] }" |
+        socat -d - "/tmp/mpvSockets/$PID" >/dev/null 2>&1
 else
-    [ -n "$GEOM_FLAG" ] && geometry
-    setsid -f mpv --no-terminal --video=auto --geometry="$GEOM" --x11-name="mpvFloat" "$1"
+    if pidof -q dwm; then
+        dim_screen="$(xrandr | awk '/current/ {sub(",","",$10); print $8$9$10}')"
+        dim_mon_x="$(echo "$dim_screen" | cut -d'x' -f1)"
+        dim_mon_y="$(echo "$dim_screen" | cut -d'x' -f2)"
+        dim_w_x="$((dim_mon_x / 6))"
+        dim_w_y="$((dim_mon_y / 6))"
+        x="$((dim_mon_x - dim_w_x - 3))"
+        y="$((dim_mon_y - dim_w_y - 20))"
+        GEOM="$(printf "%sx%s+%s+%s" "$dim_w_x" "$dim_w_y" "$x" "$y")"
+        setsid -f mpv --no-terminal --geometry="$GEOM" --x11-name="mpvFloat" "$1"
+    else
+        setsid -f mpv --no-terminal --x11-name="mpvFloat" "$1"
+    fi
 fi
 
-INFO="$(yt-dlp --playlist-end=1 --print "%(uploader,channel)-25s %(playlist_title,title)-100s" "$1" 2>&1)"
-[ $? -gt 0 ] && notify-send "Added to Queue" "$INFO" && exit
-notify-send "Added to Queue" "$(echo "$INFO" | tr -s ' ')"
+if ! INFO="$(yt-dlp --playlist-end=1 --print "%(uploader,channel)-26s%(playlist_title,title)-100s" "$1" 2>&1)"
+then
+    notify-send "Error Adding to Queue" "$INFO"
+    exit
+fi
+notify-send "Added to Queue" "$INFO"
 PATH_LAST="$HOME/.config/mpv/last"
-printf "%-14s\t%s\t%s\n%s\n" \
-    "$(date '+%k:%M %d/%m/%y')" \
-    "$INFO"\
-    "$1" \
-    "$(cat "$PATH_LAST")" >"$PATH_LAST"
+grep -q "$INFO" "$PATH_LAST" ||
+    printf "%-14s\t%s\t%s\n%s\n" \
+        "$(date '+%k:%M %d/%m/%y')" \
+        "$INFO"\
+        "$1" \
+        "$(cat "$PATH_LAST")" >"$PATH_LAST"

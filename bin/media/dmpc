@@ -1,22 +1,22 @@
 #!/bin/sh
 
-if [ "$(pgrep spotifyd)" ]; then # || [ "$(playerctl -l | grep -q spotifyd)" ]
-    case "$1" in
-        toggle)
-            dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotifyd /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.PlayPause ;;
-        play)
-            dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotifyd /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.Play ;;
-        pause)
-            dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotifyd /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.Pause ;;
-        next)
-            dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotifyd /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.Next ;;
-        prev)
-            dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotifyd /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.Previous ;;
-        # TODO
-        # seekf) playerctl -p spotifyd position 10+ ;;
-        # seekp) playerctl -p spotifyd position 10- ;;
-    esac
-else
+# if [ "$(pgrep spotifyd)" ]; then # || [ "$(playerctl -l | grep -q spotifyd)" ]
+#     case "$1" in
+#         toggle)
+#             dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotifyd /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.PlayPause ;;
+#         play)
+#             dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotifyd /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.Play ;;
+#         pause)
+#             dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotifyd /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.Pause ;;
+#         next)
+#             dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotifyd /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.Next ;;
+#         prev)
+#             dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotifyd /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.Previous ;;
+#         # TODO
+#         # seekf) playerctl -p spotifyd position 10+ ;;
+#         # seekp) playerctl -p spotifyd position 10- ;;
+#     esac
+# else
     case "$1" in
         toggle) mpc -q toggle ;;
         play) mpc -q play ;;
@@ -26,4 +26,4 @@ else
         seekf) mpc -q seekthrough 10 ;;
         seekp) mpc -q seekthrough -10 ;;
     esac
-fi
+# fi

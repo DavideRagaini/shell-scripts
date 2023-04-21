@@ -7,4 +7,4 @@ killall xcape 2>/dev/null
 xcape -e 'Super_L=Escape'
 [ -f "$HOME/.config/x11/xmodmap" ] &&
     xmodmap "$HOME/.config/x11/xmodmap"
-# xset -q | grep "Caps Lock:\s*on" && xdotool key Caps_Lock
+xset -q | grep "Caps Lock:\s*on" && xdotool key Caps_Lock

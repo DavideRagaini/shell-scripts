@@ -1,6 +1,7 @@
 #!/bin/sh
 
 SOCKET='/tmp/mpv-bgs'
+BGS_DIR="${XDG_MUSIC_DIR:-$HOME/Storage/Music}/BACKGROUNDS/"
 
 usage() {
     echo \
@@ -34,24 +35,24 @@ setp() {
         socat -d - "$SOCKET"
 }
 
-start_bgs() {
-    mpv --no-config \
-        --no-terminal \
-        --shuffle \
-        --loop-playlist=inf \
-        --volume=85 \
-        --input-ipc-server="$SOCKET" \
-        "${XDG_MUSIC_DIR:-$HOME/Storage/Music}/BACKGROUNDS/"
-    notify 'BGS exits'
-}
+MPV="mpv --no-config \
+--term-osd-bar \
+--msg-color \
+--shuffle \
+--loop-playlist=inf \
+--volume=85 \
+--input-ipc-server=$SOCKET"
 
-[ -z "$1" ] && start_bgs
+[ -z "$1" ] && $MPV "$BGS_DIR"
 
-while getopts "Shnptig:s:d:v:" arg; do
+while getopts "Shnpctig:s:d:v:" arg; do
     case "$arg" in
-        S) start_bgs ;;
+        S) $MPV "$BGS_DIR" ;;
         g) getp "$OPTARG" ;;
         s) setp "${OPTARG}" ;;
+        c) find "$BGS_DIR" -type f |
+                 fzf |
+                 xargs -r -I % $MPV % ;;
         i) echo "Title:           $(getp media-title)"
            echo "Path:            $(getp path)"
            echo "Time:            $(getp duration)"

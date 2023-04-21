@@ -1,0 +1,4 @@
+#!/bin/sh
+find "$HOME/.local/share/cargo/bin" -type f |
+    cut -f8 -d'/' |
+    xargs -I % cargo install %

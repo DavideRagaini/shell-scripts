@@ -431,7 +431,7 @@ while :; do
       --bind "?:preview(echo '$(_sysz_keys)')" \
       --bind "ctrl-v:preview('${BASH_SOURCE[0]}' _fzf_cat {})" \
       --preview="'${BASH_SOURCE[0]}' _fzf_preview {}" \
-      --preview-window=70% |
+      --preview-window='70%,nohidden' |
     readarray -t PICKS
 
   KEY=${PICKS[0]}

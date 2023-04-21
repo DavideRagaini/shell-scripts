@@ -1,10 +1,4 @@
 #!/bin/sh
-cd "$HOME/.local/share/python/bin" ||
-    exit
-for i in *
-do
-    pip install "$i" --upgrade
-done
-
-# find "$HOME/.local/share/python/bin" -type f -print0 |
-#     xargs -I {} -0 pip install {} --upgrade
+find "$HOME/.local/share/python/bin" -type f |
+    cut -f8 -d'/' |
+    xargs -I % pip install % --upgrade
