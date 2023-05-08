@@ -2,3 +2,4 @@
 find "$HOME/.local/share/python/bin" -type f |
     cut -f8 -d'/' |
     xargs -I % pip install % --upgrade
+exit 0

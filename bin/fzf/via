@@ -46,6 +46,7 @@ search() {
 }
 
 case "$1" in
+    -b) build_cache_all; build_cache_docs;;
     -D) build_cache_all ;;
     -d) build_cache_docs ;;
     -A) build_cache_all && open_all ;;

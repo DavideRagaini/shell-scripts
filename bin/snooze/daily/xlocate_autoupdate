@@ -1,2 +1,2 @@
 #!/bin/sh
-exec xlocate -S
+xlocate -S

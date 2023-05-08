@@ -1,2 +1,2 @@
 #!/bin/sh
-exec tldr --update
+tldr --update

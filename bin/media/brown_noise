@@ -1,0 +1,2 @@
+#!/bin/sh
+sox -c2 --null -d synth 0:60 brownnoise band -n 210.0 1000.0 tremolo 0.016666666666666666 70.0 reverb 40.0 vol 0.8 fade q 0.005 0:60 0.005 repeat -

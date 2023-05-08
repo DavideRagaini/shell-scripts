@@ -1,30 +1,29 @@
 #!/bin/sh
 
-DIR="$HOME/.config/mpv/"
+DIR="$HOME/.config/mpv"
 PATH_QUEUE="$DIR/queue"
 PATH_LAST="$DIR/last"
 PATH_MUSIC="$DIR/music"
 
 get_title() {
-    if ! INFO="$(yt-dlp --playlist-end=1 --print "%(uploader,channel)-26s%(playlist_title,title)-100s" "$URL" 2>&1)"
+    if ! INFO="$(yt-dlp --playlist-end=1 --print "«%(uploader,channel)-25s» %(playlist_title,title)-100s" "$URL" 2>&1)"
 	then
-		notify-send "Error Adding to Queue" "$INFO"
+		notify-send "Error Adding to Queue" "$(echo "$INFO" | tr -s)"
 		exit
 	fi
-	notify-send "Added to Queue" "$INFO"
 }
 
 add_to_queue() {
 	PLAYLIST="$(» | dmenu -p "Name of the playlist?")"
 	[ -z "$PLAYLIST" ] && PLAYLIST="1shot"
 	get_title
-	notify-send "$PLAYLIST» $INFO" "$URL"
+	notify-send "$PLAYLIST: $(echo "$INFO" | tr -s)" "$URL"
 	printf "%-18s%s\t%s\t%s\n" "$(date '+%k:%M %d/%m/%y')" "$PLAYLIST" "$INFO" "$URL" >>"$PATH_QUEUE"
 	sort -u "$PATH_QUEUE" -o "$PATH_QUEUE"
 }
 
 save_to_last() {
-	INFO="$(yt-dlp --playlist-end=1 --print "%(uploader,channel)-25s%(playlist_title,title)-100s" "$URL")"
+	# INFO="$(yt-dlp --playlist-end=1 --print "«%(uploader,channel)-25s» %(playlist_title,title)-100s" "$URL")"
 	grep -q "$INFO" "$PATH_LAST" ||
 		printf "%-14s\t%s\t%-70s\n%s" \
 			"$(date '+%k:%M %d/%m/%y')" \
@@ -34,28 +33,12 @@ save_to_last() {
 }
 
 fplay() {
-	notify-send "Working on:" "$INFO\\n$URL"
-    if pidof -q dwm; then
-        dim_screen="$(xrandr | awk '/current/ {sub(",","",$10); print $8$9$10}')"
-        dim_mon_x="$(echo "$dim_screen" | cut -d'x' -f1)"
-        dim_mon_y="$(echo "$dim_screen" | cut -d'x' -f2)"
-        dim_w_x="$((dim_mon_x / 6))"
-        dim_w_y="$((dim_mon_y / 6))"
-        x="$((dim_mon_x - dim_w_x - 3))"
-        y="$((dim_mon_y - dim_w_y - 20))"
-        GEOM="$(printf "%sx%s+%s+%s" "$dim_w_x" "$dim_w_y" "$x" "$y")"
-        mpv --no-terminal --geometry="$GEOM" --x11-name="mpvFloat" "$URL"
-    else
-        mpv --no-terminal --x11-name="mpvFloat" "$URL"
-    fi
+	notify-send "Working on:" "$(echo "$INFO" | tr -s)\\n$URL"
+	mpv --no-terminal "$URL"
 }
 
 get_from_file() {
-	if [ "$2" = 'sort' ]; then
-		CHOSEN="$(cut -f2 "$1" | shuf | dmenu -i -l 20)" || exit
-	else
-		CHOSEN="$(cut -f2 "$1" | dmenu -i -l 20)" || exit
-	fi
+	CHOSEN="$(cut -f2 "$1" | dmenu -i -l 20)" || exit
 	LINE="$(grep -w "$CHOSEN" "$1")"
 	TITLE="$(echo "$LINE" | cut -f2)"
 	URL="$(echo "$LINE" | cut -f3)"
@@ -102,7 +85,7 @@ fi
 
 case "$CHOSEN" in
 	queue)
-		get_from_file "$PATH_QUEUE" sort
+		get_from_file "$PATH_QUEUE"
 		save_to_last
 		fplay
 		;;
@@ -133,12 +116,12 @@ case "$CHOSEN" in
 		;;
 	last)
 		get_from_file "$PATH_LAST"
-		notify-send "Working on:" "$INFO\\n$URL"
+		notify-send "Working on:" "$(echo "$INFO" | tr -s)\\n$URL"
 		fplay
 		;;
 	save_m3u)
 		PLAYLIST="$(» | dmenu -p "Name of the playlist?")"
-		yt-dlp -O "#EXTINF:%(duration)s,%(upload_date>%d/%m/%Y)s %(title)s" "$URL" > "$DIR/playlist/$PLAYLIST"
+		yt-dlp -O "#EXTINF:%(duration)s,%(upload_date>%d/%m/%Y)s %(title)s" "$URL" > "$DIR/playlists/$PLAYLIST.m3u"
 		;;
 	playlist)
 		find "$HOME/.config/mpv/playlists" -type f |
@@ -152,12 +135,12 @@ case "$CHOSEN" in
 	music_save) save_music ;;
 	music_queue)
 		get_from_file "$PATH_MUSIC"
-		notify-send "Working on:" "$INFO\\n$URL"
+		notify-send "Working on:" "$(echo "$INFO" | tr -s)\\n$URL"
 		music_play
 		;;
 	title)
 		get_title
-		notify-send "Working on:" "[[$URL][$INFO]]"
+		notify-send "Working on:" "[[$URL][$(echo "$INFO" | tr -s)]]"
 		printf "[[%s][%s]]" "$URL" "$INFO" | xclip -i -selection clipboard
 		;;
 	last_lecture) mpv "$VIDEOS/Lectures/doing" ;;
@@ -167,12 +150,12 @@ case "$CHOSEN" in
 		get_from_file "$PATH_QUEUE"
 		TITLE="$(echo "$TITLE" | cut -f2)"
 		URL="$(echo "$TITLE" | cut -f3)"
-		notify-send "Yanked:" "$INFO\\n$URL"
+		notify-send "Yanked:" "$(echo "$INFO" | tr -s)\\n$URL"
 		printf "[[%s][%s]]" "$URL" "$INFO" | xclip -i -selection clipboard
 		;;
 	info_last)
 		get_from_file "$PATH_LAST"
-		notify-send "Yanked:" "$INFO\\n$URL"
+		notify-send "Yanked:" "$(echo "$INFO" | tr -s)\\n$URL"
 		printf "[[%s][%s]]" "$URL" "$INFO"| xclip -i -selection clipboard
 		;;
 	*) notify-send "Something wrong..." ;;
