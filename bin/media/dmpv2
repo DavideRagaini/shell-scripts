@@ -1,14 +1,19 @@
 #!/bin/sh
 
+if [ -z "$1" ]; then
+    URL="$(xclip -selection clipboard -o)"
+else
+    URL="$1"
+fi
 PID="$(wmctrl -lxp | awk '/ mpvFloat.mpv /{print $3}')"
 if [ -n "$PID" ]; then
-    echo "{ \"command\": [ \"loadfile\", \"$1\", \"append-play\" ] }" |
+    echo "{ \"command\": [ \"loadfile\", \"$URL\", \"append-play\" ] }" |
         socat -d - "/tmp/mpvSockets/$PID" >/dev/null 2>&1
 else
-    setsid -f mpv --no-terminal --geometry=15%-5-5 --x11-name="mpvFloat" "$1"
+    setsid -f mpv --no-terminal --geometry=15%-5-5 --x11-name="mpvFloat" "$URL"
 fi
 
-if ! INFO="$(yt-dlp --playlist-end=1 --print "«%(uploader,channel)-25s» %(playlist_title,title)-100s" "$1" 2>&1)"
+if ! INFO="$(yt-dlp --playlist-end=1 --print "«%(uploader,channel)-25s» %(playlist_title,title)-100s" "$URL" 2>&1)"
 then
     notify-send "Error Adding to Queue" "$INFO"
     exit
@@ -19,5 +24,5 @@ grep -q "$INFO" "$PATH_LAST" ||
     printf "%-14s\t%s\t%s\n%s\n" \
         "$(date '+%k:%M %d/%m/%y')" \
         "$INFO"\
-        "$1" \
+        "$URL" \
         "$(cat "$PATH_LAST")" >"$PATH_LAST"

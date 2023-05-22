@@ -7,6 +7,9 @@ MENU='dmenu -i -l 15'
 
 build_cache_all() {
     locate -ri "$HOME/.*$" >"$CACHE-all"
+}
+
+clean_last_all(){
     printf '' >"$LAST-all"
 }
 
@@ -20,6 +23,9 @@ open_all(){
 
 build_cache_docs() {
     locate -ri "$HOME/.*.pdf$" | sed "s@$HOME@"'~''@; /~\/\..*$/d' >"$CACHE-docs"
+}
+
+clean_last_docs(){
     printf '' >"$LAST-docs"
 }
 
@@ -51,6 +57,8 @@ case "$1" in
     -d) build_cache_docs ;;
     -A) build_cache_all && open_all ;;
     -R) build_cache_docs && reader ;;
+    -c) clean_last_docs ;;
+    -C) clean_last_all ;;
     -a) open_all ;;
     -e) search "$2" ;;
     -r) open_docs ;;
