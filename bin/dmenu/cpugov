@@ -41,6 +41,10 @@ current_settings() {
     echo "$YELLOW Currently running settings:$RED Governors:$NC $CUR_GOVERNOR | $RED Max speeds:$NC $CUR_MAX_FRQ | $RED Min speeds:$NC $CUR_MIN_FRQ"
 }
 
+current_settings_notify() {
+    notify-send "Currently running settings:" "Governors: $CUR_GOVERNOR\nMax speeds: $CUR_MAX_FRQ\nMin speeds: $CUR_MIN_FRQ"
+}
+
 print_changes() {
     if [ -z "$DMENU_ENABLE" ]; then
         echo "$YELLOW Params Changed to:$RED  Gov:$NC $CUR_GOVERNOR -> $GOVERNOR | $RED Min:$NC $CUR_MIN_FRQ -> $MIN_SPEED | $RED Max:$NC $CUR_MAX_FRQ -> $MAX_SPEED"
@@ -58,7 +62,7 @@ change_settings() {
         sudo -A systemctl restart cpufrequtils
         sync
         print_changes
-        pkill -RTMIN+8 dwmblocks
+        # pkill -RTMIN+8 dwmblocks
     fi
 }
 
@@ -96,10 +100,11 @@ $YELLOW Guided selection:$NC
 	-f: FZF Selector
 $YELLOW List:$NC
 	-c: Current Settings
+	-C: Current Settings notify-send
 	-l: Avaliable Settings" &&
             exit 1 ;}
 
-while getopts "M:g:m:LNPdDfclh" o
+while getopts "M:g:m:LNPdDfcClh" o
 do case "${o}" in
 # Specify settings:
 	M) MAX_SPEED="${OPTARG}" ;;
@@ -124,6 +129,7 @@ do case "${o}" in
 	f) fzf_selector ;;
 # List:
     c) current_settings && exit ;;
+    C) current_settings_notify && exit ;;
 	l) list_options && exit ;;
 # Default
 	h) err ;;

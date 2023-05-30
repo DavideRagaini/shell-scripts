@@ -1,16 +1,16 @@
 #!/bin/sh
 
-if pidof librespot; then
-	CHOSEN="sptui"
-elif pidof spotifyd; then
-	CHOSEN="sptui"
-elif mpc status | grep -q playing; then
-	CHOSEN="Local"
-elif [ "$1" = 'down' ]; then
+if [ "$1" = 'down' ]; then
 	pkill librespot
 	pkill spotifyd
 	pkill spotify-tui
 	exit
+elif pidof librespot; then
+	CHOSEN="sptui"
+elif pidof spotifyd; then
+	CHOSEN="sptui"
+elif mpc status | grep -q playing; then
+	chosen="local"
 else
 	CHOSEN="$(printf 'Spotify\nLocal' | fzf --cycle --border --margin 10% --padding 10% --header='Choose music source')"
 fi
@@ -21,14 +21,14 @@ case "$CHOSEN" in
 		if command -v 'librespot'; then
 		setsid -f librespot \
 			--c ~/Storage/.cache/librespot \
-			--backend pulseaudio \
+			--backend alsa \
 			--cache-size-limit 1G \
 			--name "$(hostname)" \
 			--device-type computer \
 			--initial-volume 100 \
+			--enable-volume-normalisation \
+			--normalisation-pregain -3 \
 			--bitrate 320
-			# --enable-volume-normalisation \
-			# --normalisation-pregain -2 \
 		elif command -v 'spotifyd'; then
 			setsid -f spotifyd
 		fi ;;
