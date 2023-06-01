@@ -34,7 +34,7 @@ save_to_last() {
 
 fplay() {
 	notify-send "Working on:" "$(echo "$INFO" | tr -s)\\n$URL"
-	mpv --no-terminal "$URL"
+	mpv --player-operation-mode=pseudo-gui --no-terminal "$URL"
 }
 
 get_from_file() {

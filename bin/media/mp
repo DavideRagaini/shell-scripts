@@ -27,7 +27,7 @@ case "$CHOSEN" in
 			--device-type computer \
 			--initial-volume 100 \
 			--enable-volume-normalisation \
-			--normalisation-pregain -3 \
+			--normalisation-pregain -5 \
 			--bitrate 320
 		elif command -v 'spotifyd'; then
 			setsid -f spotifyd

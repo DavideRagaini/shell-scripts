@@ -10,7 +10,7 @@ if [ -n "$PID" ]; then
     echo "{ \"command\": [ \"loadfile\", \"$URL\", \"append-play\" ] }" |
         socat -d - "/tmp/mpvSockets/$PID" >/dev/null 2>&1
 else
-    setsid -f mpv --no-terminal --geometry=15%-5-15 --x11-name="mpvFloat" "$URL"
+    setsid -f mpv --no-terminal --player-operation-mode=pseudo-gui --geometry=15%-5-15 --x11-name="mpvFloat" "$URL"
 fi
 
 if ! INFO="$(yt-dlp --playlist-end=1 --print "«%(uploader,channel)-25s» %(playlist_title,title)-100s" "$URL" 2>&1)"
