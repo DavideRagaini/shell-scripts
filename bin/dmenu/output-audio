@@ -1,32 +1,43 @@
 #!/bin/sh
 
-NAMES=$(
-	pactl list sinks |
-		grep -E 'Name|State|Description|Active Port' |
-		sed 's/Description: /->/g; s/\t//g;' |
-		fmt -w 1000 |
-		sed 's/State://1; s/State:/\n/g; s/Name: //g; s/Active Port:/On/g'
-)
-
-if [ "$(echo "$NAMES" | wc -l)" -lt 3 ]; then
-	OUTPUT="$(printf "%s" "$NAMES" | grep "SUSPENDED")"
+SINKS_LIST="$(wpctl status | awk '/Sinks:/{flag=1;next}/Sink/{flag=0}flag' | grep -v '\*' | grep '\t')"
+if [ "$(echo "$SINKS_LIST" | wc -l)" -lt 3 ]; then
+	ID_CHOSEN="$(echo $SINKS_LIST | awk '{print $2}' | cut -f1 -d'.' | head -n1)"
 else
-	CHOSEN=$(echo "$NAMES" |
-		grep 'SUSPENDED' |
-		sed -n -e 's/^.*->//p' |
-		dmenu -i -l 10 -p "Sink:") ||
+	CHOSEN=$(echo "$SINKS_LIST" |
+		tofi --prompt-text "Sink:") ||
 		exit
-	OUTPUT=$(echo "$NAMES" | grep "$CHOSEN")
+	ID_CHOSEN=$(echo "$ID_LIST" | grep "$CHOSEN" | awk '{print $2}' | cut -f1 -d'.')
 fi
+wpctl set-default "$ID_CHOSEN"
 
-OUTPUT="${OUTPUT## SUSPENDED }"
-OUTPUT="${OUTPUT%% -\>*}"
-# OUTPUT=${OUTPUT##*()}
-# OUTPUT="${OUTPUT%%*( )}"
+# NAMES=$(
+# 	pactl list sinks |
+# 		grep -E 'Name|State|Description|Active Port' |
+# 		sed 's/Description: /->/g; s/\t//g;' |
+# 		fmt -w 1000 |
+# 		sed 's/State://1; s/State:/\n/g; s/Name: //g; s/Active Port:/On/g'
+# )
 
-# Pipewire
-pactl set-default-sink "$OUTPUT"
-# Pulseaudio
-# INPUTS=$(pactl list short sink-inputs | awk '{print $1}')
-# pactl move-sink-input $INPUTS $OUTPUT
-sleep 5 && pkill -RTMIN+5 dwmblocks
+# if [ "$(echo "$NAMES" | wc -l)" -lt 3 ]; then
+# 	OUTPUT="$(printf "%s" "$NAMES" | grep "SUSPENDED")"
+# else
+# 	CHOSEN=$(echo "$NAMES" |
+# 		grep 'SUSPENDED' |
+# 		sed -n -e 's/^.*->//p' |
+# 		dmenu -i -l 10 -p "Sink:") ||
+# 		exit
+# 	OUTPUT=$(echo "$NAMES" | grep "$CHOSEN")
+# fi
+
+# OUTPUT="${OUTPUT## SUSPENDED }"
+# OUTPUT="${OUTPUT%% -\>*}"
+# # OUTPUT=${OUTPUT##*()}
+# # OUTPUT="${OUTPUT%%*( )}"
+
+# # Pipewire
+# pactl set-default-sink "$OUTPUT"
+# # Pulseaudio
+# # INPUTS=$(pactl list short sink-inputs | awk '{print $1}')
+# # pactl move-sink-input $INPUTS $OUTPUT
+# sleep 5 && pkill -RTMIN+5 dwmblocks

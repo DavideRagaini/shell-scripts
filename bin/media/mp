@@ -19,15 +19,15 @@ case "$CHOSEN" in
 	Local) exec ncmpcpp ;;
 	Spotify)
 		if command -v 'librespot'; then
-		setsid -f librespot \
 			--c ~/Storage/.cache/librespot \
+		librespot \
 			--backend alsa \
 			--cache-size-limit 1G \
 			--name "$(hostname)" \
 			--device-type computer \
 			--initial-volume 100 \
 			--enable-volume-normalisation \
-			--normalisation-pregain -5 \
+			--normalisation-pregain -7 \
 			--bitrate 320
 		elif command -v 'spotifyd'; then
 			setsid -f spotifyd
@@ -35,6 +35,8 @@ case "$CHOSEN" in
 	sptui)
 		if command -v spotify-tui; then
 			FRONTEND="spotify-tui"
+		elif command -v spt; then
+			FRONTEND='spt'
 		else
 			FRONTEND='/home/davide/.local/share/cargo/bin/spt'
 		fi

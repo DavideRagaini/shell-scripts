@@ -18,7 +18,7 @@ choose_instance() {
       TITLES="$(echo '{ "command": ["get_property", "media-title"] }' | socat -d - "$i" | jq -r '.data')"
       LIST="${LIST}${TITLES} (${i})\n"
     done
-    CHOSEN="$(echo "${LIST}" | dmenu -i -l 5 -p "$1")"
+    CHOSEN="$(echo "${LIST}" | tofi --prompt-text "$1")"
   fi
   CHOSEN="${CHOSEN##*(}"
   CHOSEN="${CHOSEN%%)*}"

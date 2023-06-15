@@ -14,7 +14,7 @@ get_title() {
 }
 
 add_to_queue() {
-	PLAYLIST="$(» | dmenu -p "Name of the playlist?")"
+	PLAYLIST="$(» | tofi --prompt-text "Name of the playlist?")"
 	[ -z "$PLAYLIST" ] && PLAYLIST="1shot"
 	get_title
 	notify-send "$PLAYLIST: $(echo "$INFO" | tr -s)" "$URL"
@@ -38,7 +38,7 @@ fplay() {
 }
 
 get_from_file() {
-	CHOSEN="$(cut -f2 "$1" | dmenu -i -l 20)" || exit
+	CHOSEN="$(cut -f2 "$1" | tofi)" || exit
 	LINE="$(grep -w "$CHOSEN" "$1")"
 	TITLE="$(echo "$LINE" | cut -f2)"
 	URL="$(echo "$LINE" | cut -f3)"
@@ -76,7 +76,7 @@ edit_last
 lectures
 local
 last_lecture"
-	CHOSEN="$(echo "$CMDS" | dmenu -i)" || exit
+	CHOSEN="$(echo "$CMDS" | tofi)" || exit
 	URL="$(xclip -selection clipboard -o)" >/dev/null
 else
 	CHOSEN="$1"
@@ -102,7 +102,7 @@ case "$CHOSEN" in
 		;;
 	lectures)
 		VIDEOS="${XDG_VIDEOS_DIR:-$HOME/Storage/Videos}"
-		CHOSEN="$(find "$VIDEOS/Lectures" -mindepth 1 -maxdepth 1 | dmenu -i -l 10)" ||
+		CHOSEN="$(find "$VIDEOS/Lectures" -mindepth 1 -maxdepth 1 | tofi)" ||
 			exit
 		mpv "$CHOSEN"
 		;;
@@ -110,7 +110,7 @@ case "$CHOSEN" in
 		VIDEOS1="$(find "${XDG_VIDEOS_DIR:-$HOME/Storage/Videos}" -type d -maxdepth 2)"
 		VIDEOS2="$(find "$HOME/Storage/Archive/Torrents/Complete" -type d -maxdepth 2)"
 		VIDEOS="${VIDEOS1}\n${VIDEOS2}"
-		CHOSEN="$(printf "%s" "$VIDEOS" | dmenu -i -l 20)" ||
+		CHOSEN="$(printf "%s" "$VIDEOS" | tofi)" ||
 			exit
 		mpv "$CHOSEN"
 		;;
@@ -120,7 +120,7 @@ case "$CHOSEN" in
 		fplay
 		;;
 	save_m3u)
-		PLAYLIST="$(» | dmenu -p "Name of the playlist?")"
+		PLAYLIST="$(» | tofi --prompt-text "Name of the playlist?")"
 		yt-dlp -O "#EXTINF:%(duration)s,%(upload_date>%d/%m/%Y)s %(title)s" "$URL" > "$DIR/playlists/$PLAYLIST.m3u"
 		;;
 	playlist)
