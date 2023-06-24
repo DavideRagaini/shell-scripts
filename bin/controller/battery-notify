@@ -1,0 +1,33 @@
+#!/bin/sh
+
+while :; do
+	for battery in /sys/class/power_supply/BAT?*; do
+		capacity=$(cat "$battery/capacity")
+		case "$(cat "$battery/status")" in
+			"Discharging")
+				case "$capacity" in
+					3[0-5])
+						notify-send -i \
+							"/usr/share/icons/Paper/48x48@2x/status/battery-040.png" \
+							"Plug AC" \
+							"$(acpi | tr ',' '\n' | sed 's/^ //')"
+						;;
+					2[0-9] | 1[0-9] | [0-9])
+						notify-send -i \
+							"/usr/share/icons/Paper/48x48@2x/status/battery-020.png" \
+							"Plug AC" \
+							"$(acpi | tr ',' '\n' | sed 's/^ //')"
+						;;
+				esac
+				;;
+			"Charging")
+				[ "$capacity" -ge 75 ] &&
+					notify-send -i \
+						"/usr/share/icons/Paper/48x48@2x/status/battery-000-charging.png" \
+						"Unplug AC" \
+						"$(acpi | tr ',' '\n' | sed 's/^ //')"
+				;;
+		esac
+		sleep 60
+	done
+done
