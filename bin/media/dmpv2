@@ -5,10 +5,27 @@ if [ -z "$1" ]; then
 else
     URL="$1"
 fi
-SOCKET="/tmp/mpvSockets/queue"
+
+DIR=/tmp/mpvSockets
+SOCKETS="$(find "$DIR" -type s)"
+if [ "$(echo "$SOCKETS" | wc -l)" -ge 2 ]; then
+    for i in $SOCKETS; do
+        PATH="$(echo '{ "command": ["get_property", "path"] }' | socat -d - "$i" | jq -r '.data')"
+        if "$(echo "$PATH" | grep -q -i -v playlist)"; then
+            LIST="${LIST}${TITLE}\t${PID}\n"
+            TITLE="$(echo '{ "command": ["get_property", "media-title"] }' | socat -d - "$i" | jq -r '.data')"
+            PID="$(echo '{ "command": ["get_property", "pid"] }' | socat -d - "$i" | jq -r '.data')"
+        fi
+    done
+    SOCKET="$(echo "$LIST" | tofi --prompt-text "Choose a socket" | cut -f2)" ||
+        exit
+    SOCKET="/tmp/mpvSockets/$SOCKET"
+else
+    SOCKET=$SOCKETS
+fi
 if [ -S "$SOCKET" ]; then
     echo "{ \"command\": [ \"loadfile\", \"$URL\", \"append-play\" ] }" |
-        socat -d - "$SOCKET" >/dev/null 2>&1
+        socat -d - "$SOCKET" >/tmp/mpvSockets/log 2>&1
 else
     setsid -f mpv --no-terminal --player-operation-mode=pseudo-gui \
         --geometry=15%-5-15 --input-ipc-server="$SOCKET" "$URL"
@@ -19,6 +36,7 @@ then
     notify-send "Error Adding to Queue" "$INFO"
     exit
 fi
+
 notify-send "Added to Queue" "$(echo "$INFO" | tr -s ' ')"
 PATH_LAST="$HOME/.config/mpv/last"
 grep -q "$INFO" "$PATH_LAST" ||
