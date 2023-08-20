@@ -18,7 +18,7 @@ choose_instance() {
       TITLES="$(echo '{ "command": ["get_property", "media-title"] }' | socat -d - "$i" | jq -r '.data')"
       LIST="${LIST}${TITLES} (${i})\n"
     done
-    CHOSEN="$(echo "${LIST}" | tofi --prompt-text "$1")"
+    CHOSEN="$(echo "${LIST}" | dmenu -i -l 5 -p "$1")"
   fi
   CHOSEN="${CHOSEN##*(}"
   CHOSEN="${CHOSEN%%)*}"
@@ -73,8 +73,25 @@ case "$1" in
     echo "{ \"command\": [\"set_property\", \"$PROPERTY\", \"$VALUE\"] }" |
       socat -d - "$CHOSEN"
     ;;
+  vid | video)
+    if [ -n "$2" ]; then
+      VALUE="$2"
+    else
+      VALUE="$(printf "on\noff" | dmenu -i)"
+    fi
+    choose_instance "Set video:"
+    [ "$VALUE" = 'on' ] && VALUE=1
+    [ "$VALUE" = 'off' ] && VALUE='no'
+    notify-send "Set Property" "vid: $VALUE"
+    echo "{ \"command\": [\"set_property\", \"vid\", \"$VALUE\"] }" |
+      socat -d - "$CHOSEN"
+    ;;
   direct) echo "$2" | socat -d - "$CHOSEN" ;;
-  add) echo "{ command: [ \"loadfile\", \"$2\", \"append-play\" ] }" | nc.openbsd -NU "$CHOSEN" ;;
+  add)
+    choose_instance "Append:"
+    echo "{ command: [ \"loadfile\", \"$2\", \"append-play\" ] }" |
+      socat -d - "$CHOSEN"
+    ;;
   help)
     echo \
       "MPV IPC Socket Basic Controller
