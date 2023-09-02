@@ -1,26 +1,27 @@
 #!/bin/sh
 
+VIDEO_DIR="$HOME/Storage/Videos/Downloads"
+AUDIO_DIR="$HOME/Storage/Podcasts/YT"
+FILE_TEMPLATE="%(uploader)s/s[%(upload_date>%Y-%m-%d)s] %(title)s.%(ext)s"
+PLAYLIST_TEMPLATE="%(uploader)s/%(playlist)s/[%(upload_date>%Y-%m-%d)s] %(playlist_index&{}|)s%(title)s.%(ext)s"
+
+if echo "$2" | grep -q 'playlist'; then
+	TEMPLATE="$PLAYLIST_TEMPLATE"
+	if [ -n "$4" ]; then
+		PLAYLIST_END="$4"
+	else
+		PLAYLIST_END="$3"
+	fi
+	[ -n "$3" ] &&
+		PLAYLIST="--playlist-start=$3 --playlist-end=$PLAYLIST_END"
+else
+	TEMPLATE="$FILE_TEMPLATE"
+fi
+
 case $1 in
-	video)
-		yt-dlp -ic --add-metadata --playlist-start="$3" --playlist-end="$4" "$2" ||
-			yt-dlp -ic --add-metadata --playlist-start="$2" "$3" ||
-			yt-dlp -ic --add-metadata "$2"
-		;;
-
-	audio)
-		yt-dlp --add-metadata -ic --extract-audio --audio-format mp3 --audio-quality 0 --playlist-start="$2" --playlist-end="$3" "$4" ||
-			yt-dlp --add-metadata -ic --extract-audio --audio-format mp3 --audio-quality 0 --playlist-start="$2" "$3" ||
-			yt-dlp --add-metadata -ic --extract-audio --audio-format mp3 --audio-quality 0 "$2"
-		;;
-
-	bestaudio) #yt-dlp --add-metadata -ic -x -f bestaudio/best --audio-quality 0 "$2" ;;
-		yt-dlp --add-metadata -ic --extract-audio -f bestaudio/best --audio-quality 0 --playlist-start="$2" --playlist-end="$3" "$4" ||
-			yt-dlp --add-metadata -ic --extract-audio -f bestaudio/best --audio-quality 0 --playlist-start="$2" "$3" ||
-			yt-dlp --add-metadata -ic --extract-audio -f bestaudio/best --audio-quality 0 "$2" ;;
-
-	*)
-		notify-send "Video or Audio?"
-		;;
+	video) yt-dlp $PLAYLIST -o "$TEMPLATE" -P "$VIDEO_DIR" "$2" ;;
+	audio) yt-dlp --extract-audio -f bestaudio/best --audio-quality 0 \
+		$PLAYLIST -o "$TEMPLATE" -P "$Audio_DIR" "$2" ;;
+	*) notify-send "Video or Audio?" ;;
 esac
-
 notify-send "Download Completed"
