@@ -2,7 +2,7 @@
 
 VIDEO_DIR="$HOME/Storage/Videos/Downloads"
 AUDIO_DIR="$HOME/Storage/Podcasts/YT"
-FILE_TEMPLATE="%(uploader)s/s[%(upload_date>%Y-%m-%d)s] %(title)s.%(ext)s"
+FILE_TEMPLATE="%(uploader)s/[%(upload_date>%Y-%m-%d)s] %(title)s.%(ext)s"
 PLAYLIST_TEMPLATE="%(uploader)s/%(playlist)s/[%(upload_date>%Y-%m-%d)s] %(playlist_index&{}|)s%(title)s.%(ext)s"
 
 if echo "$2" | grep -q 'playlist'; then
