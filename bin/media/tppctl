@@ -73,6 +73,11 @@ case "$1" in
     echo "{ \"command\": [\"set_property\", \"$PROPERTY\", \"$VALUE\"] }" |
       socat -d - "$CHOSEN"
     ;;
+  subtitle)
+    choose_instance "Add subtitle to:"
+    echo "{ \"command\": [\"set_property\", \"sub-files\", \"$2\"] }" |
+      socat -d - "$CHOSEN"
+    ;;
   vid | video)
     if [ -n "$2" ]; then
       VALUE="$2"

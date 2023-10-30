@@ -17,23 +17,30 @@ else
 fi
 
 check_init() {
-	case "$(readlink /sbin/init | cut -f3 -d'/')" in
-		systemd)
+	# case "$(readlink /sbin/init | cut -f3 -d'/')" in
+	case "$(uname -v | cut -f1 -d' ' | cut -f2 -d'-')" in
+		NixOS)
 			SHUTDOWN='shutdown -h now'
 			SUSPEND='systemctl suspend'
 			HIBERNATE='systemctl hibernate'
 			REBOOT='systemctl reboot';;
-		runit-init)
-			SHUTDOWN='shutdown -h now'
-			SUSPEND='zzz'
-			HIBERNATE='ZZZ'
-			REBOOT='reboot -i now';;
-		*) notify-send "Error: INIT SYSTEM not recognised" ;;
+		Ubuntu)
+			SHUTDOWN='sudo -A sh -c shutdown -h now'
+			SUSPEND='sudo -A sh -c systemctl suspend'
+			HIBERNATE='sudo -A sh -c systemctl hibernate'
+			REBOOT='sudo -A sh -c systemctl reboot';;
+		Void)
+			SHUTDOWN='sudo -A sh -c shutdown -h now'
+			SUSPEND='sudo -A sh -c zzz'
+			HIBERNATE='sudo -A sh -c ZZZ'
+			REBOOT='sudo -A sh -c reboot -i now';;
+		*)
+			notify-send "Error: INIT SYSTEM not recognised" ;;
 	esac
 }
 
 log() {
-	printf "%s %s%s\n" "$1" "$(date '+%F %a %T')" "$2" >> "$HOME/.local/uptime"
+	printf "%s %s%s\n" "$1" "$(date '+%F %a %T')" "$2" >>"$HOME/.local/uptime"
 }
 
 confirm() {
@@ -48,39 +55,47 @@ pause_players() {
 	playerctl --all-players pause
 }
 
+lock() {
+	i3lock -eft -c 1d2021 -i "$HOME/Storage/Pictures/lockscreen.png"
+}
+
 case "$choice" in
-	Start) log "Start     " "" ;;
-	Resume) log "Resume    " "" ;;
+	[Ss]tart) log "Start     " "" ;;
+	[Rr]esume) log "Resume    " "" ;;
 	dwm) kill -HUP "$(pgrep -u "$USER" "\bdwm$")" ;;
 	dwmblocks) killall -q dwmblocks && setsid dwmblocks & ;;
-	Display) xset dpms force off ;;
-	Leave) kill -TERM "$(pgrep -u "$USER" "\bdwm$")" ;;
-	Lock) confirm; lock ;;
-	Shutdown)
+	[Dd]isplay) xset dpms force off ;;
+	[Ll]eave) kill -TERM "$(pgrep -u "$USER" "\bdwm$")" ;;
+	[Ll]ock)
+		confirm
+		lock
+		;;
+	[Ss]hutdown)
 		confirm
 		check_init
 		log "Shutdown  " " -> $(uptime -p)" &&
-			sudo -A sh -c "$SHUTDOWN" ;;
-	Suspend)
+			$SHUTDOWN
+		;;
+	[Ss]uspend)
 		confirm
 		pause_players
 		check_init
 		log "Suspend   " "" &&
-			sudo -A sh -c "$SUSPEND"
-		# i3lock -eft -c 1d2021 -i ~/Storage/Pictures/lockscreen.png
+			$SUSPEND
 		;;
-	Hibernate)
+	[Hh]ibernate)
 		confirm
 		pause_players
 		check_init
 		log "Hibernate " "" &&
-			sudo -A sh -c "$HIBERNATE"
-		# i3lock -eft -c 1d2021 -i ~/Storage/Pictures/lockscreen.png
+			$HIBERNATE
+		lock
 		;;
-	Reboot)
+	[Rr]eboot)
 		confirm
 		check_init
 		log "Reboot    " "" &&
-			sudo -A sh -c "$REBOOT" ;;
+			$REBOOT
+		;;
 	*) notify-send "ERROR" && exit 2 ;;
 esac

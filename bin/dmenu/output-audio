@@ -5,7 +5,7 @@ if [ "$(echo "$SINKS_LIST" | wc -l)" -lt 3 ]; then
 	ID_CHOSEN="$(echo $SINKS_LIST | awk '{print $2}' | cut -f1 -d'.' | head -n1)"
 else
 	CHOSEN=$(echo "$SINKS_LIST" |
-		tofi --prompt-text "Sink:") ||
+		dmenu -i -l 5 -p "Sink:") ||
 		exit
 	ID_CHOSEN=$(echo "$ID_LIST" | grep "$CHOSEN" | awk '{print $2}' | cut -f1 -d'.')
 fi

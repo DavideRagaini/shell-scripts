@@ -1,0 +1,15 @@
+#!/usr/bin/env sh
+
+case "$1" in
+    s|save)
+        input="$(xclip -selection clipboard -o)"
+        content="$(echo "$input" | grep -oP '(?<=\[\[).*?(?=\]\])' | sed 's/\]\[/ /')"
+        echo "$content" | tee -a "$HOME/.config/qutebrowser/bookmarks/urls"
+        ;;
+    o|open|*)
+        bookmark_file="$HOME/.config/qutebrowser/bookmarks/urls"
+        description="$(cut -d' ' -f2- "$bookmark_file" | fzf)"
+        link="$(grep "$description" "$bookmark_file" | cut -d ' ' -f1)"
+        setsid -f "$BROWSER" "$link" &
+        ;;
+esac

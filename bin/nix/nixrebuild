@@ -1,0 +1,2 @@
+#!/usr/bin/env sh
+exec sudo nixos-rebuild -I nixos-config="$XDG_CONFIG_HOME/nixos-config/$1/configuration.nix" "$@"

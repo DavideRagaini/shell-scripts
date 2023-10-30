@@ -14,7 +14,7 @@ get_title() {
 }
 
 add_to_queue() {
-	PLAYLIST="$(» | tofi --prompt-text "Name of the playlist?")"
+	PLAYLIST="$(» | dmenu -i -l 15 -p "Name of the playlist?")"
 	[ -z "$PLAYLIST" ] && PLAYLIST="1shot"
 	get_title
 	notify-send "$PLAYLIST: $(echo "$INFO" | tr -s)" "$URL"
@@ -38,7 +38,7 @@ fplay() {
 }
 
 get_from_file() {
-	CHOSEN="$(cut -f2 "$1" | tofi)" || exit
+	CHOSEN="$(cut -f2 "$1" | dmenu -i -l 15)" || exit
 	LINE="$(grep -w "$CHOSEN" "$1")"
 	TITLE="$(echo "$LINE" | cut -f2)"
 	URL="$(echo "$LINE" | cut -f3)"
@@ -76,7 +76,7 @@ edit_last
 lectures
 local
 last_lecture"
-	CHOSEN="$(echo "$CMDS" | tofi)" || exit
+	CHOSEN="$(echo "$CMDS" | dmenu -i)" || exit
 	URL="$(xclip -selection clipboard -o)" >/dev/null
 else
 	CHOSEN="$1"
@@ -102,26 +102,30 @@ case "$CHOSEN" in
 		;;
 	lectures)
 		VIDEOS="${XDG_VIDEOS_DIR:-$HOME/Storage/Videos}"
-		CHOSEN="$(find "$VIDEOS/Lectures" -mindepth 1 -maxdepth 1 | tofi)" ||
+		CHOSEN="$(find "$VIDEOS/Lectures" -mindepth 1 -maxdepth 1 | dmenu -i -l 15)" ||
 			exit
 		mpv "$CHOSEN"
 		;;
 	'local')
-		VIDEOS1="$(find "${XDG_VIDEOS_DIR:-$HOME/Storage/Videos}" -type d -maxdepth 2)"
-		VIDEOS2="$(find "$HOME/Storage/Archive/Torrents/Complete" -type d -maxdepth 2)"
-		VIDEOS="${VIDEOS1}\n${VIDEOS2}"
-		CHOSEN="$(printf "%s" "$VIDEOS" | tofi)" ||
+		VIDEOS1="$(find "${XDG_VIDEOS_DIR:-$HOME/Storage/Videos}" -maxdepth 2)"
+		VIDEOS2="$(find "$HOME/Storage/Archive/Torrents/Complete" -maxdepth 2)"
+		CHOSEN="$(printf "%s\n%s" "$VIDEOS1" "$VIDEOS2" | dmenu -i -l 15)"  ||
 			exit
 		mpv "$CHOSEN"
 		;;
 	last)
 		get_from_file "$PATH_LAST"
-		notify-send "Working on:" "$(echo "$INFO" | tr -s)\\n$URL"
+		notify-send "Working on:" "$(echo "$INFO" | tr -s)\\n$URL" -a "$APPNAME"
 		fplay
 		;;
 	save_m3u)
-		PLAYLIST="$(» | tofi --prompt-text "Name of the playlist?")"
-		yt-dlp -O "#EXTINF:%(duration)s,%(upload_date>%d/%m/%Y)s %(title)s" "$URL" > "$DIR/playlists/$PLAYLIST.m3u"
+		PLAYLIST="$(» | dmenu -i -l 15 -p "Name of the playlist? (Defaults to playlist name)")"
+		[ -z "$PLAYLIST" ] && PLAYLIST="$(yt-dlp --playlist-end=1 -O "%(playlist_title)s" "$URL")"
+		PLAYLIST_PATH="$DIR/playlists/$PLAYLIST.m3u"
+		printf '#EXTM3U\n\n' > "$PLAYLIST_PATH"
+		FORMAT="#EXTINF: %(duration)s, %(upload_date>%d/%m/%Y)s %(title)s\nhttps://yewtu.be/watch?v=%(id)s\n\n"
+		yt-dlp -O "$FORMAT" "$URL" >> "$PLAYLIST_PATH"
+		sed -i 's/\\n/\n/g' "$PLAYLIST_PATH"
 		;;
 	playlist)
 		find "$HOME/.config/mpv/playlists" -type f |
