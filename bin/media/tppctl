@@ -16,7 +16,13 @@ choose_instance() {
   else
     for i in $SOCKETS; do
       TITLES="$(echo '{ "command": ["get_property", "media-title"] }' | socat -d - "$i" | jq -r '.data')"
-      LIST="${LIST}${TITLES} (${i})\n"
+      STATUS="$(echo '{ "command": ["get_property", "pause"] }' | socat -d - "$i" | jq -r '.data')"
+      if [ "$STATUS" = 'true' ]; then
+          STATUS=''
+      elif [ "$STATUS" = 'false' ]; then
+          STATUS=''
+      fi
+      LIST="${LIST}${STATUS} ${TITLES} (${i})\n"
     done
     CHOSEN="$(echo "${LIST}" | dmenu -i -l 5 -p "$1")"
   fi

@@ -13,7 +13,7 @@ dark_theme() {
 light_theme () {
     sed -i 's/dark/light/' ~/.config/alacritty/alacritty.yml
     xrdb -override ~/.config/x11/Xresources_Light
-    emacsclient --eval '(load-theme (quote leuven))'
+    emacsclient --eval '(load-theme (quote tango))'
     # qutebrowser :"set colors.webpage.darkmode.enabled false;; restart"
     echo light > "$CURRENT"
 }

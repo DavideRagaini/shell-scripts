@@ -4,9 +4,10 @@ DIR="$HOME/.cache/via"
 CACHE="$DIR/database"
 LAST="$DIR/history"
 MENU='dmenu -i -l 15'
+DATABASE="$HOME/.local/updatedb"
 
 build_cache_all() {
-    locate -ri "$HOME/.*$" >"$CACHE-all"
+    locate -d "$DATABASE" -ri "$HOME/.*$" >"$CACHE-all"
 }
 
 clean_last_all(){
@@ -22,7 +23,8 @@ open_all(){
 }
 
 build_cache_docs() {
-    locate -ri "$HOME/.*.pdf$" | sed "s@$HOME@"'~''@; /~\/\..*$/d' >"$CACHE-docs"
+    # locate -d "$DATABASE" -ri "$HOME/.*.pdf$" | sed "s@$HOME@"'~''@; /~\/\..*$/d' >"$CACHE-docs"
+    locate -d "$DATABASE" -ri "$HOME/.*.pdf$" >"$CACHE-docs"
 }
 
 clean_last_docs(){
@@ -47,7 +49,7 @@ open_docs() {
 }
 
 search() {
-    locate -ri "$HOME/.*$1.*" | fzf -e
+    locate -d  "$DATABASE" -ri "$HOME/.*$1.*" | fzf -e
     exec opener "$file"
 }
 

@@ -6,15 +6,20 @@ else
     URL="$1"
 fi
 
-DIR=/tmp/mpvSockets
-SOCKETS="$(find "$DIR" -type s)"
+SOCKETS="$(find /tmp/mpvSockets -type s)"
 if [ "$(echo "$SOCKETS" | wc -l)" -ge 2 ]; then
     for i in $SOCKETS; do
         PATH="$(echo '{ "command": ["get_property", "path"] }' | socat -d - "$i" | jq -r '.data')"
         if "$(echo "$PATH" | grep -q -i -v playlist)"; then
-            LIST="${LIST}${TITLE}\t${PID}\n"
             TITLE="$(echo '{ "command": ["get_property", "media-title"] }' | socat -d - "$i" | jq -r '.data')"
-            PID="$(echo '{ "command": ["get_property", "pid"] }' | socat -d - "$i" | jq -r '.data')"
+            PID="$i"
+            STATUS="$(echo '{ "command": ["get_property", "pause"] }' | socat -d - "$i" | jq -r '.data')"
+            if [ "$STATUS" = 'true' ]; then
+                STATUS=''
+            elif [ "$STATUS" = 'false' ]; then
+                STATUS=''
+            fi
+            LIST="${LIST}${TITLE}\t${PID}\n"
         fi
     done
     SOCKET="$(echo "$LIST" | dmenu -i -l 5 -p "Choose a socket" | cut -f2)" ||

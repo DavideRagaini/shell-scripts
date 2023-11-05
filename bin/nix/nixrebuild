@@ -1,2 +1,5 @@
 #!/usr/bin/env sh
-exec sudo nixos-rebuild -I nixos-config="$XDG_CONFIG_HOME/nixos-config/$1/configuration.nix" "$@"
+MACHINE="$1"
+shift
+exec sudo nixos-rebuild switch \
+    -I nixos-config="$XDG_CONFIG_HOME/nixos-config/$MACHINE/configuration.nix" "$@"
