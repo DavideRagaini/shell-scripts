@@ -2,4 +2,4 @@
 MACHINE="$1"
 shift
 exec sudo nixos-rebuild switch \
-    -I nixos-config="$XDG_CONFIG_HOME/nixos-config/$MACHINE/configuration.nix" "$@"
+    -I nixos-config="$XDG_CONFIG_HOME/nixos-config/$MACHINE/configuration.nix" "$@" 2>&1 | tee "$HOME/.local/nixos_last.log"

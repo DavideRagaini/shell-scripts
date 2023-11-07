@@ -5,12 +5,14 @@ if [ "$1" = 'down' ]; then
 	pkill spotifyd
 	pkill spotify-tui
 	exit
-elif pidof librespot; then
+elif [ "$1" = 'Spotify' ]; then
+	CHOSEN="Spotify"
+elif pidof -q librespot; then
 	CHOSEN="sptui"
-elif pidof spotifyd; then
+elif pidof -q spotifyd; then
 	CHOSEN="sptui"
 elif mpc status | grep -q playing; then
-	chosen="local"
+	CHOSEN="Local"
 else
 	CHOSEN="$(printf 'Spotify\nLocal' | fzf --cycle --border --margin 10% --padding 10% --header='Choose music source')"
 fi
@@ -19,8 +21,8 @@ case "$CHOSEN" in
 	Local) exec ncmpcpp ;;
 	Spotify)
 		if command -v 'librespot'; then
-			--c ~/Storage/.cache/librespot \
 		librespot \
+			--c ~/.cache/librespot \
 			--backend alsa \
 			--cache-size-limit 1G \
 			--name "$(hostname)" \
