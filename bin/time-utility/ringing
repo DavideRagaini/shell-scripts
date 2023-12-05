@@ -1,25 +1,28 @@
 #!/bin/sh
 
 ALARM="${XDG_VIDEOS_DIR:-$HOME/Storage/Videos}/alarm"
-MIMETYPE="$(file -Lb --mime-type "$ALARM" | cut -f1 -d'/')"
+# MIMETYPE="$(file -Lb --mime-type "$ALARM" | cut -f1 -d'/')"
 TIME="$(date '+%H:%M')"
+HOUR="$(echo "$TIME" | cut -d':' -f1)"
+MINUTE="$(echo "$TIME" | cut -d':' -f2)"
+MESSAGE_FILE="${XDG_CACHE_HOME:-$HOME/.cache}/alarm/$HOUR:$MINUTE"
+MESSAGE="$(cat "$MESSAGE_FILE")"
+MPV_CMD="mpv --no-terminal --no-video --no-config --force-window=yes --hwdec=auto-safe --no-resume-playback --loop-file=5
+    $ALARM"
 
+# if [ "$MIMETYPE" = 'audio' ]; then
+#     ARGS="--no-video"
+# elif [ "$MIMETYPE" = 'video' ]; then
+# if [ "$MIMETYPE" = 'video' ]; then
+#     ARGS="--x11-name='mpvAlarm'"
+# else
+#     echo "Ringtone file not selected Audio/Video File"
+#     notify-send "Select Audio/Video File"
+#     exit 1
+# fi
 
-if [ "$MIMETYPE" = 'audio' ]; then
-    ARGS="--no-video"
-elif [ "$MIMETYPE" = 'video' ]; then
-    ARGS="--x11-name='mpvAlarm'"
-else
-    echo "Ringtone file not selected Audio/Video File"
-    notify-send "Select Audio/Video File"
-    exit 1
-fi
-
-echo "Alarm is ringing: $TIME"
-notify-send -u critical "Alarm is ringing" "$TIME"
-mpv --no-terminal \
-    --no-resume-playback \
-    --no-config \
-    --loop-file=5 \
-    "$ARGS" \
-    "$ALARM"
+echo "$MESSAGE: $TIME"
+rm "$MESSAGE_FILE"
+$MPV_CMD &
+PID="$!"
+notify-send -u critical "$MESSAGE" "$TIME\n$PID"

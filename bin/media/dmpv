@@ -14,7 +14,7 @@ get_title() {
 }
 
 add_to_queue() {
-	PLAYLIST="$(» | dmenu -i -l 15 -p "Name of the playlist?")"
+	PLAYLIST="$(echo | dmenu -i -l 15 -p "Name of the playlist?")"
 	[ -z "$PLAYLIST" ] && PLAYLIST="1shot"
 	get_title
 	notify-send "$PLAYLIST: $(echo "$INFO" | tr -s ' ')" "$URL"
@@ -80,7 +80,11 @@ last_lecture"
 	URL="$(xclip -selection clipboard -o)" >/dev/null
 else
 	CHOSEN="$1"
-	URL="$2"
+	if [ -z "$2" ];then
+		URL="$(xclip -selection clipboard -o)" >/dev/null
+	else
+		URL="$2"
+	fi
 fi
 
 case "$CHOSEN" in
@@ -119,7 +123,7 @@ case "$CHOSEN" in
 		fplay
 		;;
 	save_m3u)
-		PLAYLIST="$(echo "" | dmenu -i -l 15 -p "Name of the playlist? (Defaults to playlist name)")"
+		PLAYLIST="$(echo | dmenu -i -l 15 -p "Name of the playlist? (Defaults to playlist name)")"
 		[ -z "$PLAYLIST" ] && PLAYLIST="$(yt-dlp --playlist-end=1 -O "%(playlist_title)s" "$URL")"
 		PLAYLIST_PATH="$DIR/playlists/$PLAYLIST.m3u"
 		printf '#EXTM3U\n\n' > "$PLAYLIST_PATH"

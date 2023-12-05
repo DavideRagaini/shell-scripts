@@ -1,0 +1,43 @@
+#!/bin/sh
+# TODO Unique daemon that closes after inactivity timer
+# TODO IPC daemon that sorts alarms, execute and error handling
+# TODO GO rewrite
+
+help() {
+    cat <<EOF
+Alarm Daemon HELP
+
+Usage: almd UTS SLEEP_TIME SNOOZE_ENABLE LABEL MESSAGE
+where:
+    UTS: Alarm UnixTimeStamp
+     SLEEP_TIME: Time Resolution / Maximum Time Error
+    SNOOZE_ENABLE: 1 to enable snooze
+    LABEL: Task Category
+    MESSAGE: Task Message
+EOF
+    exit 0
+}
+
+[ $# -eq 0 ] && help
+
+UTS="$1"
+SLEEP_TIME="$2"
+SNOOZE_ENABLE="$3"
+LABEL="$4"
+MESSAGE="$5"
+
+while [ "$UTS" -gt "$(date +%s)" ]; do
+    sleep "$SLEEP_TIME"
+done
+
+notify-send -u critical "ALARM: $LABEL" "$MESSAGE"
+shift 5
+"$@"
+
+if [ "$SNOOZE_ENABLE" ]; then
+    SNOOZE="$(echo | dmenu -p "Snooze minutes?")"
+    if [ "$SNOOZE" -eq "$SNOOZE" ]; then
+        UTS="$(( $(date '+%s') + SNOOZE*60 ))"
+        almd "$UTS" "$SLEEP_TIME" "$SNOOZE_ENABLE" "$LABEL" "$MESSAGE" "$@"
+    fi
+fi

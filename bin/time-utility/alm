@@ -1,52 +1,131 @@
 #!/bin/sh
-# TODO Pretty print
-# TODO if no args then prompts time
-# TODO Add check if attached to terminal, then echo
 
-uts2date() {
-    HTIME="$(date -d @"$1")"
-}
-
-own_time() {
-    TIMESTAMP="$(( $(date -d "$1" +%s) - $(date +%s) ))"
-    MINUTES=$(( (TIMESTAMP/60)%60 ))
-    SECONDS=$(( TIMESTAMP%60 ))
-}
+export TS_SOCKET=/tmp/alm
+export TS_SLOTS=20
 
 HOURS=0
 MINUTES=0
 SECONDS=0
 HTIME=0
-LABEL='Alarm'
+SLEEP_TIME=20
+DMENU=1
+SNOOZE=0
+ALARM="${XDG_VIDEOS_DIR:-$HOME/Storage/Videos}/alarm"
+EXEC_CMD="mpv --no-config --force-window=yes --osc=no --hwdec=auto-safe --no-resume-playback --loop-file=2 $ALARM"
 
-while getopts "h:m:s:l:t:T" arg; do
+uts2date() {
+    HTIME="$(date -d @"$1")"
+}
+
+epoch() {
+    UTS="$(date -d "$1" +%s)"
+    EPOCH="$((UTS - $(date +%s)))"
+    MINUTES=$(((EPOCH / 60) % 60))
+    SECONDS=$((EPOCH % 60))
+}
+
+dmenu_prompt() {
+    echo | dmenu -p "$1"
+}
+
+check_args() {
+    if [ $# -eq 0 ] ||
+        [ -z "$ARGS" ] ||
+        [ $((HOURS + MINUTES + SECONDS)) -eq 0 ]
+    then
+        if [ ! $DMENU ]; then
+            if [ -z "$TIME" ]; then
+                printf 'Time: '
+                read -r TIME
+            fi
+            [ -z "$TIME" ] &&
+                echo "ERROR: Invalid time" &&
+                exit 1
+
+            if [ -z "$LABEL" ]; then
+                printf 'Label: '
+                read -r LABEL
+            fi
+
+            if [ -z "$MESSAGE" ]; then
+                printf 'Message: '
+                read -r MESSAGE
+            fi
+
+            printf 'Exec: '
+            read -r EXEC_CMD_IN
+        else
+            TIME="$(dmenu_prompt "Time:")"
+            [ -z "$TIME" ] &&
+                notify-send "ERROR: Invalid time" &&
+                exit
+            LABEL="$(dmenu_prompt "Label:")"
+            MESSAGE="$(dmenu_prompt "Message:")"
+            EXEC_CMD_IN="$(dmenu_prompt "Exec:")"
+        fi
+        epoch "$TIME"
+        if [ -n "$EXEC_CMD_IN" ]; then
+            EXEC_CMD="$EXEC_CMD_IN"
+        fi
+    fi
+}
+
+check_time_format() {
+    if [ -z "$EPOCH" ]; then
+        [ -z "$HOURS" ] && [ -z "$MINUTES" ] && [ -z "$SECONDS" ] && exit
+        TIME=$((HOURS * 3600 + MINUTES * 60 + SECONDS))
+    else
+        TIME=$EPOCH
+    fi
+}
+
+help() {
+    cat <<EOF
+Alarm HELP
+
+Usage: alm ...
+where:
+    h) HOURS=OPTARG ;;
+    m) MINUTES=OPTARG ;;
+    s) SECONDS=OPTARG ;;
+    S) SNOOZE=1 ;;
+    l) LABEL=OPTARG ;;
+    e) EXEC_CMD="OPTARG" ;;
+    E) SLEEP_TIME=1 ;;
+    d) DMENU=1 ;;
+    M) MESSAGE="OPTARG" ;;
+    q) shift && ts "\$\@" && exit ;;
+    ? | *) help ;;
+EOF
+    exit 0
+}
+
+ARGS=''
+while getopts "?h:m:s:l:t:e:M:S:EqdS" arg; do
     case "$arg" in
         h) HOURS=$OPTARG ;;
         m) MINUTES=$OPTARG ;;
         s) SECONDS=$OPTARG ;;
+        S) SNOOZE=1 ;;
         l) LABEL=$OPTARG ;;
-        t) own_time "$OPTARG" ;;
-        T) own_time "$(» | dmenu -p "Time?")" ;;
-        *) echo help ;;
+        e) EXEC_CMD="$OPTARG" ;;
+        E) SLEEP_TIME=1 ;;
+        d) DMENU=1 ;;
+        M) MESSAGE="$OPTARG" ;;
+        q) shift && ts "$@" && exit ;;
+        ? | *) help ;;
     esac
+    ARGS=1
 done
 
-[ -z "$1" ] && own_time "$(» | dmenu -p "Time?")"
+check_args "$@"
+check_time_format
+uts2date "$(($(date '+%s') + TIME))"
 
-if [ -z $TIMESTAMP ]; then
-    [ -z $HOURS ] && [ -z $MINUTES ] && [ -z $SECONDS ] && exit
-    TIME=$((HOURS*3600 + MINUTES*60 + SECONDS ))
-else
-    TIME=$TIMESTAMP
+if [ ! $DMENU ]; then
+    notify-send "ALARM: $LABEL" "Message: $MESSAGE\nCountdown: $MINUTES minutes and $SECONDS seconds\n$HTIME"
+  else
+    printf "Countdown: %s:%s\n%s\nID: " "$MINUTES" "$SECONDS" "$HTIME"
 fi
 
-uts2date "$(( $(date '+%s') + TIME))"
-echo "$LABEL:\nSleeps for $MINUTES:$SECONDS.\nRings @\n$HTIME"
-[ -n "$DISPLAY" ] &&
-    notify-send "$LABEL: Sleeps for $MINUTES:$SECONDS" "\nRings @\n$HTIME"
-
-sleep "$TIME"
-ringing
-SNOOZE="$(» | dmenu -p "Snooze for?")"
-[ -n "$SNOOZE" ] && alm -m "$SNOOZE"
-exit 0
+ts -L "($HTIME) $LABEL" sh -c "almd $UTS $SLEEP_TIME $SNOOZE ${LABEL:-X} ${MESSAGE:-X} $EXEC_CMD"

@@ -1,2 +1,19 @@
 #!/bin/sh
+
+HOUR="$(echo "$1" | cut -d':' -f1)"
+MINUTE="$(echo "$1" | cut -d':' -f2)"
+ALARM_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/alarm"
+ALARM_FILE="$ALARM_DIR/$HOUR:$MINUTE"
+
+if [ -n "$2" ]; then
+    MESSAGE="$2"
+else
+    MESSAGE="$(» | dmenu -i -l 15 -p "Alarm message:")"
+fi
+[ -z "$MESSAGE" ] && MESSAGE='ALARM'
+
+mkdir -p "$ALARM_DIR"
+[ -e "$ALARM_FILE" ] || touch "$ALARM_FILE"
+echo "$MESSAGE" >> "$ALARM_FILE"
+
 at -f "$HOME/.local/bin/time-utility/ringing" "$1"
