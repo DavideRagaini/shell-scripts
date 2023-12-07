@@ -2,7 +2,7 @@
 
 DIR="$HOME/.config/mpv"
 PATH_QUEUE="$DIR/queue"
-PATH_LAST="$DIR/last"
+PATH_LAST="$DIR/history.log"
 PATH_MUSIC="$DIR/music"
 
 get_title() {
@@ -90,18 +90,18 @@ fi
 case "$CHOSEN" in
 	queue)
 		get_from_file "$PATH_QUEUE"
-		save_to_last
+		# save_to_last
 		fplay
 		;;
 	eplay)
-		save_to_last
+		# save_to_last
 		fplay &
 		add_to_queue
 		;;
 	enqueue) add_to_queue ;;
 	aplay)
 		get_title
-		save_to_last
+		# save_to_last
 		fplay
 		;;
 	lectures)

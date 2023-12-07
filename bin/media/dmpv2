@@ -32,21 +32,22 @@ if [ -S "$SOCKET" ]; then
     echo "{ \"command\": [ \"loadfile\", \"$URL\", \"append-play\" ] }" |
         socat -d - "$SOCKET" >/tmp/mpvSockets/log 2>&1
 else
+    shift
     setsid -f mpv --no-terminal --player-operation-mode=pseudo-gui \
-        --geometry=15%-5-15 --input-ipc-server="$SOCKET" "$URL"
+        --geometry=15%-5-15 --input-ipc-server="$SOCKET" "$@" "$URL"
 fi
 
-if ! INFO="$(yt-dlp --playlist-end=1 --print "«%(uploader,channel)-25s» %(playlist_title,title)-100s" "$URL" 2>&1)"; then
-    exit
-fi
-[ "$(echo "$INFO" | wc -l)" -ge 1 ] &&
-    INFO="$(echo "$INFO" | tail -n1)"
+# if ! INFO="$(yt-dlp --playlist-end=1 --print "«%(uploader,channel)-25s» %(playlist_title,title)-100s" "$URL" 2>&1)"; then
+#     exit
+# fi
+# [ "$(echo "$INFO" | wc -l)" -ge 1 ] &&
+#     INFO="$(echo "$INFO" | tail -n1)"
 
-notify-send "Added to Queue" "$(echo "$INFO" | tr -s ' ')"
-PATH_LAST="$HOME/.config/mpv/last"
-grep -q "$INFO" "$PATH_LAST" ||
-    printf "%-14s\t%s\t%s\n%s\n" \
-        "$(date '+%k:%M %d/%m/%y')" \
-        "$INFO" \
-        "$URL" \
-        "$(cat "$PATH_LAST")" >"$PATH_LAST"
+# notify-send "Added to Queue" "$(echo "$INFO" | tr -s ' ')"
+# PATH_LAST="$HOME/.config/mpv/last"
+# grep -q "$INFO" "$PATH_LAST" ||
+#     printf "%-14s\t%s\t%s\n%s\n" \
+#         "$(date '+%k:%M %d/%m/%y')" \
+#         "$INFO" \
+#         "$URL" \
+#         "$(cat "$PATH_LAST")" >"$PATH_LAST"
