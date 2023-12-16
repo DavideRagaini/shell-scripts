@@ -4,7 +4,6 @@ if [ "$1" = "-gs" ]; then
     shift 1
     gs \
         -sDEVICE=pdfwrite \
-        -dCompatibilityLevel=1.4 \
         -dPDFSETTINGS=/default \
         -dNOPAUSE \
         -dQUIET \
@@ -14,7 +13,7 @@ if [ "$1" = "-gs" ]; then
         -r150 \
         -sOutputFile=output.pdf \
         $@
-else
+elif [ "$1" = "-pdftk" ]; then
     out_file="output-merge.pdf"
     tmp_dir="/tmp/pdftk_unite"
     bookmarks_file="$tmp_dir/bookmarks.txt"
@@ -34,4 +33,6 @@ else
         pdftk "$f" update_info "$bookmarks_file" output "$tmp_dir/$f"
     done
     pdftk "$tmp_dir"/*.pdf cat output "$out_file"
+else
+    convert $(find . -type f -iname "*.pdf") merge.pdf
 fi

@@ -2,6 +2,13 @@
 
 [ -z "$1" ] && echo "Missing arguments" && exit
 SOCKETS="$(find "/tmp/mpvSockets" -type s)"
+CHOSEN=''
+
+com() {
+  ARGS="$(echo "$@" | sed 's/ /\", \"/g')"
+  echo "{ \"command\": [\"$ARGS\"] }" |
+    socat -d - "$CHOSEN"
+}
 
 set_all() {
   for i in $SOCKETS; do
@@ -15,13 +22,14 @@ choose_instance() {
     CHOSEN="$SOCKETS"
   else
     for i in $SOCKETS; do
-      TITLES="$(echo '{ "command": ["get_property", "media-title"] }' | socat -d - "$i" | jq -r '.data')"
-      STATUS="$(echo '{ "command": ["get_property", "pause"] }' | socat -d - "$i" | jq -r '.data')"
-      if [ "$STATUS" = 'true' ]; then
-          STATUS=''
-      elif [ "$STATUS" = 'false' ]; then
-          STATUS=''
-      fi
+      CHOSEN="$i"
+      TITLES="$(com get_property media-title | jq -r '.data')"
+      STATUS="$(com get_property pause | jq -r '.data')"
+      case "$STATUS" in
+        true) STATUS='' ;;
+        false) STATUS='' ;;
+        *) STATUS='?' ;;
+      esac
       LIST="${LIST}${STATUS} ${TITLES} (${i})\n"
     done
     CHOSEN="$(echo "${LIST}" | dmenu -i -l 5 -p "$1")"
@@ -33,56 +41,56 @@ choose_instance() {
 case "$1" in
   toggle)
     choose_instance "Toggle:"
-    echo cycle pause | socat -d - "$CHOSEN"
+    com cycle pause
     ;;
   play)
     choose_instance "Play:"
-    echo '{ "command": ["set_property", "pause", "false"] }' |
-      socat -d - "$CHOSEN"
+    com set_property pause false
     ;;
   pause)
     choose_instance "Pause:"
-    echo '{ "command": ["set_property", "pause", "true"] }' |
-      socat -d - "$CHOSEN"
+    com set_property pause true
     ;;
-  pauseall) set_all '{ "command": ["set_property", "pause", true] }' ;;
-  invert) set_all '{ "command": ["cycle", "pause"] }' ;;
+  pauseall)
+    set_all '{ "command": ["set_property", "pause", true] }'
+    ;;
+  invert)
+    set_all '{ "command": ["cycle", "pause"] }'
+    ;;
   prev)
     choose_instance "Previous:"
-    echo "playlist-prev" | socat -d - "$CHOSEN"
+    com "playlist-prev"
     ;;
   next)
     choose_instance "Next:"
-    echo "playlist-next" | socat -d - "$CHOSEN"
+    com "playlist-next"
     ;;
   info)
     choose_instance "Info:"
-    TITLE="$(echo '{ "command": ["get_property", "media-title"] }' | socat -d - "$CHOSEN" | jq -r '.data')"
-    PATH="$(echo '{ "command": ["get_property", "path"] }' | socat -d - "$CHOSEN" | jq -r '.data')"
-    echo "[[$PATH][$TITLE]]" # | xclip -i -selection clipboard
+    TITLE="$(com get_property media-title | jq -r ".data")"
+    UPLOADER="$(com get_property metadata/by-key/uploader | jq -r ".data")"
+    PATH="$(com get_property path | jq -r ".data")"
+    echo "[[$PATH][$UPLOADER: $TITLE]]" # | xclip -i -selection clipboard
     ;;
   seek)
     choose_instance "Seek:"
-    echo seek "$2" | socat -d - "$CHOSEN"
+    com seek "$2"
     ;;
   get)
     choose_instance "Get:"
-    PROPERTY="$(echo "{ \"command\": [\"get_property\", \"${2}\"] }" | socat -d - "$CHOSEN" | jq -r '.data')"
+    PROPERTY="$(com get_property "$2" | jq -r ".data")"
     notify-send "Get Property" "$2: $PROPERTY"
-    echo "$PROPERTY"
+    echo "$2: $PROPERTY"
     ;;
   'set')
     choose_instance "Set:"
     PROPERTY="$(echo ${2} | cut -d' ' -f1)"
     VALUE="$(echo ${2} | cut -d' ' -f2)"
-    notify-send "Set Property" "$PROPERTY: $VALUE"
-    echo "{ \"command\": [\"set_property\", \"$PROPERTY\", \"$VALUE\"] }" |
-      socat -d - "$CHOSEN"
+    com set_property "$PROPERTY" "$VALUE"
     ;;
   subtitle)
     choose_instance "Add subtitle to:"
-    echo "{ \"command\": [\"set_property\", \"sub-files\", \"$2\"] }" |
-      socat -d - "$CHOSEN"
+    com set_property sub-files "$2"
     ;;
   vid | video)
     if [ -n "$2" ]; then
@@ -91,17 +99,20 @@ case "$1" in
       VALUE="$(printf "on\noff" | dmenu -i)"
     fi
     choose_instance "Set video:"
-    [ "$VALUE" = 'on' ] && VALUE=1
-    [ "$VALUE" = 'off' ] && VALUE='no'
+    case "$VALUE" in
+      on) VALUE=1 ;;
+      off) VALUE='no' ;;
+    esac
     notify-send "Set Property" "vid: $VALUE"
-    echo "{ \"command\": [\"set_property\", \"vid\", \"$VALUE\"] }" |
-      socat -d - "$CHOSEN"
+    com set_property vid "$VALUE"
     ;;
-  direct) echo "$2" | socat -d - "$CHOSEN" ;;
+  direct)
+    choose_instance "Direct Com:"
+    com "$2"
+    ;;
   add)
     choose_instance "Append:"
-    echo "{ command: [ \"loadfile\", \"$2\", \"append-play\" ] }" |
-      socat -d - "$CHOSEN"
+    com loadfile "$2" append-play
     ;;
   help)
     echo \

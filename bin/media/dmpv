@@ -1,4 +1,5 @@
 #!/bin/sh
+# TODO Append or spawn selector
 
 DIR="$HOME/.config/mpv"
 PATH_QUEUE="$DIR/queue"
@@ -6,8 +7,7 @@ PATH_LAST="$DIR/history.log"
 PATH_MUSIC="$DIR/music"
 
 get_title() {
-    if ! INFO="$(yt-dlp --playlist-end=1 --print "«%(uploader,channel)-25s» %(playlist_title,title)-100s" "$URL" 2>&1)"
-	then
+	if ! INFO="$(yt-dlp --playlist-end=1 --print "«%(uploader,channel)-25s» %(playlist_title,title)-100s" "$URL" 2>&1)"; then
 		notify-send "Error Adding to Queue" "$(echo "$INFO" | tr -s ' ')"
 		exit
 	fi
@@ -33,7 +33,7 @@ save_to_last() {
 }
 
 fplay() {
-	notify-send "Working on:" "$(echo "$INFO" | tr -s ' ')\\n$URL"
+	# notify-send "Working on:" "$(echo "$INFO" | tr -s ' ')\\n$URL"
 	mpv --player-operation-mode=pseudo-gui --no-terminal "$URL"
 }
 
@@ -44,7 +44,7 @@ get_from_file() {
 	URL="$(echo "$LINE" | cut -f3)"
 }
 
-save_music () {
+save_music() {
 	get_title
 	printf "%s\t%s\t%s\n%s" \
 		"$(date '+%k:%M %d/%m/%y')" \
@@ -62,6 +62,7 @@ if [ -z "$1" ]; then
 enqueue
 eplay
 aplay
+append
 last
 playlist
 music
@@ -80,10 +81,12 @@ last_lecture"
 	URL="$(xclip -selection clipboard -o)" >/dev/null
 else
 	CHOSEN="$1"
-	if [ -z "$2" ];then
+	if [ -z "$2" ]; then
 		URL="$(xclip -selection clipboard -o)" >/dev/null
+		SHIFT=1
 	else
 		URL="$2"
+		SHIFT=2
 	fi
 fi
 
@@ -92,6 +95,38 @@ case "$CHOSEN" in
 		get_from_file "$PATH_QUEUE"
 		# save_to_last
 		fplay
+		;;
+	append)
+		SOCKETS="$(find /tmp/mpvSockets -type s)"
+		if [ "$(echo "$SOCKETS" | wc -l)" -ge 2 ]; then
+			for i in $SOCKETS; do
+				PATH="$(echo '{ "command": ["get_property", "path"] }' | socat -d - "$i" | jq -r '.data')"
+				if "$(echo "$PATH" | grep -q -i -v playlist)"; then
+					TITLE="$(echo '{ "command": ["get_property", "media-title"] }' | socat -d - "$i" | jq -r '.data')"
+					PID="$i"
+					STATUS="$(echo '{ "command": ["get_property", "pause"] }' | socat -d - "$i" | jq -r '.data')"
+					if [ "$STATUS" = 'true' ]; then
+						STATUS=''
+					elif [ "$STATUS" = 'false' ]; then
+						STATUS=''
+					fi
+					LIST="${LIST}${TITLE}\t${PID}\n"
+				fi
+			done
+			SOCKET="$(echo "$LIST" | dmenu -i -l 5 -p "Choose a socket" | cut -f2)" ||
+				exit
+			SOCKET="/tmp/mpvSockets/$SOCKET"
+		else
+			SOCKET=$SOCKETS
+		fi
+		if [ -S "$SOCKET" ]; then
+			echo "{ \"command\": [ \"loadfile\", \"$URL\", \"append-play\" ] }" |
+				socat -d - "$SOCKET" >/tmp/mpvSockets/log 2>&1
+		else
+			shift "$SHIFT"
+			setsid -f mpv --no-terminal --player-operation-mode=pseudo-gui \
+				--geometry=15%-5-15 --input-ipc-server="$SOCKET" "$@" "$URL"
+		fi
 		;;
 	eplay)
 		# save_to_last
@@ -113,22 +148,22 @@ case "$CHOSEN" in
 	'local')
 		VIDEOS1="$(find "${XDG_VIDEOS_DIR:-$HOME/Storage/Videos}" -maxdepth 2)"
 		VIDEOS2="$(find "$HOME/Storage/Archive/Torrents/Complete" -maxdepth 2)"
-		CHOSEN="$(printf "%s\n%s" "$VIDEOS1" "$VIDEOS2" | dmenu -i -l 15)"  ||
+		CHOSEN="$(printf "%s\n%s" "$VIDEOS1" "$VIDEOS2" | dmenu -i -l 15)" ||
 			exit
 		mpv "$CHOSEN"
 		;;
 	last)
 		get_from_file "$PATH_LAST"
-		notify-send "Working on:" "$(echo "$INFO" | tr -s ' ')\\n$URL" -a "$APPNAME"
+		# notify-send "Working on:" "$(echo "$INFO" | tr -s ' ')\\n$URL" -a "$APPNAME"
 		fplay
 		;;
 	save_m3u)
 		PLAYLIST="$(echo | dmenu -i -l 15 -p "Name of the playlist? (Defaults to playlist name)")"
 		[ -z "$PLAYLIST" ] && PLAYLIST="$(yt-dlp --playlist-end=1 -O "%(playlist_title)s" "$URL")"
 		PLAYLIST_PATH="$DIR/playlists/$PLAYLIST.m3u"
-		printf '#EXTM3U\n\n' > "$PLAYLIST_PATH"
+		printf '#EXTM3U\n\n' >"$PLAYLIST_PATH"
 		FORMAT="#EXTINF: %(duration)s, %(upload_date>%d/%m/%Y)s %(title)s\nhttps://yewtu.be/watch?v=%(id)s\n\n"
-		yt-dlp -O "$FORMAT" "$URL" >> "$PLAYLIST_PATH"
+		yt-dlp -O "$FORMAT" "$URL" >>"$PLAYLIST_PATH"
 		sed -i 's/\\n/\n/g' "$PLAYLIST_PATH"
 		;;
 	playlist)
@@ -143,12 +178,12 @@ case "$CHOSEN" in
 	music_save) save_music ;;
 	music_queue)
 		get_from_file "$PATH_MUSIC"
-		notify-send "Working on:" "$(echo "$INFO" | tr -s ' ')\\n$URL"
+		# notify-send "Working on:" "$(echo "$INFO" | tr -s ' ')\\n$URL"
 		music_play
 		;;
 	title)
 		get_title
-		notify-send "Working on:" "[[$URL][$(echo "$INFO" | tr -s ' ')]]"
+		# notify-send "Working on:" "[[$URL][$(echo "$INFO" | tr -s ' ')]]"
 		printf "[[%s][%s]]" "$URL" "$INFO" | xclip -i -selection clipboard
 		;;
 	last_lecture) mpv "$VIDEOS/Lectures/doing" ;;
@@ -164,7 +199,7 @@ case "$CHOSEN" in
 	info_last)
 		get_from_file "$PATH_LAST"
 		notify-send "Yanked:" "$(echo "$INFO" | tr -s ' ')\\n$URL"
-		printf "[[%s][%s]]" "$URL" "$INFO"| xclip -i -selection clipboard
+		printf "[[%s][%s]]" "$URL" "$INFO" | xclip -i -selection clipboard
 		;;
 	*) notify-send "Something wrong..." ;;
 esac

@@ -7,9 +7,7 @@ HOURS=0
 MINUTES=0
 SECONDS=0
 HTIME=0
-SLEEP_TIME=20
-DMENU=1
-SNOOZE=0
+DMENU=0
 ALARM="${XDG_VIDEOS_DIR:-$HOME/Storage/Videos}/alarm"
 EXEC_CMD="mpv --no-config --force-window=yes --osc=no --hwdec=auto-safe --no-resume-playback --loop-file=2 $ALARM"
 
@@ -20,6 +18,7 @@ uts2date() {
 epoch() {
     UTS="$(date -d "$1" +%s)"
     EPOCH="$((UTS - $(date +%s)))"
+    HOURS=$((EPOCH / 3600))
     MINUTES=$(((EPOCH / 60) % 60))
     SECONDS=$((EPOCH % 60))
 }
@@ -33,7 +32,7 @@ check_args() {
         [ -z "$ARGS" ] ||
         [ $((HOURS + MINUTES + SECONDS)) -eq 0 ]
     then
-        if [ ! $DMENU ]; then
+        if [ $DMENU -eq 0 ]; then
             if [ -z "$TIME" ]; then
                 printf 'Time: '
                 read -r TIME
@@ -50,6 +49,15 @@ check_args() {
             if [ -z "$MESSAGE" ]; then
                 printf 'Message: '
                 read -r MESSAGE
+            fi
+
+            if [ -z "$SNOOZE" ]; then
+                printf 'Snooze? '
+                read -r SNOOZE
+                case "$SNOOZE" in
+                    '1'|y|yes) SNOOZE=1 ;;
+                    '0'|n|no) SNOOZE=0 ;;
+                esac
             fi
 
             printf 'Exec: '
@@ -122,10 +130,10 @@ check_args "$@"
 check_time_format
 uts2date "$(($(date '+%s') + TIME))"
 
-if [ ! $DMENU ]; then
-    notify-send "ALARM: $LABEL" "Message: $MESSAGE\nCountdown: $MINUTES minutes and $SECONDS seconds\n$HTIME"
+if [ ! $DMENU -eq 0 ]; then
+    notify-send "ALARM: $LABEL" "Message: $MESSAGE\nCountdown: "$HOURS":$MINUTES:$SECONDS\n$HTIME"
   else
-    printf "Countdown: %s:%s\n%s\nID: " "$MINUTES" "$SECONDS" "$HTIME"
+    printf "Countdown: %s:%s:%s\n%s\nID: " "$HOURS" "$MINUTES" "$SECONDS" "$HTIME"
 fi
 
-ts -L "($HTIME) $LABEL" sh -c "almd $UTS $SLEEP_TIME $SNOOZE ${LABEL:-X} ${MESSAGE:-X} $EXEC_CMD"
+ts -L "($HTIME) $LABEL" sh -c "almd $UTS $SLEEP_TIME ${SNOOZ:-0}E ${LABEL:-[-]} ${MESSAGE:-[-]} $EXEC_CMD"

@@ -34,7 +34,7 @@ notify-send -u critical "ALARM: $LABEL" "$MESSAGE"
 shift 5
 "$@"
 
-if [ "$SNOOZE_ENABLE" ]; then
+if [ ! "$SNOOZE_ENABLE" -eq 0 ]; then
     SNOOZE="$(echo | dmenu -p "Snooze minutes?")"
     if [ "$SNOOZE" -eq "$SNOOZE" ]; then
         UTS="$(( $(date '+%s') + SNOOZE*60 ))"
