@@ -3,66 +3,72 @@
 DIR="$HOME/.cache/via"
 CACHE="$DIR/database"
 LAST="$DIR/history"
-MENU='dmenu -i -l 15'
+MENU="dmenu -i -l 15"
 DATABASE="$HOME/.local/updatedb"
 
 build_cache_all() {
     locate -d "$DATABASE" -ri "$HOME/.*$" >"$CACHE-all"
 }
 
-clean_last_all(){
+clean_last_all() {
     printf '' >"$LAST-all"
 }
 
-open_all(){
+open_all() {
     cache="$(cat "$CACHE-all")"
     last="$(cat "$LAST-all")"
-    file="$(printf "%s\n------------\n%s" "$last" "$cache" | $MENU)"
+    file="$(printf "%s\n%s" "$last" "$cache" | $MENU)"
     [ -z "$file" ] && exit
     exec opener "$file"
 }
 
 build_cache_docs() {
-    # locate -d "$DATABASE" -ri "$HOME/.*.pdf$" | sed "s@$HOME@"'~''@; /~\/\..*$/d' >"$CACHE-docs"
-    locate -d "$DATABASE" -ri "$HOME/.*.pdf$" >"$CACHE-docs"
+    locate -d "$DATABASE" -ri "$HOME/.*.pdf$" | sed "s@$HOME@"'~''@; /~\/\..*$/d' >"$CACHE-docs"
+    # locate -d "$DATABASE" -ri "$HOME/.*.pdf$" >"$CACHE-docs"
 }
 
-clean_last_docs(){
+clean_last_docs() {
     printf '' >"$LAST-docs"
 }
 
 open_docs() {
     cache="$(cat "$CACHE-docs")"
     last="$(cat "$LAST-docs")"
-    file="$(printf "%s\n------------\n%s" "$last" "$cache" | $MENU)"
-    if [ -n "$file" ]; then
-        if grep -q "$file" "$LAST-docs"; then
-            last="$(grep -v "$file" "$LAST-docs")"
-            printf "%s\n%s\n" "$file" "$last" >"$LAST-docs"
-        else
-            printf "%s\n" "$file" | sort -r >>"$LAST-docs"
-        fi
+
+    if [ -n "$last" ]; then
+        file="$(printf "%s\n%s" "$last" "$cache" | $MENU)"
     else
-        exit
+        file="$(printf "%s" "$cache" | $MENU)"
     fi
-    exec zathura --fork "$file"
+    [ -z "$file" ] && exit
+
+    [ ! grep -q "$file" "$LAST-docs" ] &&
+        printf "%s\n" "$file" >>"$LAST-docs"
+
+    exec setsid -f "$READER" "$file"
 }
 
 search() {
-    locate -d  "$DATABASE" -ri "$HOME/.*$1.*" | fzf -e
+    locate -d "$DATABASE" -ri "$HOME/.*$1.*" | fzf -e
     exec opener "$file"
 }
 
-case "$1" in
-    -b) build_cache_all; build_cache_docs;;
-    -D) build_cache_all ;;
-    -d) build_cache_docs ;;
-    -A) build_cache_all && open_all ;;
-    -R) build_cache_docs && reader ;;
-    -c) clean_last_docs ;;
-    -C) clean_last_all ;;
-    -a) open_all ;;
-    -e) search "$2" ;;
-    -r) open_docs ;;
-     *) open_all ;;
-esac
+while getopts "ACDRabcde:o:r" option; do
+    case "${option}" in
+        A) build_cache_all && open_all ;;
+        C) clean_last_all ;;
+        D) build_cache_all ;;
+        R) build_cache_docs && reader ;;
+        a) open_all ;;
+        b)
+            build_cache_all
+            build_cache_docs
+            ;;
+        c) clean_last_docs ;;
+        d) build_cache_docs ;;
+        e) search "$OPTARG" ;;
+        o) export READER="$OPTARG" ;;
+        r) open_docs ;;
+        *) open_all ;;
+    esac
+done

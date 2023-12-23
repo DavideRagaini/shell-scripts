@@ -39,7 +39,7 @@ fplay() {
 
 get_from_file() {
 	CHOSEN="$(cut -f2 "$1" | dmenu -i -l 15)" || exit
-	LINE="$(grep -w "$CHOSEN" "$1")"
+	LINE="$(grep -m1 -w "$CHOSEN" "$1")"
 	TITLE="$(echo "$LINE" | cut -f2)"
 	URL="$(echo "$LINE" | cut -f3)"
 }
@@ -125,7 +125,7 @@ case "$CHOSEN" in
 		else
 			shift "$SHIFT"
 			setsid -f mpv --no-terminal --player-operation-mode=pseudo-gui \
-				--geometry=15%-5-15 --input-ipc-server="$SOCKET" "$@" "$URL"
+				--input-ipc-server="$SOCKET" "$@" "$URL"
 		fi
 		;;
 	eplay)
