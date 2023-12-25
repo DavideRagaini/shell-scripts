@@ -1,0 +1,2 @@
+#!/usr/bin/env sh
+dmenu -fn 'IosevkaTerm Nerd Font Propo:size=12' "$@"

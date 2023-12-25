@@ -1,7 +1,7 @@
 #!/bin/sh
 
 [ -z "$1" ] && echo "Missing arguments" && exit
-SOCKETS="$(find "/tmp/mpvSockets" -type s)"
+SOCKETS="$(find "/tmp/mpv" -type s)"
 CHOSEN=''
 
 com() {

@@ -97,7 +97,7 @@ case "$CHOSEN" in
 		fplay
 		;;
 	append)
-		SOCKETS="$(find /tmp/mpvSockets -type s)"
+		SOCKETS="$(find /tmp/mpv -type s)"
 		if [ "$(echo "$SOCKETS" | wc -l)" -ge 2 ]; then
 			for i in $SOCKETS; do
 				PATH="$(echo '{ "command": ["get_property", "path"] }' | socat -d - "$i" | jq -r '.data')"

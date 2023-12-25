@@ -3,7 +3,7 @@
 DIR="$HOME/.cache/via"
 CACHE="$DIR/database"
 LAST="$DIR/history"
-MENU="dmenu -i -l 15"
+MENU="dmenu_def -i -l 15"
 DATABASE="$HOME/.local/updatedb"
 
 build_cache_all() {
@@ -36,13 +36,12 @@ open_docs() {
     last="$(cat "$LAST-docs")"
 
     if [ -n "$last" ]; then
-        file="$(printf "%s\n%s" "$last" "$cache" | $MENU)"
+        file="$(printf "%s\n%s" "$last" "$cache" | $MENU)" || exit
     else
-        file="$(printf "%s" "$cache" | $MENU)"
+        file="$(printf "%s" "$cache" | $MENU)" || exit
     fi
-    [ -z "$file" ] && exit
 
-    [ ! grep -q "$file" "$LAST-docs" ] &&
+    grep -q "$file" "$LAST-docs" ||
         printf "%s\n" "$file" >>"$LAST-docs"
 
     exec setsid -f "$READER" "$file"
