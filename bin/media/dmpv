@@ -1,5 +1,4 @@
 #!/bin/sh
-# TODO Append or spawn selector
 
 DIR="$HOME/.config/mpv"
 PATH_QUEUE="$DIR/queue"
@@ -34,7 +33,7 @@ save_to_last() {
 
 fplay() {
 	# notify-send "Working on:" "$(echo "$INFO" | tr -s ' ')\\n$URL"
-	mpv --player-operation-mode=pseudo-gui --no-terminal "$URL"
+	setsid -f mpv --no-terminal --player-operation-mode=pseudo-gui "$@" "$URL"
 }
 
 get_from_file() {
@@ -51,6 +50,23 @@ save_music() {
 		"$INFO" \
 		"$URL" \
 		"$(cat "$PATH_MUSIC")" >"$PATH_MUSIC"
+}
+
+select_socket(){
+	SOCKETS="$(find /tmp/mpv -type s)"
+	if [ "$(echo "$SOCKETS" | wc -l)" -ge 2 ]; then
+		for i in $SOCKETS; do
+			TITLE="$(echo '{ "command": ["get_property", "media-title"] }' | socat -d - "$i" | jq -r '.data')"
+			PID="$i"
+			STATUS="$(echo '{ "command": ["get_property", "pause"] }' | socat -d - "$i" | jq -r '.data')"
+			[ "$STATUS" = 'true' ] && STATUS='' ||  STATUS=''
+			LIST="${LIST}${STATUS} ${TITLE}\t${PID}\n"
+		done
+		SOCKET="$(echo "$LIST" | dmenu -i -l 5 -p "Choose a socket" | cut -f2)" ||
+			exit
+	else
+		SOCKET=$SOCKETS
+	fi
 }
 
 music_play() {
@@ -97,35 +113,13 @@ case "$CHOSEN" in
 		fplay
 		;;
 	append)
-		SOCKETS="$(find /tmp/mpv -type s)"
-		if [ "$(echo "$SOCKETS" | wc -l)" -ge 2 ]; then
-			for i in $SOCKETS; do
-				PATH="$(echo '{ "command": ["get_property", "path"] }' | socat -d - "$i" | jq -r '.data')"
-				if "$(echo "$PATH" | grep -q -i -v playlist)"; then
-					TITLE="$(echo '{ "command": ["get_property", "media-title"] }' | socat -d - "$i" | jq -r '.data')"
-					PID="$i"
-					STATUS="$(echo '{ "command": ["get_property", "pause"] }' | socat -d - "$i" | jq -r '.data')"
-					if [ "$STATUS" = 'true' ]; then
-						STATUS=''
-					elif [ "$STATUS" = 'false' ]; then
-						STATUS=''
-					fi
-					LIST="${LIST}${TITLE}\t${PID}\n"
-				fi
-			done
-			SOCKET="$(echo "$LIST" | dmenu -i -l 5 -p "Choose a socket" | cut -f2)" ||
-				exit
-			SOCKET="/tmp/mpvSockets/$SOCKET"
-		else
-			SOCKET=$SOCKETS
-		fi
+		select_socket
 		if [ -S "$SOCKET" ]; then
 			echo "{ \"command\": [ \"loadfile\", \"$URL\", \"append-play\" ] }" |
-				socat -d - "$SOCKET" >/tmp/mpvSockets/log 2>&1
+				socat -d - "$SOCKET" >> /tmp/mpv/log 2>&1
 		else
 			shift "$SHIFT"
-			setsid -f mpv --no-terminal --player-operation-mode=pseudo-gui \
-				--input-ipc-server="$SOCKET" "$@" "$URL"
+			fplay --input-ipc-server="$SOCKET"
 		fi
 		;;
 	eplay)

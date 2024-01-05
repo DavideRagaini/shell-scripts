@@ -25,11 +25,7 @@ choose_instance() {
       CHOSEN="$i"
       TITLES="$(com get_property media-title | jq -r '.data')"
       STATUS="$(com get_property pause | jq -r '.data')"
-      case "$STATUS" in
-        true) STATUS='' ;;
-        false) STATUS='' ;;
-        *) STATUS='?' ;;
-      esac
+      [ "$STATUS" = 'true' ] && STATUS='' ||  STATUS=''
       LIST="${LIST}${STATUS} ${TITLES} (${i})\n"
     done
     CHOSEN="$(echo "${LIST}" | dmenu -i -l 5 -p "$1")"

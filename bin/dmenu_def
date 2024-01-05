@@ -1,2 +1,2 @@
 #!/usr/bin/env sh
-dmenu -fn 'IosevkaTerm Nerd Font Propo:size=12' "$@"
+dmenu -fn 'IosevkaTerm Nerd Font Propo:size=12:style=bold' -nb "#2F0B3A" -nf "#FF00FF" -sb "#BD93F9" -sf "#571DC2" "$@"

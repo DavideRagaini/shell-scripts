@@ -19,7 +19,7 @@ open_all() {
     last="$(cat "$LAST-all")"
     file="$(printf "%s\n%s" "$last" "$cache" | $MENU)"
     [ -z "$file" ] && exit
-    exec opener "$file"
+    exec "$READER" "$file"
 }
 
 build_cache_docs() {

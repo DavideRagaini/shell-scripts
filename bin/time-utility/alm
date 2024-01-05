@@ -34,8 +34,13 @@ check_args() {
     then
         if [ $DMENU -eq 0 ]; then
             if [ -z "$TIME" ]; then
-                printf 'Time: '
-                read -r TIME
+                # printf 'Time: '
+                # read -r TIME
+                printf 'Hour: '
+                read -r H
+                printf 'Minute: '
+                read -r M
+                TIME="$H:$M"
             fi
             [ -z "$TIME" ] &&
                 echo "ERROR: Invalid time" &&
@@ -136,4 +141,4 @@ if [ ! $DMENU -eq 0 ]; then
     printf "Countdown: %s:%s:%s\n%s\nID: " "$HOURS" "$MINUTES" "$SECONDS" "$HTIME"
 fi
 
-ts -L "($HTIME) $LABEL" sh -c "almd $UTS $SLEEP_TIME ${SNOOZ:-0}E ${LABEL:-[-]} ${MESSAGE:-[-]} $EXEC_CMD"
+ts -L "($HTIME) $LABEL" sh -c "almd $UTS ${SLEEP_TIME:-30} ${SNOOZE:-0}E ${LABEL:-[empty]} ${MESSAGE:-[empty]} $EXEC_CMD"
