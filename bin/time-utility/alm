@@ -1,4 +1,6 @@
 #!/bin/sh
+# TODO Label/Message vengono tagliati allo spazio
+# TODO checks orario
 
 export TS_SOCKET=/tmp/alm
 export TS_SLOTS=20
@@ -61,7 +63,7 @@ check_args() {
                 read -r SNOOZE
                 case "$SNOOZE" in
                     '1'|y|yes) SNOOZE=1 ;;
-                    '0'|n|no) SNOOZE=0 ;;
+                    '0'|n|no|*) SNOOZE=0 ;;
                 esac
             fi
 

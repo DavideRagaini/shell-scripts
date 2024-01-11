@@ -2,7 +2,7 @@
 
 instances="$(playerctl -a -i spotifyd,mpv metadata --format "{{playerName}} -> {{status}}  {{title}} - {{artist}} {{album}}" | sed 's/Playing/奈/ ; s/Paused//' | nl -w2 -s' ')"
 
-[ -z $instances ] && notify-send "No elegible player" && exit
+[ -z "$instances" ] && notify-send "No elegible player" && exit
 
 # Just one istance of whatever player
 [ "$(echo "$instances" | wc -l)" -eq 1 ] &&
@@ -10,7 +10,7 @@ instances="$(playerctl -a -i spotifyd,mpv metadata --format "{{playerName}} -> {
 
 chosen="$(echo "$instances" | dmenu -l 5)" || exit
 howmany=$(echo "$instances" | grep -c "$(echo "$chosen" | awk '{print $2}')")
-if [ $howmany -eq 1 ]
+if [ "$howmany" -eq 1 ]
 then
     #  If there are more players elegible
     playerctl -p "$(echo "$chosen" | awk '{print $2}')"  "$1" "$2"

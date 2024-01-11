@@ -18,7 +18,7 @@ fi
 
 check_init() {
 	# case "$(readlink /sbin/init | cut -f3 -d'/')" in
-	case "$(grep "^NAME=" /etc/os-release | cut -f2 -d'"')" in
+	case "$(grep "^NAME=" /etc/os-release | cut -f2 -d'=')" in
 		NixOS)
 			SHUTDOWN='shutdown -h now'
 			SUSPEND='systemctl suspend'
@@ -44,7 +44,7 @@ log() {
 }
 
 confirm() {
-	[ "$(printf "No\\nYes" | dmenu -i -p "$choice" -nb darkred -sb red -sf white -nf gray)" = "Yes" ] ||
+	[ "$(printf "No\\nYes" | dmenu -i -p "$choice" -fn 'IosevkaTerm Nerd Font:style=bold:size=20' -nb darkred -sb red -sf white -nf gray)" = "Yes" ] ||
 		exit 1
 }
 
@@ -99,3 +99,8 @@ case "$choice" in
 		;;
 	*) notify-send "ERROR" && exit 2 ;;
 esac
+
+# START
+# jq --null-input --arg START "$(date)" --arg HTIME "asdf" '{"START": {"UTS": $START, "HTIME": $HTIME}}'
+#
+#

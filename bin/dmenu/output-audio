@@ -2,7 +2,7 @@
 
 SINKS_LIST="$(wpctl status | awk '/Sinks:/{flag=1;next}/Sink/{flag=0}flag' | grep -v '\*' | grep '\t')"
 if [ "$(echo "$SINKS_LIST" | wc -l)" -lt 3 ]; then
-	ID_CHOSEN="$(echo $SINKS_LIST | awk '{print $2}' | cut -f1 -d'.' | head -n1)"
+	ID_CHOSEN="$(echo "$SINKS_LIST" | awk '{print $2}' | cut -f1 -d'.' | head -n1)"
 else
 	CHOSEN=$(echo "$SINKS_LIST" |
 		dmenu -i -l 5 -p "Sink:") ||
