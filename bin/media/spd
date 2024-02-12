@@ -1,0 +1,11 @@
+#!/usr/bin/env sh
+librespot \
+    --c ~/.cache/librespot \
+    --backend pulseaudio \
+    --cache-size-limit 1G \
+    --name "$(hostname)" \
+    --device-type computer \
+    --initial-volume 100 \
+    --enable-volume-normalisation \
+    --normalisation-pregain -5 \
+    --bitrate 320

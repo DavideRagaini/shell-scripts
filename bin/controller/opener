@@ -4,12 +4,12 @@ for i in "$@"; do
     case $i in
         http* | *.html) setsid -f "$BROWSER" "$i" 2>/dev/null & ;;
         *.txt) $TERMINAL "$EDITOR" "$i" & ;;
-        *.pdf | *.djvu | *.cbz) setsid -f "$READER" "$i" & ;;
+        *.pdf) setsid -f "$READER" "$i" & ;;
         *.epub | *.mobi | *.azw3) setsid ebook-viewer "$i" & ;;
         *.mkv | *.web | *.mp4 | *avi) setsid mpv -no-terminal "$i" & ;;
         *.mp3 | *.flac | *.opus | *mp3?source*) setsid mpv "$i" & ;;
         *.png | *.jpg | *.jpeg | *.gif) setsid nsxiv "$i" & ;;
-        *.cbz) setsid -f zathura "$i" | less ;;
+        *.cbz | *.djvu ) setsid -f zathura "$i" | less ;;
         *.tar*) tar tf "$i" | less ;;
         *.zip) unzip -l "$i" | less ;;
         *.rar) unrar l "$i" | less ;;

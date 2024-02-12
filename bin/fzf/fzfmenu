@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # fzfmenu - fzf as dmenu replacement
 # fifos are here to not wait for end of input
@@ -30,8 +30,8 @@ colums=$((padding + (dim_mon_y / mod_y)))
 GEOM="$(printf "%dx%d" "$rows" "$colums")"
 
 
-# alacritty --class 'fzfmenu' --config-file="$HOME/.config/alacritty/fzfmenu.yml" -e sh -c "cat $input |
-st -n fzfmenu -f "Liberation Mono:size=$size" -g "$GEOM" -e sh -c "cat $input |
+# st -n fzfmenu -f "Liberation Mono:size=$size" -g "$GEOM" -e sh -c "cat $input |
+alacritty msg create-window --title 'fzfmenu' -e sh -c "cat $input |
 	fzf --border=rounded --margin=1% --multi --ansi -i --height=$((size * 6)) $(printf -- " '%s'" "$@" | sed "s/^ ''$//") |
 	tee $output" &
 disown

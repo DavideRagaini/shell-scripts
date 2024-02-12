@@ -11,7 +11,7 @@ if [ -z "$1" ]; then
 	Hibernate
 	Display
 	Shutdown"
-	choice="$(printf "%s" "$cmds" | cut -d'	' -f 2 | dmenu -i -p 'Choose an action:')"
+	choice="$(printf "%s" "$cmds" | cut -d'	' -f 2 | dmenu_def -i -p 'Choose an action:')"
 else
 	choice="$1"
 fi
@@ -44,7 +44,7 @@ log() {
 }
 
 confirm() {
-	[ "$(printf "No\\nYes" | dmenu -i -p "$choice" -fn 'IosevkaTerm Nerd Font:style=bold:size=20' -nb darkred -sb red -sf white -nf gray)" = "Yes" ] ||
+	[ "$(printf "No\\nYes" | dmenu -i -p "$choice" -fn 'IosevkaTerm Nerd Font:style=bold:size=14' -nb darkred -sb red -sf white -nf gray)" = "Yes" ] ||
 		exit 1
 }
 

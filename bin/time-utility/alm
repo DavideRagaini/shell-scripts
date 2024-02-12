@@ -10,6 +10,7 @@ MINUTES=0
 SECONDS=0
 HTIME=0
 DMENU=0
+ALL=0
 ALARM="${XDG_VIDEOS_DIR:-$HOME/Storage/Videos}/alarm"
 EXEC_CMD="mpv --no-config --force-window=yes --osc=no --hwdec=auto-safe --no-resume-playback --loop-file=2 $ALARM"
 
@@ -53,30 +54,35 @@ check_args() {
                 read -r LABEL
             fi
 
-            if [ -z "$MESSAGE" ]; then
-                printf 'Message: '
-                read -r MESSAGE
-            fi
+            if [ -z "$ALL" ]; then
+                if [ -z "$MESSAGE" ]; then
+                    printf 'Message: '
+                    read -r MESSAGE
+                fi
 
-            if [ -z "$SNOOZE" ]; then
-                printf 'Snooze? '
-                read -r SNOOZE
-                case "$SNOOZE" in
-                    '1'|y|yes) SNOOZE=1 ;;
-                    '0'|n|no|*) SNOOZE=0 ;;
-                esac
-            fi
+                if [ -z "$SNOOZE" ]; then
+                    printf 'Snooze? '
+                    read -r SNOOZE
+                    case "$SNOOZE" in
+                        '1'|y|yes) SNOOZE=1 ;;
+                        '0'|n|no|*) SNOOZE=0 ;;
+                    esac
+                fi
 
-            printf 'Exec: '
-            read -r EXEC_CMD_IN
+                printf 'Exec: '
+                read -r EXEC_CMD_IN
+            fi
         else
             TIME="$(dmenu_prompt "Time:")"
             [ -z "$TIME" ] &&
                 notify-send "ERROR: Invalid time" &&
                 exit
             LABEL="$(dmenu_prompt "Label:")"
-            MESSAGE="$(dmenu_prompt "Message:")"
-            EXEC_CMD_IN="$(dmenu_prompt "Exec:")"
+
+            if [ -z "$ALL" ]; then
+                MESSAGE="$(dmenu_prompt "Message:")"
+                EXEC_CMD_IN="$(dmenu_prompt "Exec:")"
+            fi
         fi
         epoch "$TIME"
         if [ -n "$EXEC_CMD_IN" ]; then
@@ -107,6 +113,7 @@ where:
     l) LABEL=OPTARG ;;
     e) EXEC_CMD="OPTARG" ;;
     E) SLEEP_TIME=1 ;;
+    a) ALL=1 ;;
     d) DMENU=1 ;;
     M) MESSAGE="OPTARG" ;;
     q) shift && ts "\$\@" && exit ;;
@@ -116,7 +123,7 @@ EOF
 }
 
 ARGS=''
-while getopts "?h:m:s:l:t:e:M:S:EqdS" arg; do
+while getopts "?h:m:s:l:t:e:M:S:EaqdS" arg; do
     case "$arg" in
         h) HOURS=$OPTARG ;;
         m) MINUTES=$OPTARG ;;
@@ -125,6 +132,7 @@ while getopts "?h:m:s:l:t:e:M:S:EqdS" arg; do
         l) LABEL=$OPTARG ;;
         e) EXEC_CMD="$OPTARG" ;;
         E) SLEEP_TIME=1 ;;
+        a) ALL=1 ;;
         d) DMENU=1 ;;
         M) MESSAGE="$OPTARG" ;;
         q) shift && ts "$@" && exit ;;

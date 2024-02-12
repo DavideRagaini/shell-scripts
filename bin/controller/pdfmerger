@@ -1,38 +1,64 @@
-#!/bin/sh
+#!/bin/bash
 
-if [ "$1" = "-gs" ]; then
-    shift 1
-    gs \
-        -sDEVICE=pdfwrite \
-        -dPDFSETTINGS=/default \
-        -dNOPAUSE \
-        -dQUIET \
-        -dBATCH \
-        -dDetectDuplicateImages \
-        -dCompressFonts=true \
-        -r150 \
-        -sOutputFile=output.pdf \
-        $@
-elif [ "$1" = "-pdftk" ]; then
-    out_file="output-merge.pdf"
-    tmp_dir="/tmp/pdftk_unite"
-    bookmarks_file="$tmp_dir/bookmarks.txt"
-    bookmarks_fmt="BookmarkBegin
-    BookmarkTitle: %s
-    BookmarkLevel: 1
-    BookmarkPageNumber: 1
-    "
+out_file="combined.pdf"
+bookmarks_file="/tmp/bookmarks.txt"
+bookmarks_fmt="BookmarkBegin
+BookmarkTitle: %s
+BookmarkLevel: 1
+BookmarkPageNumber: %d
+"
 
-    rm -rf "$tmp_dir"
-    mkdir -p "$tmp_dir"
+rm -f "$bookmarks_file" "$out_file"
 
-    for f in *.pdf; do
-        echo "Bookmarking $f..."
-        title="${f%.*}"
-        printf "$bookmarks_fmt" "$title" > "$bookmarks_file"
-        pdftk "$f" update_info "$bookmarks_file" output "$tmp_dir/$f"
-    done
-    pdftk "$tmp_dir"/*.pdf cat output "$out_file"
-else
-    convert $(find . -type f -iname "*.pdf") merge.pdf
-fi
+declare -a files=(*.pdf)
+page_counter=1
+
+# Generate bookmarks file.
+for f in "${files[@]}"; do
+    title="${f%.*}"
+    printf "$bookmarks_fmt" "$title" "$page_counter" >> "$bookmarks_file"
+    num_pages="$(pdftk "$f" dump_data | grep NumberOfPages | awk '{print $2}')"
+    page_counter=$((page_counter + num_pages))
+done
+
+# Combine PDFs and embed the generated bookmarks file.
+pdftk "${files[@]}" cat output - | \
+    pdftk - update_info "$bookmarks_file" output "$out_file"
+
+
+# if [ "$1" = "-gs" ]; then
+#     shift 1
+#     gs \
+#         -sDEVICE=pdfwrite \
+#         -dPDFSETTINGS=/default \
+#         -dNOPAUSE \
+#         -dQUIET \
+#         -dBATCH \
+#         -dDetectDuplicateImages \
+#         -dCompressFonts=true \
+#         -r150 \
+#         -sOutputFile=output.pdf \
+#         $@
+# elif [ "$1" = "-pdftk" ]; then
+#     out_file="output-merge.pdf"
+#     tmp_dir="/tmp/pdftk_unite"
+#     bookmarks_file="$tmp_dir/bookmarks.txt"
+#     bookmarks_fmt="BookmarkBegin
+#     BookmarkTitle: %s
+#     BookmarkLevel: 1
+#     BookmarkPageNumber: 1
+#     "
+
+#     rm -rf "$tmp_dir"
+#     mkdir -p "$tmp_dir"
+
+#     for f in *.pdf; do
+#         echo "Bookmarking $f..."
+#         title="${f%.*}"
+#         printf "$bookmarks_fmt" "$title" > "$bookmarks_file"
+#         pdftk "$f" update_info "$bookmarks_file" output "$tmp_dir/$f"
+#     done
+#     pdftk "$tmp_dir"/*.pdf cat output "$out_file"
+# else
+#     convert $(find . -type f -iname "*.pdf") merge.pdf
+# fi

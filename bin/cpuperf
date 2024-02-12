@@ -1,0 +1,10 @@
+#!/bin/sh
+
+if [ "$(cpupower frequency-info | awk 'NR == 9 {print $3}')" = "\"powersave\"" ]
+then
+	sudo cpupower frequency-set --governor performance 1>/dev/null 2>&1
+	echo "Performance Mode"
+else
+	sudo cpupower frequency-set --governor powersave 1>/dev/null
+	echo "PowerSave Mode"
+fi
