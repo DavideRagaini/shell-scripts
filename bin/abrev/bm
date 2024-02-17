@@ -1,16 +1,31 @@
 #!/usr/bin/env sh
 
+bookmarks_file="$HOME/.config/qutebrowser/bookmarks/urls"
 case "$1" in
-    s|save)
-        content="$(xclip -selection clipboard -o)"
-        echo "Enter Title"
-        read -r title
-        echo "$content $title" >>"$HOME/.config/qutebrowser/bookmarks/urls"
-        ;;
-    o|open|*)
-        bookmark_file="$HOME/.config/qutebrowser/bookmarks/urls"
-        description="$(cut -d' ' -f2- "$bookmark_file" | fzf)" || exit
-        link="$(grep "$description" "$bookmark_file" | cut -d ' ' -f1)"
-        setsid -f "$BROWSER" "$link" &
-        ;;
+  s | save)
+    content="$(xclip -selection clipboard -o)"
+    echo "Enter Title"
+    read -r title
+    grep -q "^$content$" "$bookmarks_file" ||
+      echo "$content $title" >>"$bookmarks_file"
+    ;;
+
+  S | Save)
+    content="$(xclip -selection clipboard -o)"
+    title="$(dmenu_def -p 'Title: ')" || exit
+    grep -q "^$content$" "$bookmarks_file" ||
+      echo "$content $title" >>"$bookmarks_file"
+    ;;
+
+  d | dmenu)
+    description="$(dmenu_def -l 10 -p 'Bookmarks:' <"$bookmarks_file")" || exit
+    link="$(grep "$description" "$bookmarks_file" | cut -d ' ' -f1)"
+    setsid -f "$BROWSER" "$link" &
+    ;;
+
+  o | open | *)
+    description="$(fzf <"$bookmarks_file")" || exit
+    link="$(grep "$description" "$bookmarks_file" | cut -d ' ' -f1)"
+    setsid -f "$BROWSER" "$link" &
+    ;;
 esac

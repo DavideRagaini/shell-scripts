@@ -33,25 +33,7 @@ save_to_last() {
 
 fplay() {
 	# notify-send "Working on:" "$(echo "$INFO" | tr -s ' ')\\n$URL"
-	if echo "$URL" | grep -q 'twitch.tv/videos/'; then
-		CHAT_DIR="${XDG_DATA_HOME}/twitch-chats"
-		mkdir -p "$CHAT_DIR"
-		FILENAME="$(echo "$URL" | cut -d'/' -f5)"
-		FILE="$CHAT_DIR/v$FILENAME.ass"
-		if [ ! -e "$CHAT_DIR/v$FILENAME.ass" ]; then
-			notify-send "Downloading Chat"
-			tcd "$FILENAME" --format ass --directory "$CHAT_DIR"
-			# awk -F '[", ":.]' '/Dialogue:/ {t=($1*60*60)+($2*60)+($3+s); $0=sprintf("%2d:%02d:%02d.%02d", t/3600, t/60%60, t%60, $4)}1' s=3 "$FILE" >"$FILE.test"
-			tcd_correct.py "$FILE" 4
-			notify-send "Done Downloading"
-		fi
-		setsid -f mpv --no-terminal --player-operation-mode=pseudo-gui \
-			--sub-use-margins --sid=auto \
-			--sub-file="$FILE" "$@" "$URL"
-		exit
-	else
-		setsid -f mpv --no-terminal --player-operation-mode=pseudo-gui "$@" "$URL"
-	fi
+	setsid -f mpv --no-terminal --player-operation-mode=pseudo-gui "$@" "$URL"
 }
 
 get_from_file() {
@@ -70,14 +52,14 @@ save_music() {
 		"$(cat "$PATH_MUSIC")" >"$PATH_MUSIC"
 }
 
-select_socket(){
+select_socket() {
 	SOCKETS="$(find /tmp/mpv -type s)"
 	if [ "$(echo "$SOCKETS" | wc -l)" -ge 2 ]; then
 		for i in $SOCKETS; do
 			TITLE="$(echo '{ "command": ["get_property", "media-title"] }' | socat -d - "$i" | jq -r '.data')"
 			PID="$i"
 			STATUS="$(echo '{ "command": ["get_property", "pause"] }' | socat -d - "$i" | jq -r '.data')"
-			[ "$STATUS" = 'true' ] && STATUS='' ||  STATUS=''
+			[ "$STATUS" = 'true' ] && STATUS='' || STATUS=''
 			LIST="${LIST}${STATUS} ${TITLE}\t${PID}\n"
 		done
 		SOCKET="$(echo "$LIST" | dmenu_def -i -l 5 -p "Choose a socket" | cut -f2)" ||
@@ -134,7 +116,7 @@ case "$CHOSEN" in
 		select_socket
 		if [ -S "$SOCKET" ]; then
 			echo "{ \"command\": [ \"loadfile\", \"$URL\", \"append-play\" ] }" |
-				socat -d - "$SOCKET" >> /tmp/mpv/log 2>&1
+				socat -d - "$SOCKET" >>/tmp/mpv/log 2>&1
 		else
 			shift "$SHIFT"
 			fplay --input-ipc-server="$SOCKET"
