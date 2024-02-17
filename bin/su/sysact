@@ -19,17 +19,17 @@ fi
 check_init() {
 	# case "$(readlink /sbin/init | cut -f3 -d'/')" in
 	case "$(grep "^NAME=" /etc/os-release | cut -f2 -d'=')" in
-		NixOS)
+		NixOS|\"NixOS\")
 			SHUTDOWN='shutdown -h now'
 			SUSPEND='systemctl suspend'
 			HIBERNATE='systemctl hibernate'
 			REBOOT='systemctl reboot';;
-		Ubuntu)
+		Ubuntu|\"Ubuntu\")
 			SHUTDOWN='sudo -A sh -c shutdown -h now'
 			SUSPEND='sudo -A sh -c systemctl suspend'
 			HIBERNATE='sudo -A sh -c systemctl hibernate'
 			REBOOT='sudo -A sh -c systemctl reboot';;
-		Void)
+		Void|\"Void\")
 			SHUTDOWN='sudo -A sh -c shutdown -h now'
 			SUSPEND='sudo -A sh -c zzz'
 			HIBERNATE='sudo -A sh -c ZZZ'
