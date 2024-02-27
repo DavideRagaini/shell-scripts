@@ -3,7 +3,7 @@
 DIR="$HOME/.cache/via"
 CACHE="$DIR/database"
 LAST="$DIR/history"
-MENU="dmenu_def -i -l 15"
+MENU="ddmenu -i -l 15"
 DATABASE="$HOME/.local/updatedb"
 
 build_cache_all() {

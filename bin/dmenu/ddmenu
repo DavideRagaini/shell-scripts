@@ -1,0 +1,15 @@
+#!/usr/bin/env sh
+
+dmenu \
+    -fn "${DMENU_FN:-IosevkaTerm Nerd Font Propo:size=12:style=bold}" \
+    -nb "${DMENU_NB:-#181321}" \
+    -nf "${DMENU_NF:-#6e5e89}" \
+    -sb "${DMENU_SB:-#4e4262}" \
+    -sf "${DMENU_SF:-#181321}" \
+    "$@"
+
+# ----- legacy -----
+# nb="#2F0B3A"
+# nf="#FF00FF"
+# sb="#BD93F9"
+# sf="#571DC2"

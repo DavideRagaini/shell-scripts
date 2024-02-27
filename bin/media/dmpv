@@ -13,18 +13,18 @@ get_title() {
 }
 
 add_to_queue() {
-	PLAYLIST="$(cut -f2 "$PATH_QUEUE" | cut -f1 -d':' | uniq | dmenu_def -i -l 15 -p "Name of the playlist?")"
+	PLAYLIST="$(cut -f2 "$PATH_QUEUE" | cut -f1 -d':' | uniq | ddmenu -i -l 15 -p "Name of the playlist?")"
 	[ -z "$PLAYLIST" ] && PLAYLIST="1shot"
 	get_title
 	notify-send "$PLAYLIST: $(echo "$INFO" | tr -s ' ')" "$URL"
-	printf "%s\t%s: %s\t%s\n" "$(date '+%d/%m/%y %k:%M')" "$PLAYLIST" "$INFO" "$URL" >>"$PATH_QUEUE"
+	printf "%s\t%-15s: %-130s\t%s\n" "$(date '+%d/%m/%y %k:%M')" "$PLAYLIST" "$INFO" "$URL" >>"$PATH_QUEUE"
 	sort -u "$PATH_QUEUE" -o "$PATH_QUEUE"
 }
 
 save_to_last() {
 	# INFO="$(yt-dlp --playlist-end=1 --print "«%(uploader,channel)-25s» %(playlist_title,title)-100s" "$URL")"
 	grep -q "$INFO" "$PATH_LAST" ||
-		printf "%-14s\t%s\t%-70s\n%s" \
+		printf "%-14s\t%-30s\t%-100s\n%s" \
 			"$(date '+%d/%m/%y %k:%M')" \
 			"$INFO" \
 			"$URL" \
@@ -36,8 +36,16 @@ fplay() {
 	setsid -f mpv --no-terminal --player-operation-mode=pseudo-gui "$@" "$URL"
 }
 
+get_from_last() {
+	CHOSEN="$(sed 's/\t/    |  /g' "$1" | ddmenu -i -l 15)" || exit
+	CHOSEN_P="$(echo "$CHOSEN" | sed 's/    |  /\t/g')"
+	LINE="$(grep -m1 -w -F "$CHOSEN_P" "$1")"
+	TITLE="$(echo "$LINE" | cut -f2-3)"
+	URL="$(echo "$LINE" | cut -f4)"
+}
+
 get_from_file() {
-	CHOSEN="$(cut -f2 "$1" | dmenu_def -i -l 15)" || exit
+	CHOSEN="$(cut -f2 "$1" | ddmenu -i -l 15)" || exit
 	LINE="$(grep -m1 -w "$CHOSEN" "$1")"
 	TITLE="$(echo "$LINE" | cut -f2)"
 	URL="$(echo "$LINE" | cut -f3)"
@@ -62,7 +70,7 @@ select_socket() {
 			[ "$STATUS" = 'true' ] && STATUS='' || STATUS=''
 			LIST="${LIST}${STATUS} ${TITLE}\t${PID}\n"
 		done
-		SOCKET="$(echo "$LIST" | dmenu_def -i -l 5 -p "Choose a socket" | cut -f2)" ||
+		SOCKET="$(echo "$LIST" | ddmenu -i -l 5 -p "Choose a socket" | cut -f2)" ||
 			exit
 	else
 		SOCKET=$SOCKETS
@@ -90,10 +98,11 @@ info_queue
 info_last
 edit_queue
 edit_last
+clean_history
 lectures
 local
 last_lecture"
-	CHOSEN="$(echo "$CMDS" | dmenu_def -i)" || exit
+	CHOSEN="$(echo "$CMDS" | ddmenu -i)" || exit
 	URL="$(xclip -selection clipboard -o)" >/dev/null
 else
 	CHOSEN="$1"
@@ -135,24 +144,24 @@ case "$CHOSEN" in
 		;;
 	lectures)
 		VIDEOS="${XDG_VIDEOS_DIR:-$HOME/Storage/Videos}"
-		CHOSEN="$(find "$VIDEOS/Lectures" -mindepth 1 -maxdepth 1 | dmenu_def -i -l 15)" ||
+		CHOSEN="$(find "$VIDEOS/Lectures" -mindepth 1 -maxdepth 1 | ddmenu -i -l 15)" ||
 			exit
 		mpv "$CHOSEN"
 		;;
 	'local')
 		VIDEOS1="$(find "${XDG_VIDEOS_DIR:-$HOME/Storage/Videos}" -maxdepth 2)"
 		VIDEOS2="$(find "$HOME/Storage/Archive/Torrents/Complete" -maxdepth 2)"
-		CHOSEN="$(printf "%s\n%s" "$VIDEOS1" "$VIDEOS2" | dmenu_def -i -l 15)" ||
+		CHOSEN="$(printf "%s\n%s" "$VIDEOS1" "$VIDEOS2" | ddmenu -i -l 15)" ||
 			exit
 		mpv "$CHOSEN"
 		;;
 	last)
-		get_from_file "$PATH_LAST"
+		get_from_last "$PATH_LAST"
 		# notify-send "Working on:" "$(echo "$INFO" | tr -s ' ')\\n$URL" -a "$APPNAME"
 		fplay
 		;;
 	save_m3u)
-		PLAYLIST="$(printf '' | dmenu_def -i -l 15 -p "Name of the playlist? (Defaults to playlist's name)")"
+		PLAYLIST="$(printf '' | ddmenu -i -l 15 -p "Name of the playlist? (Defaults to playlist's name)")"
 		[ -z "$PLAYLIST" ] && PLAYLIST="$(yt-dlp --playlist-end=1 -O "%(playlist_title)s" "$URL")"
 		PLAYLIST_PATH="$DIR/playlists/$PLAYLIST.m3u"
 		printf '#EXTM3U\n\n' >"$PLAYLIST_PATH"
@@ -162,7 +171,7 @@ case "$CHOSEN" in
 		;;
 	playlist)
 		find "$HOME/.config/mpv/playlists" -type f |
-			dmenu_def -i -l 10 |
+			ddmenu -i -l 10 |
 			xargs -r mpv
 		;;
 	music)
@@ -190,6 +199,10 @@ case "$CHOSEN" in
 		notify-send "Yanked:" "$(echo "$INFO" | tr -s ' ')\\n$URL"
 		printf "[[%s][%s]]" "$URL" "$INFO" | xclip -i -selection clipboard
 		;;
+	clean_history)
+		CLEAR="$(sort -k 3,3 -u "$PATH_LAST" | sort -k 1,1 -r)"
+		printf '%s' "$CLEAR" >"$PATH_LAST"
+	;;
 	info_last)
 		get_from_file "$PATH_LAST"
 		notify-send "Yanked:" "$(echo "$INFO" | tr -s ' ')\\n$URL"

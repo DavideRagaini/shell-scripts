@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/bin/sh
 
 bookmarks_file="$HOME/.config/qutebrowser/bookmarks/urls"
 case "$1" in
@@ -12,13 +12,13 @@ case "$1" in
 
   S | Save)
     content="$(xclip -selection clipboard -o)"
-    title="$(dmenu_def -p 'Title: ')" || exit
+    title="$(ddmenu -p 'Title: ')" || exit
     grep -q "^$content$" "$bookmarks_file" ||
       echo "$content $title" >>"$bookmarks_file"
     ;;
 
   d | dmenu)
-    description="$(dmenu_def -l 10 -p 'Bookmarks:' <"$bookmarks_file")" || exit
+    description="$(ddmenu -l 10 -p 'Bookmarks:' <"$bookmarks_file")" || exit
     link="$(grep "$description" "$bookmarks_file" | cut -d ' ' -f1)"
     setsid -f "$BROWSER" "$link" &
     ;;

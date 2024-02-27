@@ -11,7 +11,7 @@ if [ -z "$1" ]; then
 	Hibernate
 	Display
 	Shutdown"
-	choice="$(printf "%s" "$cmds" | cut -d'	' -f 2 | dmenu_def -i -p 'Choose an action:')"
+	choice="$(printf "%s" "$cmds" | cut -d'	' -f 2 | ddmenu-i -p 'Choose an action:')"
 else
 	choice="$1"
 fi
@@ -30,10 +30,10 @@ check_init() {
 			HIBERNATE='sudo -A sh -c systemctl hibernate'
 			REBOOT='sudo -A sh -c systemctl reboot';;
 		Void|\"Void\")
-			SHUTDOWN='sudo -A sh -c shutdown -h now'
-			SUSPEND='sudo -A sh -c zzz'
-			HIBERNATE='sudo -A sh -c ZZZ'
-			REBOOT='sudo -A sh -c reboot -i now';;
+			SHUTDOWN='sudo -A shutdown -h now'
+			SUSPEND='sudo -A zzz'
+			HIBERNATE='sudo -A ZZZ'
+			REBOOT='sudo -A reboot -i now';;
 		*)
 			notify-send "Error: INIT SYSTEM not recognised" ;;
 	esac

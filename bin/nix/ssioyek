@@ -1,0 +1,3 @@
+#!/bin/sh
+
+sioyek --new-window >/dev/null 2>&1

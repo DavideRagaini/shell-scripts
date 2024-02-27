@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 LOCATION='Fano'
 wttr="${XDG_CACHE_HOME:-$HOME/.cache}/weatherreport-full"
