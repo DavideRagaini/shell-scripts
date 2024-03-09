@@ -2,12 +2,13 @@
 
 [ -d "$HOME/Screenshots/" ] && default="$HOME/Screenshots/"
 directory="$(fd -td -E octave -E Packages -E perl5 -E Music -E Books -E Pictures -E MATLAB -E mnt -E Videos -E sources -E Storage "^[0-9a-zA-Z]*" "$HOME")"
-directory="$(printf '%s\n%s' "$default" "$directory" | dmenu -i -l 5 -p "Save to which location")" || exit
-name="$(date '+%y_%m_%d-%H_%M_%S').png"
+directory="$(printf '%s\n%s' "$default" "$directory" | ddmenu -i -l 5 -p "Save to which location")" || exit
+default_name="$(date '+%y_%m_%d-%H_%M_%S').png"
+name="$(ddmenu -i -l 5 -p "File Name? default = $default_name")" || name="$default_name"
 xclip_cmd="xclip -sel clip -t image/png"
 
-case "$(printf "a selected area\\ncurrent window\\nfull screen\\na selected area (copy)\\ncurrent window (copy)\\nfull screen (copy)" | dmenu -l 6 -i -p "Screenshot which area?")" in
-    "a selected area") maim -s "${directory}/A${name}" ;;
+case "$(printf "a selected area\\ncurrent window\\nfull screen\\na selected area (copy)\\ncurrent window (copy)\\nfull screen (copy)" | ddmenu -l 6 -i -p "Screenshot which area?")" in
+    "a selected area") maim -s "${directory}/${name:-A$default_name}" ;;
     "current window") maim -q -d 0.2 -i "$(xdotool getactivewindow)" "${directory}/W${name}" ;;
     "full screen") maim -q -d 0.2 "${directory}/F${name}" ;;
     "a selected area (copy)") maim -s | ${xclip_cmd} ;;

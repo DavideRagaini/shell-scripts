@@ -6,7 +6,7 @@ PATH_LAST="$DIR/history.log"
 PATH_MUSIC="$DIR/music"
 
 get_title() {
-	if ! INFO="$(yt-dlp --playlist-end=1 --print "«%(uploader,channel)-25s» %(playlist_title,title)-100s" "$URL" 2>&1)"; then
+	if ! INFO="$(yt-dlp --playlist-end=1 --print "%(uploader,channel)-25s : %(playlist_title,title)-100s" "$URL" 2>&1)"; then
 		notify-send "Error Adding to Queue" "$(echo "$INFO" | tr -s ' ')"
 		exit
 	fi
@@ -17,7 +17,7 @@ add_to_queue() {
 	[ -z "$PLAYLIST" ] && PLAYLIST="1shot"
 	get_title
 	notify-send "$PLAYLIST: $(echo "$INFO" | tr -s ' ')" "$URL"
-	printf "%s\t%-15s: %-130s\t%s\n" "$(date '+%d/%m/%y %k:%M')" "$PLAYLIST" "$INFO" "$URL" >>"$PATH_QUEUE"
+	printf "%s\t%-20s: %-130s\t%s\n" "$(date '+%d/%m/%y %k:%M')" "$PLAYLIST" "$INFO" "$URL" >>"$PATH_QUEUE"
 	sort -u "$PATH_QUEUE" -o "$PATH_QUEUE"
 }
 
