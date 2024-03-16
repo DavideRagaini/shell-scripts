@@ -3,16 +3,17 @@
 RED='\033[0;31m'
 YELLOW='\033[0;33m'
 NC='\033[0m' # No Color
-MINE=0
+MAINS=0
 
 SRC_PATH="$HOME/.local/src"
+[ "$(hostname)" = 'Apollo' ] && SRC_PATH="$HOME/sources"
 
-SRC_REPOS_MINE="dotfiles
+SRC_REPO_MAINS="dotfiles
 shell-scripts
 dwm
 startpage"
 
-SRC_REPOS_OTHERS="st
+SRC_REPO_OTHERS="st
 dwmblocks
 dwmblocks-async
 dmenu"
@@ -21,41 +22,45 @@ ORG="$HOME/Org"
 
 push() {
     [ -d "$1" ] &&
-        echo "${RED}Pushing:${YELLOW} "$1" ${NC}" &&
+        echo "${RED}Pushing:${YELLOW} $1 ${NC}" &&
         git -C "$1" push &&
         echo
 }
 
 pull() {
     [ -d "$1" ] &&
-        echo "${RED}Pulling from:${YELLOW} "$1" ${NC}" &&
+        echo "${RED}Pulling from:${YELLOW} $1 ${NC}" &&
         git -C "$1" pull &&
         echo
 }
 
 case "$1" in
-	pull) OPR='pull'; MINE=145 ;;
-	push) OPR='push' ;;
-	*) echo "Operation?" ;;
+    pull) OPR='pull'; MAINS=145 ;;
+    push) OPR='push' ;;
+    *) echo "Operation?" ;;
 esac
 
 case "$2" in
-	all)
+    all)
         $OPR "$ORG"
-        for i in $SRC_REPOS_MINE; do
+        for i in $SRC_REPO_MAINS; do
             $OPR "$SRC_PATH/$i"
         done
-        if [ $MINE -eq 145 ]; then
-            for i in $SRC_REPOS_OTHERS; do
+        if [ $MAINS -eq 145 ]; then
+            for i in $SRC_REPO_OTHERS; do
                 $OPR "$SRC_PATH/$i"
             done
         fi
         ;;
-	mains)
+    mains)
         $OPR "$SRC_PATH/dotfiles"
         $OPR "$SRC_PATH/shell-scripts"
         $OPR "$ORG"
         ;;
-	*)
-		echo "sync what?" ;;
+    dir)
+        find "$3" -type d -exec test -e '{}/.git' ';' -print0 |
+            xargs -I {} -0 git -C {} pull origin master
+        ;;
+    *)
+        echo "sync what?" ;;
 esac
