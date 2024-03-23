@@ -1,0 +1,26 @@
+#!/bin/sh
+
+set_profile() {
+	pactl set-card-profile alsa_card.pci-0000_00_14.2 output:"$1"
+	pactl set-sink-volume @DEFAULT_SINK@ "$2"%
+	echo "Switching to $3"
+	# pactl info
+}
+
+case $1 in
+	monitor | m)
+		set_profile analog-stereo 75 Monitor
+		;;
+	surround | s)
+		set_profile hdmi-stereo 100 Surround
+		;;
+	toggle | *)
+		CURRENT="$(pactl info | grep Sink)"
+		echo "$CURRENT"
+		if echo "$CURRENT" | grep -q analog; then
+			set_profile hdmi-stereo 100 Surround
+		elif echo "$CURRENT" | grep -q hdmi; then
+			set_profile analog-stereo 75 Monitor
+		fi
+		;;
+esac
