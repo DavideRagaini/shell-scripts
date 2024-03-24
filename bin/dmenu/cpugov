@@ -137,4 +137,4 @@ do case "${o}" in
 esac done
 
 [ -z "$1" ] && err
-change_settings $MIN_SPEED $MAX_SPEED $GOVERNOR
+change_settings "$MIN_SPEED" "$MAX_SPEED" "$GOVERNOR"

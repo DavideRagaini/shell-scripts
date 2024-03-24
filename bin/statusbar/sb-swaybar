@@ -1,0 +1,143 @@
+#!/bin/sh
+
+# ---------- sb-music ----------
+[ "$(mpc status | awk 'NR==2 {print $1}')" = "[playing]" ] &&
+    SB_MUSIC="$(mpc current -f "A %artist% T %title% - %track%°%album%")"
+
+# ---------- sb-forecast ----------
+# LOCATION='Fano'
+# weatherreport="${XDG_CACHE_HOME:-$HOME/.cache}/weatherreport"
+# getforecast() { curl -sf "wttr.in/$LOCATION" > "$weatherreport" || exit 1 ;}
+
+# # Some very particular and terse stream manipulation. We get the maximum
+# # precipitation chance and the daily high and low from the downloaded file and
+# # display them with coresponding emojis.
+# showweather() { printf "%s" "$(sed '16q;d' "$weatherreport" |
+# 	grep -wo "[0-9]*%" | sort -rn | sed "s/^/[☔/g;1q" | tr -d '\n')"
+# sed '13q;d' "$weatherreport" | grep -o "m\\([-+]\\)*[0-9]\\+" | sed 's/+//g' | sort -n -t 'm' -k 2n | sed -e 1b -e '$!d' | tr '\n|m' ' ' | awk '{print " ❄️" $1 "°","🌞" $2 "°]"}' ;}
+
+# case $BLOCK_BUTTON in
+# 	1) setsid -f "$TERMINAL" -e less -Srf "$weatherreport" ;;
+# 	2) getforecast && showweather ;;
+# 	3) notify-send "🌈 Weather module" "\- Left click for full forecast.
+# - Middle click to update forecast.
+# ☔: Chance of rain/snow
+# 🥶: Daily low
+# 🌞: Daily high" ;;
+# 	6) "$TERMINAL" -e "$EDITOR" "$0" ;;
+# esac
+
+# # The test if our forcecast is updated to the day. If it isn't download a new
+# # weather report from wttr.in with the above function.
+# [ "$(stat -c %y "$weatherreport" 2>/dev/null | cut -d' ' -f1)" = "$(date '+%Y-%m-%d')" ] ||
+# 	getforecast
+
+# SB_FORECAST=showweather
+
+# ---------- sb-cpu ----------
+ZONE=3
+LOAD="$(cut -d ' ' -f1-3 /proc/loadavg)"
+CORES="$(cat /sys/devices/system/cpu/online)"
+R=$(shuf -i "$CORES" -n 1 2>/dev/null) ||
+    R="$CORES"
+CLOCK="$(cat /sys/devices/system/cpu/cpu"$R"/cpufreq/scaling_cur_freq)"
+if [ -d  "/sys/class/thermal/thermal_zone$ZONE" ]; then
+    TEMP=" $(cut -c -2 /sys/class/thermal/thermal_zone$ZONE/temp)"
+else
+    TEMP="$(sensors | awk '/temp/ {print $2}' | tr -d "\n" | sed 's/+/ /g; s/°C//g; s/\.[0-9]//g')"
+fi
+# [ "$TEMP" -gt 70 ] &&
+#     notify-send -i '/usr/share/icons/Paper/512x512/status/gtk-dialog-warning.png' "CPU Temp High!"
+[ "$CLOCK" -lt 1000000 ] && N=3
+CLOCK="$(echo "$CLOCK" | cut -c -${N:-4})"
+SB_CPU="$(printf "[%s %d@%s%sC]" "$LOAD" "$R" "$CLOCK" "$TEMP")"
+
+# ---------- sb-tb_cpu ----------
+POLICY="policy0"
+CUR_MIN_FRQ="$(cat /sys/devices/system/cpu/cpufreq/$POLICY/scaling_min_freq | cut -c -3)"
+CUR_MAX_FRQ="$(cat /sys/devices/system/cpu/cpufreq/$POLICY/scaling_max_freq)"
+CUR_GOVERNOR="$(cat /sys/devices/system/cpu/cpufreq/$POLICY/scaling_governor | cut -c -3)"
+
+if [ "$CUR_MAX_FRQ" -ge 1000000 ]; then
+      CUR_MAX_FRQ="$(echo "$CUR_MAX_FRQ" | cut -c -4)"
+   else
+      CUR_MAX_FRQ="$(echo "$CUR_MAX_FRQ" | cut -c -3)"
+fi
+
+SB_TB_CPU="$(printf '[%s %s-%s]' "$CUR_GOVERNOR" "$CUR_MIN_FRQ" "$CUR_MAX_FRQ")"
+
+# ---------- sb-memory ----------
+SB_MEMORY="$(printf "[%s]" "$(free -m | awk 'NR>1 {print $3}' | paste -sd'/')")"
+
+# ---------- sb-bluetooth ----------
+SB_BLUETOOTH="$([ "$(/sbin/rfkill | awk '/hci0/ {print $4}')" = "unblocked" ] && printf " ")"
+
+# ---------- sb-internet ----------
+[ "$(nmcli radio wifi)" = "enabled" ] &&
+    sleep 10 &&
+    # wifiicon="" &&
+    wifiicon="W" &&
+    signal="$(awk '/wlp*/ {print int($3 * 100 / 70) "%" }' /proc/net/wireless) "
+# printf "[%s%s%s]" "$wifiicon" "$signal" "$(sed "s/down/❎/;s/up//;s/unknown//" /sys/class/net/e*/operstate)"
+SB_INTERNET="$(printf "[%s%s%s" "$wifiicon" "$signal" "$(sed "s/down/❎/;s/up/E/;s/unknown//" /sys/class/net/e*/operstate)")"
+
+# ---------- sb-nettraf ----------
+update() {
+	sum=0
+	for arg; do
+		read -r i <"$arg"
+		sum=$((sum + i))
+	done
+    cache=/tmp/${1##*/}
+	[ -f "$cache" ] && read -r old <"$cache" || old=0
+	printf %d\\n "$sum" >"$cache"
+	printf %d\\n $((sum - old))
+}
+
+rx=$(update /sys/class/net/[ew]*/statistics/rx_bytes)
+tx=$(update /sys/class/net/[ew]*/statistics/tx_bytes)
+
+SB_NETTRAF="$(printf "%4sB %4sB]\\n" "$(numfmt --to=iec "$rx")" "$(numfmt --to=iec "$tx")")"
+
+# ---------- sb-df ----------
+SB_DF="[$(df -h /dev/mmcblk2p1 /dev/mmcblk0p1 | awk 'NR>1 {print $3"/"$4}' | sed ':a;N;$!ba;s/\n/ /g')]"
+
+# ---------- sb-volume ----------
+is_muted(){
+	echo "$1" |
+		grep "$2" >/dev/null &&
+		printf "[M]" &&
+		exit
+}
+
+volstat="$(wpctl get-volume @DEFAULT_AUDIO_SINK@)"
+is_muted "$volstat" "MUTED"
+vol="$(echo "$volstat" | cut -f2 -d' ')"
+
+SB_SINK="$(wpctl inspect @DEFAULT_AUDIO_SINK@ | awk '/alsa\.card_name/ {print $3}' | tr -d '"')"
+SB_VOLUME="$(printf "[%s %s]" "$vol" "$SB_SINK")"
+
+# ---------- sb-uptime ----------
+SB_UPTIME="$(uptime | awk '{gsub(",",""); print "[" $3"]"}')"
+
+# ---------- sb-clock ----------
+SB_CLOCK="$(printf "[%s]" "$(date '+%T')")"
+
+# ---------- sb-date ----------
+SB_DATE="$(printf "[%s]" "$(date '+%V %a %d/%B/%y')")"
+
+printf "%s %s %s %s%s %s %s %s %s %s %s %s" \
+    "${SB_MUSIC:-}" \
+    "$SB_CPU" \
+    "$SB_TB_CPU" \
+    "$SB_MEMORY" \
+    "$SB_BLUETOOTH" \
+    "$SB_INTERNET" \
+    "$SB_NETTRAF" \
+    "$SB_DF" \
+    "$SB_VOLUME" \
+    "$SB_UPTIME" \
+    "$SB_DATE" \
+    "$SB_CLOCK"
+    # "$SB_FORECAST" \
+    # "$SB_" \
