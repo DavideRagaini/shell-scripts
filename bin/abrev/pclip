@@ -1,0 +1,10 @@
+#!/bin/ sh
+
+case "$(printenv XDG_SESSION_TYPE)" in
+    wayland)
+        wl-paste
+        ;;
+    tty | x11)
+        xclip -selection clipboard -o
+        ;;
+esac
