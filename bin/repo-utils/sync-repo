@@ -18,7 +18,7 @@ dwmblocks
 dwmblocks-async
 dmenu"
 
-ORG="$HOME/Org"
+ORG="$HOME/org"
 
 push() {
     [ -d "$1" ] &&

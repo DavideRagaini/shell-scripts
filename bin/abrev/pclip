@@ -1,4 +1,4 @@
-#!/bin/ sh
+#!/bin/sh
 
 case "$(printenv XDG_SESSION_TYPE)" in
     wayland)

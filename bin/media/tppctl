@@ -8,6 +8,8 @@ com() {
   ARGS="$(echo "$@" | sed 's/ /\", \"/g')"
   echo "{ \"command\": [\"$ARGS\"] }" |
     socat -d - "$CHOSEN"
+  echo "show-text \"$*\" 5000" |
+    socat -d - "$CHOSEN"
 }
 
 set_all() {
@@ -28,7 +30,7 @@ choose_instance() {
       [ "$STATUS" = 'true' ] && STATUS='' ||  STATUS=''
       LIST="${LIST}${STATUS} ${TITLES} (${i})\n"
     done
-    CHOSEN="$(echo "${LIST}" | dmenu -i -l 5 -p "$1")"
+    CHOSEN="$(echo "${LIST}" | ddmenu -i -l 5 -p "$1")"
   fi
   CHOSEN="${CHOSEN##*(}"
   CHOSEN="${CHOSEN%%)*}"
@@ -49,6 +51,12 @@ case "$1" in
     ;;
   pauseall)
     set_all '{ "command": ["set_property", "pause", true] }'
+    ;;
+  volume)
+    choose_instance "Set volume to:"
+    VOLUME="$(com get_property "volume" | jq -r ".data" | cut -d'.' -f1)"
+    DELTA="$2"
+    com set_property "volume $((VOLUME+DELTA))"
     ;;
   invert)
     set_all '{ "command": ["cycle", "pause"] }'
@@ -92,7 +100,7 @@ case "$1" in
     if [ -n "$2" ]; then
       VALUE="$2"
     else
-      VALUE="$(printf "on\noff" | dmenu -i)"
+      VALUE="$(printf "on\noff" | ddmenu -i)"
     fi
     choose_instance "Set video:"
     case "$VALUE" in

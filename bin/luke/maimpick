@@ -1,7 +1,7 @@
 #!/bin/sh
 
-[ -d "$HOME/Screenshots/" ] && default="$HOME/Screenshots/"
-directory="$(fd -td -E octave -E Packages -E perl5 -E Music -E Books -E Pictures -E MATLAB -E mnt -E Videos -E sources -E Storage "^[0-9a-zA-Z]*" "$HOME")"
+[ -d "$HOME/scs/" ] && default="$HOME/scs/"
+directory="$(fd -td -E octave -E pkg -E perl5 -E mus -E bok -E pic -E MATLAB -E mnt -E vid -E sources -E str "^[0-9a-zA-Z]*" "$HOME")"
 directory="$(printf '%s\n%s' "$default" "$directory" | ddmenu -i -l 5 -p "Save to which location")" || exit
 default_name="$(date '+%y_%m_%d-%H_%M_%S').png"
 name="$(ddmenu -i -l 5 -p "File Name? default = $default_name")" || name="$default_name"

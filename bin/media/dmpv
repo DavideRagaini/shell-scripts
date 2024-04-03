@@ -6,19 +6,19 @@ PATH_LAST="$DIR/history.log"
 PATH_MUSIC="$DIR/music"
 
 get_title() {
-	if ! INFO="$(yt-dlp --playlist-end=1 --print "%(uploader,channel)-25s : %(playlist_title,title)-100s" "$URL" 2>&1)"; then
+	if ! INFO="$(yt-dlp --playlist-end=1 --print "%(uploader,channel)-25s : %(playlist_title,title)-100s" "$URL")"; then
 		notify-send "Error Adding to Queue" "$(echo "$INFO" | tr -s ' ')"
 		exit
 	fi
 }
 
 add_to_queue() {
-	PLAYLIST="$(cut -f2 "$PATH_QUEUE" | cut -f1 -d':' | uniq | ddmenu -i -l 15 -p "Name of the playlist?")"
+	PLAYLIST="$(cut -f2 "$PATH_QUEUE" | cut -f1 -d':' | sort -u -f | ddmenu -i -l 15 -p "Name of the playlist?")"
 	[ -z "$PLAYLIST" ] && PLAYLIST="1shot"
 	get_title
 	notify-send "$PLAYLIST: $(echo "$INFO" | tr -s ' ')" "$URL"
 	printf "%s\t%-20s: %-130s\t%s\n" "$(date '+%d/%m/%y %k:%M')" "$PLAYLIST" "$INFO" "$URL" >>"$PATH_QUEUE"
-	sort -u "$PATH_QUEUE" -o "$PATH_QUEUE"
+	sort -u -f "$PATH_QUEUE" -o "$PATH_QUEUE"
 }
 
 save_to_last() {
@@ -126,6 +126,8 @@ case "$CHOSEN" in
 		if [ -S "$SOCKET" ]; then
 			echo "{ \"command\": [ \"loadfile\", \"$URL\", \"append-play\" ] }" |
 				socat -d - "$SOCKET" >>/tmp/mpv/log 2>&1
+			echo "show-text \"added $URL\" 5000" |
+				socat -d - "$SOCKET" >>/tmp/mpv/log 2>&1
 		else
 			shift "$SHIFT"
 			fplay --input-ipc-server="$SOCKET"
@@ -202,7 +204,7 @@ case "$CHOSEN" in
 	clean_history)
 		CLEAR="$(sort -k 3,3 -u "$PATH_LAST" | sort -k 1,1 -r)"
 		printf '%s' "$CLEAR" >"$PATH_LAST"
-	;;
+		;;
 	info_last)
 		get_from_file "$PATH_LAST"
 		notify-send "Yanked:" "$(echo "$INFO" | tr -s ' ')\\n$URL"

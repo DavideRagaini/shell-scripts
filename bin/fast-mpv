@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+
+get_title() {
+    TITLE="$(yt-dlp -o '%(title)s' "$1" --get-filename --skip-download --no-warnings)"
+    titlepid=$!
+    [ -n "$titlepid" ] && wait "$titlepid"
+    sleep 10
+    echo "{ \"command\": [\"set\", \"media-title\". \"$TITLE\"] }" |
+        socat -d - "$CHOSEN"
+}
+
+URL="$1"
+SOCKET="$HOME/.cache/mpv_fast"
+get_title "$URL" &
+shift
+yt-dlp -q \
+    -f "bestvideo[height>=?1080][vcodec~='^(h264)'][vcodec!=?vp9][protocol!=http_dash_segments]+bestaudio/best" \
+    --external-downloader=aria2c \
+    --external-downloader-args "--min-split-size=1M --max-connection-per-server=2 --max-concurrent-downloads=2 --split=2" \
+    -o - "$URL" |
+    mpv --input-ipc-server="$SOCKET" --player-operation-mode=pseudo-gui --title="$TITLE" "$@" -
