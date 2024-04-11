@@ -3,8 +3,8 @@
 dmenu \
     -fn "${DMENU_FN:-IosevkaTerm Nerd Font Propo:size=12:style=bold}" \
     -nb "${DMENU_NB:-#181321}" \
-    -nf "${DMENU_NF:-#6e5e89}" \
-    -sb "${DMENU_SB:-#4e4262}" \
+    -nf "${DMENU_NF:-#FF92D0}" \
+    -sb "${DMENU_SB:-#FF92D0}" \
     -sf "${DMENU_SF:-#181321}" \
     "$@"
 

@@ -1,22 +1,25 @@
 #!/bin/sh
 
-# if [ "$(pgrep spotifyd)" ]; then # || [ "$(playerctl -l | grep -q spotifyd)" ]
-#     case "$1" in
-#         toggle)
-#             dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotifyd /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.PlayPause ;;
-#         play)
-#             dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotifyd /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.Play ;;
-#         pause)
-#             dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotifyd /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.Pause ;;
-#         next)
-#             dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotifyd /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.Next ;;
-#         prev)
-#             dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotifyd /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.Previous ;;
-#         # TODO
-#         # seekf) playerctl -p spotifyd position 10+ ;;
-#         # seekp) playerctl -p spotifyd position 10- ;;
-#     esac
-# else
+if [ "$(pgrep spotify_player)" ]; then
+    case "$1" in
+        toggle)
+            dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotify_player /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.PlayPause ;;
+        play)
+            dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotify_player /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.Play ;;
+        pause)
+            dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotify_player /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.Pause ;;
+        next)
+            dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotify_player /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.Next ;;
+        prev)
+            dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotify_player /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.Previous ;;
+        volume)
+            dbus-send --print-reply --session --dest=org.mpris.MediaPlayer2.spotify_player /org/mpris/MediaPlayer2 org.freedesktop.DBus.Properties.Set string:org.mpris.MediaPlayer2.Player string:Volume variant:double:"$2".0
+            ;;
+        # TODO
+        # seekf) playerctl -p spotify_player position 10+ ;;
+        # seekp) playerctl -p spotify_player position 10- ;;
+    esac
+else
     case "$1" in
         toggle) mpc -q toggle ;;
         play) mpc -q play ;;
@@ -25,5 +28,6 @@
         prev) mpc -q prev ;;
         seekf) mpc -q seekthrough 10 ;;
         seekp) mpc -q seekthrough -10 ;;
+        volume) mpc volume "$2" ;;
     esac
-# fi
+fi

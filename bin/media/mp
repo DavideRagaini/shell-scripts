@@ -1,16 +1,7 @@
 #!/bin/sh
 
-if [ "$1" = 'down' ]; then
-	pkill librespot
-	pkill spotifyd
-	pkill spotify-tui
-	exit
-elif [ "$1" = 'Spotify' ]; then
+if [ "$1" = 'Spotify' ]; then
 	CHOSEN="Spotify"
-elif pidof -q librespot; then
-	CHOSEN="sptui"
-elif pidof -q spotifyd; then
-	CHOSEN="sptui"
 elif mpc status | grep -q playing; then
 	CHOSEN="Local"
 else
@@ -19,29 +10,6 @@ fi
 
 case "$CHOSEN" in
 	Local) exec ncmpcpp ;;
-	Spotify)
-		if command -v 'librespot'; then
-		librespot \
-			--c ~/.cache/librespot \
-			--backend alsa \
-			--cache-size-limit 1G \
-			--name "$(hostname)" \
-			--device-type computer \
-			--initial-volume 100 \
-			--enable-volume-normalisation \
-			--normalisation-pregain -7 \
-			--bitrate 320
-		elif command -v 'spotifyd'; then
-			setsid -f spotifyd
-		fi ;;
-	sptui)
-		if command -v spotify-tui; then
-			FRONTEND="spotify-tui"
-		elif command -v spt; then
-			FRONTEND='spt'
-		else
-			FRONTEND='/home/davide/.local/share/cargo/bin/spt'
-		fi
-		exec $FRONTEND ;;
+	Spotify) exec spotify_player ;;
 	*) notify-send "Something wrong"
 esac

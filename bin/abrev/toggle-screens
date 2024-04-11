@@ -1,0 +1,12 @@
+#!/bin/sh
+
+M1=HDMI-0
+M2=DVI-D-0
+
+if [ "$(xrandr | grep "*" | wc -l)" = 1 ] ; then
+    xrandr \
+        --output "$M1"  --rotate normal --pos 0x0    --mode 1920x1080 --primary \
+        --output "$M2" --rotate right  --pos 1920x15 --mode 1920x1080 # main hdmi + vert right
+else
+    xrandr --output "$M1" --auto --output "$M2" --off
+fi

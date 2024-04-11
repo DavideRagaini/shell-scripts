@@ -27,7 +27,7 @@ choose_instance() {
       CHOSEN="$i"
       TITLES="$(com get_property media-title | jq -r '.data')"
       STATUS="$(com get_property pause | jq -r '.data')"
-      [ "$STATUS" = 'true' ] && STATUS='' ||  STATUS=''
+      [ "$STATUS" = 'true' ] && STATUS='' || STATUS=''
       LIST="${LIST}${STATUS} ${TITLES} (${i})\n"
     done
     CHOSEN="$(echo "${LIST}" | ddmenu -i -l 5 -p "$1")"
@@ -56,7 +56,7 @@ case "$1" in
     choose_instance "Set volume to:"
     VOLUME="$(com get_property "volume" | jq -r ".data" | cut -d'.' -f1)"
     DELTA="$2"
-    com set_property "volume $((VOLUME+DELTA))"
+    com set_property "volume $((VOLUME + DELTA))"
     ;;
   invert)
     set_all '{ "command": ["cycle", "pause"] }'

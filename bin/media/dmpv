@@ -82,26 +82,29 @@ music_play() {
 }
 
 if [ -z "$1" ]; then
-	CMDS="queue
+	CMDS="aplay
+append
+clean history
+delete playlist
+delete queue
+edit last
+edit queue
 enqueue
 eplay
-aplay
-append
+get title
+info last
+info queue
 last
-playlist
-music
-save_music
-music_queue
-get_title
-save_m3u
-info_queue
-info_last
-edit_queue
-edit_last
-clean_history
+last lecture
 lectures
 local
-last_lecture"
+music
+music queue
+playlist
+queue
+save m3u
+save music
+search"
 	CHOSEN="$(echo "$CMDS" | ddmenu -i)" || exit
 	URL="$(xclip -selection clipboard -o)" >/dev/null
 else
@@ -120,6 +123,11 @@ case "$CHOSEN" in
 		get_from_file "$PATH_QUEUE"
 		# save_to_last
 		fplay
+		;;
+	'delete queue')
+		get_from_file "$PATH_QUEUE"
+		grep -v "$URL" "$PATH_QUEUE" >"$DIR/queue.tmp" &&
+			mv "$DIR/queue.tmp" "$PATH_QUEUE"
 		;;
 	append)
 		select_socket
@@ -171,10 +179,22 @@ case "$CHOSEN" in
 		yt-dlp -O "$FORMAT" "$URL" >>"$PLAYLIST_PATH"
 		sed -i 's/\\n/\n/g' "$PLAYLIST_PATH"
 		;;
+	# search)
+	# 	shift
+	# 	S1="$(grep "$@" "$DIR/queue")"
+	# 	S2="$(rg -i "$@" "$DIR/playlists/")"
+	# 	C="$(printf "%s\n%s" "$S1" "$S2" | ddmenu -i -l 10)"
+	# 	echo "$C"
+		# ;;
 	playlist)
 		find "$HOME/.config/mpv/playlists" -type f |
 			ddmenu -i -l 10 |
 			xargs -r mpv
+		;;
+	'delete playlist')
+		find "$HOME/.config/mpv/playlists" -type f |
+			ddmenu -i -l 10 |
+			xargs -r rm
 		;;
 	music)
 		save_music
