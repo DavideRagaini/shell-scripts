@@ -1,0 +1,13 @@
+#!/bin/sh
+
+SOCKETS="$(find "/tmp/mpv" -type s)"
+
+n=1
+MPV_VOLUMES=''
+for i in $SOCKETS; do
+    MPV_VOLUMES="$MPV_VOLUMES$n:$(echo "{ \"command\": [\"get_property\", \"volume\"] }" | socat -d - "$i" | jq -r '.data' | cut -f1 -d'.')"
+    n=$(( n+1 ))
+done
+
+MPD_VOL="$(mpc | awk 'NR==3 {sub("%",""); print $2}')"
+echo "m$MPD_VOL M[$MPV_VOLUMES]"

@@ -13,7 +13,7 @@ get_title() {
 }
 
 add_to_queue() {
-	PLAYLIST="$(cut -f2 "$PATH_QUEUE" | cut -f1 -d':' | sort -u -f | ddmenu -i -l 15 -p "Name of the playlist?")"
+	PLAYLIST="$(cut -f2 "$PATH_QUEUE" | cut -f1 -d':' | tr -d ' ' | sort -u -f | ddmenu -i -p "Name of the playlist?")"
 	[ -z "$PLAYLIST" ] && PLAYLIST="1shot"
 	get_title
 	notify-send "$PLAYLIST: $(echo "$INFO" | tr -s ' ')" "$URL"

@@ -1,31 +1,36 @@
 #!/bin/sh
 
-VIDEO_DIR="$HOME/Storage/Videos/Downloads"
-AUDIO_DIR="$HOME/Storage/Podcasts/YT"
-FILE_TEMPLATE="%(uploader)s/[%(upload_date>%Y-%m-%d)s] %(title)s.%(ext)s"
+set -x
+DIR="$HOME/vid/downloads"
+AUDIO_DIR="$HOME/pod/yt"
+TEMPLATE="%(uploader)s - %(title)s [%(upload_date>%Y-%m-%d)s].%(ext)s"
 PLAYLIST_TEMPLATE="%(uploader)s/%(playlist)s/[%(upload_date>%Y-%m-%d)s] %(playlist_index&{}|)s%(title)s.%(ext)s"
 FORMAT_MID="bestvideo[height<=?720][fps<=?30][vcodec!=?vp9][protocol!=http_dash_segments]+bestaudio/best"
 FORMAT_LOW="bestvideo[height<=?480][fps<=?30][vcodec!=?vp9][protocol!=http_dash_segments]+bestaudio/best"
+FAST="--external-downloader=aria2c --external-downloader-args \"--min-split-size=1M --max-connection-per-server=2 --max-concurrent-downloads=2 --split=2\""
+URL="$1"
 
-if echo "$2" | grep -q 'playlist'; then
+while getopts "efqs" option; do
+	case "${option}" in
+		e) ARGS="$ARGS --playlist-end=$OPTARG" ;;
+		f) ARGS="$ARGS $FAST" ;;
+		q)
+			case $OPTARG in
+				high) ARGS="" ;;
+				mid) ARGS="$ARGS -f \"$FORMAT_MID\"" ;;
+				low) ARGS="$ARGS -f \"$FORMAT_LOW\"" ;;
+				audio)
+					DIR="$AUDIO_DIR"
+					ARGS="$ARGS --extract-audio -f bestaudio/best --audio-quality 0" ;;
+				*) notify-send "Video or Audio?" ;;
+			esac
+			;;
+		s) ARGS="$ARGS --playlist-start=$OPTARG" ;;
+	esac
+done
+
+echo "$URL" | grep -q 'playlist' &&
 	TEMPLATE="$PLAYLIST_TEMPLATE"
-	if [ -n "$4" ]; then
-		PLAYLIST_END="$4"
-	else
-		PLAYLIST_END="$3"
-	fi
-	[ -n "$3" ] &&
-		PLAYLIST="--playlist-start=$3 --playlist-end=$PLAYLIST_END"
-else
-	TEMPLATE="$FILE_TEMPLATE"
-fi
 
-case $1 in
-	video) yt-dlp $PLAYLIST -o "$TEMPLATE" -P "$VIDEO_DIR" "$2" ;;
-	videomid) yt-dlp $PLAYLIST -o "$TEMPLATE" -P "$VIDEO_DIR" "$2" -f "$FORMAT_MID" ;;
-	videolow) yt-dlp $PLAYLIST -o "$TEMPLATE" -P "$VIDEO_DIR" "$2" -f "$FORMAT_LOW" ;;
-	audio) yt-dlp --extract-audio -f bestaudio/best --audio-quality 0 \
-		$PLAYLIST -o "$TEMPLATE" -P "$AUDIO_DIR" "$2" ;;
-	*) notify-send "Video or Audio?" ;;
-esac
-notify-send "Download Completed"
+yt-dlp "$ARGS" -o "$TEMPLATE" -P "$DIR" "$URL"
+notify-send "Download Completed" "$URL"

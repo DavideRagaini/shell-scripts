@@ -12,7 +12,7 @@ com() {
     socat -d - "$CHOSEN"
 }
 
-set_all() {
+com_all() {
   for i in $SOCKETS; do
     echo "${1}" |
       socat -d - "$i"
@@ -50,7 +50,7 @@ case "$1" in
     com set_property pause true
     ;;
   pauseall)
-    set_all '{ "command": ["set_property", "pause", true] }'
+    com_all '{ "command": ["set_property", "pause", true] }'
     ;;
   volume)
     choose_instance "Set volume to:"
@@ -59,7 +59,7 @@ case "$1" in
     com set_property "volume $((VOLUME + DELTA))"
     ;;
   invert)
-    set_all '{ "command": ["cycle", "pause"] }'
+    com_all '{ "command": ["cycle", "pause"] }'
     ;;
   prev)
     choose_instance "Previous:"
@@ -113,6 +113,20 @@ case "$1" in
   direct)
     choose_instance "Direct Com:"
     com "$2"
+    ;;
+  clean)
+    if [ "$(echo "$SOCKETS" | wc -l)" -eq 1 ]; then
+      CHOSEN="$SOCKETS"
+      rm /tmp/mpv/"$CHOSEN"
+    else
+      for i in $SOCKETS; do
+        CHOSEN="$i"
+        ERROR="$(com get_property media-title | jq -r '.error')"
+        if [ "$ERROR" != "success" ]; then
+        rm "$CHOSEN"
+        fi
+      done
+    fi
     ;;
   add)
     choose_instance "Append:"
