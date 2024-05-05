@@ -84,26 +84,27 @@ music_play() {
 if [ -z "$1" ]; then
 	CMDS="aplay
 append
-clean history
-delete playlist
-delete queue
-edit last
-edit queue
+append_playlist
+clean_history
+delete_playlist
+delete_queue
+edit_last
+edit_queue
 enqueue
 eplay
-get title
-info last
-info queue
+title
+info_last
+info_queue
 last
-last lecture
+last_lecture
 lectures
 local
 music
-music queue
+music_queue
 playlist
 queue
-save m3u
-save music
+save_m3u
+save_music
 search"
 	CHOSEN="$(echo "$CMDS" | ddmenu -i)" || exit
 	URL="$(xclip -selection clipboard -o)" >/dev/null
@@ -120,11 +121,22 @@ fi
 
 case "$CHOSEN" in
 	queue)
-		get_from_file "$PATH_QUEUE"
-		# save_to_last
+		QUEUE="$(cut -f2 "$PATH_QUEUE")"
+		LIST="$(find "$DIR/playlists" -type f)"
+		CHOSEN="$(printf "%s\n%s" "$QUEUE" "$LIST" | ddmenu -i -l 15)" || exit
+		if grep -q "$CHOSEN" "$PATH_QUEUE" ; then
+			LINE="$(grep -m1 -w "$CHOSEN" "$PATH_QUEUE")"
+			# TITLE="$(echo "$LINE" | cut -f2)"
+			URL="$(echo "$LINE" | cut -f3)"
+		else
+			URL="$CHOSEN"
+		fi
 		fplay
+	# 	get_from_file "$PATH_QUEUE"
+	# 	# save_to_last
+	# 	fplay
 		;;
-	'delete queue')
+	delete_queue)
 		get_from_file "$PATH_QUEUE"
 		grep -v "$URL" "$PATH_QUEUE" >"$DIR/queue.tmp" &&
 			mv "$DIR/queue.tmp" "$PATH_QUEUE"
@@ -153,7 +165,8 @@ case "$CHOSEN" in
 		fplay
 		;;
 	lectures)
-		VIDEOS="${XDG_VIDEOS_DIR:-$HOME/Storage/Videos}"
+		# VIDEOS="${XDG_VIDEOS_DIR:-$HOME/Storage/Videos}"
+		VIDEOS="/media/data/davide/Storage/Videos"
 		CHOSEN="$(find "$VIDEOS/Lectures" -mindepth 1 -maxdepth 1 | ddmenu -i -l 15)" ||
 			exit
 		mpv "$CHOSEN"
@@ -170,6 +183,12 @@ case "$CHOSEN" in
 		# notify-send "Working on:" "$(echo "$INFO" | tr -s ' ')\\n$URL" -a "$APPNAME"
 		fplay
 		;;
+	append_playlist)
+		FORMAT="#EXTINF: %(duration)s, %(upload_date>%d/%m/%Y)s %(title)s\nhttps://yewtu.be/watch?v=%(id)s\n\n"
+		VID="$(yt-dlp -O "$FORMAT" "$URL")"
+		PLAYLIST="$(find "$DIR/playlists" -type f | ddmenu -i -l 15 -p "Append to which playlist?")"
+		echo "$VID" >> "$PLAYLIST"
+		;;
 	save_m3u)
 		PLAYLIST="$(printf '' | ddmenu -i -l 15 -p "Name of the playlist? (Defaults to playlist's name)")"
 		[ -z "$PLAYLIST" ] && PLAYLIST="$(yt-dlp --playlist-end=1 -O "%(playlist_title)s" "$URL")"
@@ -177,7 +196,6 @@ case "$CHOSEN" in
 		printf '#EXTM3U\n\n' >"$PLAYLIST_PATH"
 		FORMAT="#EXTINF: %(duration)s, %(upload_date>%d/%m/%Y)s %(title)s\nhttps://yewtu.be/watch?v=%(id)s\n\n"
 		yt-dlp -O "$FORMAT" "$URL" >>"$PLAYLIST_PATH"
-		sed -i 's/\\n/\n/g' "$PLAYLIST_PATH"
 		;;
 	# search)
 	# 	shift
@@ -191,7 +209,7 @@ case "$CHOSEN" in
 			ddmenu -i -l 10 |
 			xargs -r mpv
 		;;
-	'delete playlist')
+	delete_playlist)
 		find "$HOME/.config/mpv/playlists" -type f |
 			ddmenu -i -l 10 |
 			xargs -r rm
@@ -200,7 +218,7 @@ case "$CHOSEN" in
 		save_music
 		music_play
 		;;
-	music_save) save_music ;;
+	save_music) save_music ;;
 	music_queue)
 		get_from_file "$PATH_MUSIC"
 		# notify-send "Working on:" "$(echo "$INFO" | tr -s ' ')\\n$URL"

@@ -1,6 +1,5 @@
 #!/bin/sh
 
-set -x
 DIR="$HOME/vid/downloads"
 AUDIO_DIR="$HOME/pod/yt"
 TEMPLATE="%(uploader)s - %(title)s [%(upload_date>%Y-%m-%d)s].%(ext)s"
@@ -10,22 +9,25 @@ FORMAT_LOW="bestvideo[height<=?480][fps<=?30][vcodec!=?vp9][protocol!=http_dash_
 FAST="--external-downloader=aria2c --external-downloader-args \"--min-split-size=1M --max-connection-per-server=2 --max-concurrent-downloads=2 --split=2\""
 URL="$1"
 
-while getopts "efqs" option; do
+shift
+while getopts "fe:q:s:u:" option; do
 	case "${option}" in
-		e) ARGS="$ARGS --playlist-end=$OPTARG" ;;
 		f) ARGS="$ARGS $FAST" ;;
+		e) ARGS="$ARGS --playlist-end=$OPTARG" ;;
+		s) ARGS="$ARGS --playlist-start=$OPTARG" ;;
 		q)
 			case $OPTARG in
-				high) ARGS="" ;;
-				mid) ARGS="$ARGS -f \"$FORMAT_MID\"" ;;
-				low) ARGS="$ARGS -f \"$FORMAT_LOW\"" ;;
-				audio)
+				high|h) ARGS="" ;;
+				mid|m) ARGS="$ARGS -f \"$FORMAT_MID\"" ;;
+				low|l) ARGS="$ARGS -f \"$FORMAT_LOW\"" ;;
+				audio|a)
 					DIR="$AUDIO_DIR"
-					ARGS="$ARGS --extract-audio -f bestaudio/best --audio-quality 0" ;;
+					ARGS="$ARGS --extract-audio --audio-quality 0" ;;
 				*) notify-send "Video or Audio?" ;;
 			esac
 			;;
-		s) ARGS="$ARGS --playlist-start=$OPTARG" ;;
+		u) URL="$OPTARG" ;;
+		*) echo 'error: no args' && exit 1 ;;
 	esac
 done
 

@@ -19,7 +19,8 @@ open_all() {
     last="$(cat "$LAST-all")"
     file="$(printf "%s\n%s" "$last" "$cache" | $MENU)"
     [ -z "$file" ] && exit
-    exec setsid -f sioyek --new-window "${HOME}/${file#"~/"}"
+    exec zathura --fork "$file"
+    # exec setsid -f sioyek --new-window "${HOME}/${file#"~/"}"
 }
 
 build_cache_docs() {
@@ -44,7 +45,8 @@ open_docs() {
     grep -q "$file" "$LAST-docs" ||
         printf "%s\n" "$file" >>"$LAST-docs"
 
-    exec setsid -f sioyek --new-window "${HOME}/${file#"~/"}"
+    exec zathura --fork "$file"
+    # exec setsid -f sioyek --new-window "${HOME}/${file#"~/"}"
 }
 
 search() {

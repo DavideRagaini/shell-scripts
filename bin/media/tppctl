@@ -117,7 +117,7 @@ case "$1" in
   clean)
     if [ "$(echo "$SOCKETS" | wc -l)" -eq 1 ]; then
       CHOSEN="$SOCKETS"
-      rm /tmp/mpv/"$CHOSEN"
+      rm "$CHOSEN"
     else
       for i in $SOCKETS; do
         CHOSEN="$i"

@@ -4,10 +4,15 @@ SOCKETS="$(find "/tmp/mpv" -type s)"
 
 n=1
 MPV_VOLUMES=''
-for i in $SOCKETS; do
-    MPV_VOLUMES="$MPV_VOLUMES$n:$(echo "{ \"command\": [\"get_property\", \"volume\"] }" | socat -d - "$i" | jq -r '.data' | cut -f1 -d'.')"
-    n=$(( n+1 ))
-done
+if [ "$(echo "$SOCKETS" | wc -l )" -gt 1 ]; then
+    for i in $SOCKETS; do
+        MPV_VOLUMES="$MPV_VOLUMES$n:$(echo "{ \"command\": [\"get_property\", \"volume\"] }" | socat -d - "$i" | jq -r '.data' | cut -f1 -d'.') "
+        n=$(( n+1 ))
+    done
+    MPV_VOLUMES="[$MPV_VOLUMES]"
+else
+    MPV_VOLUMES="$(echo "{ \"command\": [\"get_property\", \"volume\"] }" | socat -d - "$SOCKETS" | jq -r '.data' | cut -f1 -d'.')"
+fi
 
-MPD_VOL="$(mpc | awk 'NR==3 {sub("%",""); print $2}')"
-echo "m$MPD_VOL M[$MPV_VOLUMES]"
+MPD_VOL="$(mpc status '%volume%' | sed 's/%//; s/ //')"
+echo "m$MPD_VOL M${MPV_VOLUMES%% }"
