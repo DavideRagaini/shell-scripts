@@ -1,4 +1,4 @@
 #!/bin/sh
-find "$HOME/.local/share/npm/bin" -type f |
+find "$HOME/.local/share/npm/bin" |
     cut -f8 -d'/' |
     xargs -I % npm install -g %
