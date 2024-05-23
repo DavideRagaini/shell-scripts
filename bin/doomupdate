@@ -1,0 +1,12 @@
+#!/bin/sh
+
+doomatom() {
+    CMD="$*"
+    printf "\033[0;31m ========== doom %s ========== \033[0m \n" "$CMD"
+    doom "$CMD"
+}
+
+doomatom sync &&
+# doomatom sync -u &&
+doomatom upgrade &&
+doomatom gc

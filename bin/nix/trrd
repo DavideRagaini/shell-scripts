@@ -1,8 +1,7 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
-set -x
 case "$1" in
-    start)
+    start|s)
         doas systemctl start openvpn-europe.service &&
             sleep 3 &&
             tun0="$(ip a show dev tun0 scope global | awk '/inet/ {print $2}' | awk -F '/' '{print $1}')" &&
@@ -10,7 +9,13 @@ case "$1" in
         doas systemctl -q is-active openvpn-europe.service &&
             transmission-daemon --bind-address-ipv4="$(echo "$tun0" | head -n1)" --bind-address-ipv6="$(echo "$tun0" | tail -n1)"
         ;;
-    stop)
+    t) systemctl start {prowl,lid,read,son,rad,baz}arr.service ;;
+    restart|r)
+        transmission-remote --exit &&
+            tun0="$(ip a show dev tun0 scope global | awk '/inet/ {print $2}' | awk -F '/' '{print $1}')" &&
+            transmission-daemon --bind-address-ipv4="$(echo "$tun0" | head -n1)" --bind-address-ipv6="$(echo "$tun0" | tail -n1)"
+        ;;
+    stop|S)
         transmission-remote --exit &&
             doas systemctl stop {prowl,lid,read,son,rad,baz}arr.service &&
             sleep 3 &&
