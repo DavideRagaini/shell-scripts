@@ -9,4 +9,5 @@ doomatom() {
 doomatom sync &&
 # doomatom sync -u &&
 doomatom upgrade &&
-doomatom gc
+doomatom gc &&
+echo "" > "$HOME/.local/doom-upgrade"

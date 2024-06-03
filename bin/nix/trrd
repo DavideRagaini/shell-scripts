@@ -1,24 +1,47 @@
 #!/usr/bin/env bash
 
+
+trd() {
+    ipbind="$(ip a show dev wg-quick scope global | awk '/inet/ {print $2}' | awk -F '/' '{print $1}')"
+    transmission-daemon \
+        --bind-address-ipv4="$(echo "$ipbind" | head -n1)" \
+        --bind-address-ipv6="$(echo "$ipbind" | tail -n1)"
+}
+
+openvpn() {
+    doas systemctl "$1" openvpn-europe.service ||
+        exit
+}
+
+wgvpn() {
+    doas wg-quick "$1" /usr/wg/wg-quick.conf ||
+        exit
+}
+
+stars() {
+    doas systemctl "$1" {prowl,lid,read,son,rad,baz}arr.service
+}
+
+
 case "$1" in
-    start|s)
-        doas systemctl start openvpn-europe.service &&
-            sleep 3 &&
-            tun0="$(ip a show dev tun0 scope global | awk '/inet/ {print $2}' | awk -F '/' '{print $1}')" &&
-            doas systemctl start {prowl,lid,read,son,rad,baz}arr.service
-        doas systemctl -q is-active openvpn-europe.service &&
-            transmission-daemon --bind-address-ipv4="$(echo "$tun0" | head -n1)" --bind-address-ipv6="$(echo "$tun0" | tail -n1)"
+    start | s)
+        wgvpn up
+        sleep 3
+        stars start
+        trd
         ;;
-    t) systemctl start {prowl,lid,read,son,rad,baz}arr.service ;;
-    restart|r)
-        transmission-remote --exit &&
-            tun0="$(ip a show dev tun0 scope global | awk '/inet/ {print $2}' | awk -F '/' '{print $1}')" &&
-            transmission-daemon --bind-address-ipv4="$(echo "$tun0" | head -n1)" --bind-address-ipv6="$(echo "$tun0" | tail -n1)"
+    t)
+        stars start
         ;;
-    stop|S)
-        transmission-remote --exit &&
-            doas systemctl stop {prowl,lid,read,son,rad,baz}arr.service &&
-            sleep 3 &&
-            doas systemctl stop openvpn-europe.service
+    restart | r)
+        transmission-remote --exit
+        trd
+        ;;
+    stop | S)
+        transmission-remote --exit
+        stars stop
+        sleep 3
+        wgvpn down
+        # openvpn stop
         ;;
 esac
