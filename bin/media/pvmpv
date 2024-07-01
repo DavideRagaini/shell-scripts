@@ -1,0 +1,28 @@
+#!/usr/bin/env sh
+
+select_socket() {
+	SOCKETS="$(find /tmp/mpv -type s)"
+	if [ "$(echo "$SOCKETS" | wc -l)" -ge 2 ]; then
+		for i in $SOCKETS; do
+			TITLE="$(echo '{ "command": ["get_property", "media-title"] }' | socat -d - "$i" | jq -r '.data')"
+			PID="$i"
+			STATUS="$(echo '{ "command": ["get_property", "pause"] }' | socat -d - "$i" | jq -r '.data')"
+			[ "$STATUS" = 'true' ] && STATUS='' || STATUS=''
+			LIST="${LIST}${STATUS} ${TITLE}\t${PID}\n"
+		done
+		SOCKET="$(echo "$LIST" | ddmenu -i -l 5 -p "Choose a socket" | cut -f2)" ||
+			exit
+	else
+		SOCKET=$SOCKETS
+	fi
+}
+
+select_socket
+if [ -S "$SOCKET" ]; then
+	echo "{ \"command\": [ \"loadfile\", \"$URL\", \"append-play\" ] }" |
+		socat -d - "$SOCKET" >>/tmp/mpv/log 2>&1
+	echo "show-text \"added $URL\" 5000" |
+		socat -d - "$SOCKET" >>/tmp/mpv/log 2>&1
+else
+	setsid -f mpv --no-terminal --player-operation-mode=pseudo-gui --input-ipc-server="$SOCKET" "$@"
+fi
