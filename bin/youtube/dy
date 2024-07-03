@@ -9,10 +9,10 @@ FORMAT_LOW="bestvideo[height<=?480][fps<=?30][vcodec!=?vp9][protocol!=http_dash_
 FAST="--external-downloader=aria2c --external-downloader-args \"--min-split-size=1M --max-connection-per-server=2 --max-concurrent-downloads=2 --split=2\""
 URL="$1"
 
-shift
-while getopts "fe:q:s:u:" option; do
+while getopts "fte:q:s:u:" option; do
 	case "${option}" in
 		f) ARGS="$ARGS $FAST" ;;
+		t) ARGS="$ARGS $PLAYLIST_TEMPLATE" ;;
 		e) ARGS="$ARGS --playlist-end=$OPTARG" ;;
 		s) ARGS="$ARGS --playlist-start=$OPTARG" ;;
 		q)
@@ -34,5 +34,5 @@ done
 echo "$URL" | grep -q 'playlist' &&
 	TEMPLATE="$PLAYLIST_TEMPLATE"
 
-yt-dlp "$ARGS" -o "$TEMPLATE" -P "$DIR" "$URL"
-notify-send "Download Completed" "$URL"
+yt-dlp "$ARGS" -o "$TEMPLATE" -P "$DIR" "$URL" &&
+	notify-send "Download Completed" "$URL"

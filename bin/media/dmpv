@@ -107,11 +107,11 @@ save_m3u
 save_music
 search"
 	CHOSEN="$(echo "$CMDS" | ddmenu -i)" || exit
-	URL="$(xclip -selection clipboard -o)" >/dev/null
+	URL="$(pclip)" >/dev/null
 else
 	CHOSEN="$1"
 	if [ -z "$2" ]; then
-		URL="$(xclip -selection clipboard -o)" >/dev/null
+		URL="$(pclip)" >/dev/null
 		SHIFT=1
 	else
 		URL="$2"

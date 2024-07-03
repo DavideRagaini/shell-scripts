@@ -19,10 +19,14 @@ select_socket() {
 
 select_socket
 if [ -S "$SOCKET" ]; then
-	echo "{ \"command\": [ \"loadfile\", \"$URL\", \"append-play\" ] }" |
+	echo "{ \"command\": [ \"loadfile\", \"$1\", \"append-play\" ] }" |
 		socat -d - "$SOCKET" >>/tmp/mpv/log 2>&1
-	echo "show-text \"added $URL\" 5000" |
+	echo "show-text \"added $1\" 5000" |
 		socat -d - "$SOCKET" >>/tmp/mpv/log 2>&1
 else
-	setsid -f mpv --no-terminal --player-operation-mode=pseudo-gui --input-ipc-server="$SOCKET" "$@"
+	setsid -f mpv \
+		--no-terminal \
+		--player-operation-mode=pseudo-gui \
+		--input-ipc-server="$SOCKET" \
+		"$@"
 fi
