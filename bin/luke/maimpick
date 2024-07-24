@@ -5,13 +5,29 @@ directory="$(fd -td -E octave -E pkg -E perl5 -E mus -E bok -E pic -E MATLAB -E 
 directory="$(printf '%s\n%s' "$default" "$directory" | ddmenu -i -l 5 -p "Save to which location")" || exit
 default_name="$(date '+%y_%m_%d-%H_%M_%S').png"
 name="$(ddmenu -i -l 5 -p "File Name? default = $default_name")" || name="$default_name"
-xclip_cmd="xclip -sel clip -t image/png"
 
-case "$(printf "a selected area\\ncurrent window\\nfull screen\\na selected area (copy)\\ncurrent window (copy)\\nfull screen (copy)" | ddmenu -l 6 -i -p "Screenshot which area?")" in
-    "a selected area") maim -s "${directory}/${name:-A$default_name}" ;;
-    "current window") maim -q -d 0.2 -i "$(xdotool getactivewindow)" "${directory}/W${name}" ;;
-    "full screen") maim -q -d 0.2 "${directory}/F${name}" ;;
-    "a selected area (copy)") maim -s | ${xclip_cmd} ;;
-    "current window (copy)") maim -q -d 0.2 -i "$(xdotool getactivewindow)" | ${xclip_cmd} ;;
-    "full screen (copy)") maim -q -d 0.2 | ${xclip_cmd} ;;
+CHOICE="$(printf "a selected area\\ncurrent window\\nfull screen\\na selected area (copy)\\ncurrent window (copy)\\nfull screen (copy)" | ddmenu -l 6 -i -p "Screenshot which area?")"
+case "$(printenv XDG_SESSION_TYPE)" in
+    wayland)
+        case "$CHOICE" in
+            "a selected area") grimshot --notify save area "${directory}/${name:-A$default_name}" ;;
+            "current window") grimshot --notify save window "${directory}/W${name}" ;;
+            "full screen") grimshot --notify --wait 3 save screen "${directory}/F${name}" ;;
+            "a selected area (copy)") grimshot --notify copy area ;;
+            "current window (copy)") grimshot --notify copy window "${directory}/W${name}" ;;
+            "full screen (copy)") grimshot --notify --wait 3 copy screen "${directory}/F${name}" ;;
+        esac
+        ;;
+    tty | x11)
+        xclip_cmd="xclip -sel clip -t image/png"
+
+        case "$CHOICE" in
+            "a selected area") maim -s "${directory}/${name:-A$default_name}" ;;
+            "current window") maim -q -d 0.2 -i "$(xdotool getactivewindow)" "${directory}/W${name}" ;;
+            "full screen") maim -q -d 0.2 "${directory}/F${name}" ;;
+            "a selected area (copy)") maim -s | ${xclip_cmd} ;;
+            "current window (copy)") maim -q -d 0.2 -i "$(xdotool getactivewindow)" | ${xclip_cmd} ;;
+            "full screen (copy)") maim -q -d 0.2 | ${xclip_cmd} ;;
+        esac
+        ;;
 esac

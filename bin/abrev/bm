@@ -3,7 +3,7 @@
 bookmarks_file="$HOME/.config/qutebrowser/bookmarks/urls"
 case "$1" in
   s | save)
-    content="$(xclip -selection clipboard -o)"
+    content="$(pclip)"
     echo "Enter Title"
     read -r title
     grep -q "^$content$" "$bookmarks_file" ||
@@ -11,7 +11,7 @@ case "$1" in
     ;;
 
   S | Save)
-    content="$(xclip -selection clipboard -o)"
+    content="$(pclip)"
     title="$(ddmenu -p 'Title: ')" || exit
     grep -q "^$content$" "$bookmarks_file" ||
       echo "$content $title" >>"$bookmarks_file"

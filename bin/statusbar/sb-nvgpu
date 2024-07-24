@@ -1,14 +1,3 @@
 #!/bin/sh
-
-case $BLOCK_BUTTON in
-    1) setsid "$TERMINAL" -e nvidia-smi ;;
-    3) notify-send "GPU Info" "$(nvidia-smi)" ;;
-    6) "$TERMINAL" -e "$EDITOR" "$0" ;;
-esac
-
-SMI="$(nvidia-smi -q)"
-MEMORY="$(echo "$SMI" | awk 'FNR == 97 {print $3 $4}')"
-UTILIZATION="$(echo "$SMI" | awk 'FNR == 109 {print $3}')"
-CLOCK="$(echo "$SMI" | awk 'FNR == 196 {print $3}')"
-TEMP="$(echo "$SMI" | awk 'FNR == 171 {print $5}')"
-printf "%s %s @%s %sC" "$UTILIZATION%" "$MEMORY" "$CLOCK" "$TEMP"
+nvidia-smi --query-gpu=pstate,utilization.gpu,clocks.current.graphics,memory.used,temperature.gpu --format=csv,noheader |
+    sed 's/, / /g; s/ M/M/g; s/ %/%/'

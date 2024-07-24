@@ -99,6 +99,7 @@ last
 last_lecture
 lectures
 local
+movie
 music
 music_queue
 playlist
@@ -117,6 +118,12 @@ else
 		URL="$2"
 		SHIFT=2
 	fi
+fi
+
+if echo "$URL" | grep -q piped ;then
+	URL="$(echo "$URL" | awk -F'/' 'sub($3,"yewtu.be",$0)')"
+elif echo "$URL" | grep -q safetwitch ;then
+	URL="$(echo "$URL" | awk -F'/' 'sub($3,"twitch.tv",$0)')"
 fi
 
 case "$CHOSEN" in
@@ -166,10 +173,18 @@ case "$CHOSEN" in
 		;;
 	lectures)
 		# VIDEOS="${XDG_VIDEOS_DIR:-$HOME/Storage/Videos}"
-		VIDEOS="/media/data/davide/Storage/Videos"
+		# VIDEOS="/media/data/davide/Storage/Videos"
+		VIDEOS="/media/d25l1tb"
 		CHOSEN="$(find "$VIDEOS/Lectures" -mindepth 1 -maxdepth 1 | ddmenu -i -l 15)" ||
 			exit
 		mpv "$CHOSEN"
+		;;
+	movie)
+		VIDEOS1="$(find "/media/data/tmedia/media/movies" -mindepth 1 -maxdepth 1)"
+		VIDEOS2="$(find "/media/data/tmedia/torrents/import" -mindepth 1 -maxdepth 1)"
+		CHOSEN="$(printf "%s\n%s" "$VIDEOS1" "$VIDEOS2" | ddmenu -i -l 15)" ||
+			exit
+		mpv --profile=movie "$CHOSEN"
 		;;
 	'local')
 		VIDEOS1="$(find "${XDG_VIDEOS_DIR:-$HOME/Storage/Videos}" -maxdepth 2)"
@@ -227,7 +242,7 @@ case "$CHOSEN" in
 	title)
 		get_title
 		# notify-send "Working on:" "[[$URL][$(echo "$INFO" | tr -s ' ')]]"
-		printf "[[%s][%s]]" "$URL" "$INFO" | xclip -i -selection clipboard
+		printf "[[%s][%s]]" "$URL" "$INFO" | cclip
 		;;
 	last_lecture) mpv "$VIDEOS/Lectures/doing" ;;
 	edit_queue) "$VISUAL" "$PATH_QUEUE" ;;
@@ -237,7 +252,7 @@ case "$CHOSEN" in
 		TITLE="$(echo "$TITLE" | cut -f2)"
 		URL="$(echo "$TITLE" | cut -f3)"
 		notify-send "Yanked:" "$(echo "$INFO" | tr -s ' ')\\n$URL"
-		printf "[[%s][%s]]" "$URL" "$INFO" | xclip -i -selection clipboard
+		printf "[[%s][%s]]" "$URL" "$INFO" | cclip
 		;;
 	clean_history)
 		CLEAR="$(sort -k 3,3 -u "$PATH_LAST" | sort -k 1,1 -r)"
@@ -246,7 +261,7 @@ case "$CHOSEN" in
 	info_last)
 		get_from_file "$PATH_LAST"
 		notify-send "Yanked:" "$(echo "$INFO" | tr -s ' ')\\n$URL"
-		printf "[[%s][%s]]" "$URL" "$INFO" | xclip -i -selection clipboard
+		printf "[[%s][%s]]" "$URL" "$INFO" | cclip
 		;;
 	*) notify-send "Something wrong..." ;;
 esac

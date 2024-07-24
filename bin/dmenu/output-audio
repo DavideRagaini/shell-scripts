@@ -1,12 +1,34 @@
 #!/bin/sh
+# [[https://gitlab.freedesktop.org/pipewire/wireplumber/-/issues/636][wpctl `list [audio|video] [sinks|sources]` subcommand? (#636) · Issues · PipeWire / wireplumber · GitLab]]
+list_sinks() {
+    # wpctl status |
+    #     awk 'BEGIN { A=0; D=0; }
+    #         /^Audio/ { A=1; }
+    #         /Devices/ { D=1; }
+    #         /Sinks/ { D=0; }
+    #         /^Video/ { A=0; }
+    #         { if (A==1 && D==1 && / [[:digit:]]*\./)
+    #              { print; } }' |
+    #     sed 's/^.* \([[:digit:]]*\)\. \(.*\) \[.*$/\1\t\2/'
+	wpctl status |
+		awk 'BEGIN { A=0; S=0; }
+			/^Audio/ { A=1; }
+			/Sinks/ { S=1; }
+			/Sink endpoints/ { S=0; }
+			/Streams/ { S=0; }
+			/^Video/ { A=0; }
+			{ if (A==1 && S==1 && / [[:digit:]]*\./)
+					{ print; } }' # |
+		# sed 's/^.* \([[:digit:]]*\)\. \(.*\) \[.*$/\1\t\2/'
+}
 
-SINKS_LIST="$(wpctl status | awk '/Sinks:/{flag=1;next}/Sink/{flag=0}flag' | grep -v '\*' | cut -c 11- | grep -v '^[[:space:]]*$')"
-if [ "$(echo "$SINKS_LIST" | wc -l)" -lt 2 ]; then
-	ID_CHOSEN="$(echo "$SINKS_LIST" | cut -f1 -d'.')"
+SINKS_LIST="$(list_sinks)"
+if [ "$(echo "$SINKS_LIST" | wc -l)" -lt 3 ]; then
+	ID_CHOSEN="$(echo "$SINKS_LIST" | grep -v '\*' | sed 's/^.* \([[:digit:]]*\)\. \(.*\) \[.*$/\1\t\2/' | cut -f1)"
 else
 	CHOSEN=$(echo "$SINKS_LIST" | ddmenu -i -l 5 -p "Sink:") ||
 		exit
-	ID_CHOSEN=$(echo "$CHOSEN" | cut -f1 -d'.')
+	ID_CHOSEN=$(echo "$CHOSEN" | sed 's/^.* \([[:digit:]]*\)\. \(.*\) \[.*$/\1\t\2/' | cut -f1)
 fi
 wpctl set-default "$ID_CHOSEN"
 

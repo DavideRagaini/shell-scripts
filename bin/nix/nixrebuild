@@ -1,6 +1,7 @@
 #!/usr/bin/env sh
 MACHINE="$1"
 ACTION="$2"
+sudo nix-channel --update
 shift 2
-exec sudo nixos-rebuild "$ACTION" \
-    -I nixos-config="$XDG_CONFIG_HOME/nixos-config/$MACHINE/configuration.nix" "$@" 2>&1 | tee "$HOME/.local/nixos_last.log"
+exec sudo nixos-rebuild "$ACTION" -I nixos-config="$XDG_CONFIG_HOME/nixos-config/$MACHINE/configuration.nix" "$@" 2>&1 |
+    tee "$HOME/.local/nixos_last.log"

@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 
 dmenu \
-    -fn "${DMENU_FN:-IosevkaTerm Nerd Font Propo:size=12:style=bold}" \
+    -fn "${DMENU_FN:-IosevkaTerm Nerd Font Propo}:style=${DMENU_ST:-bold}:size=${DMENU_FS:-12}" \
     -nb "${DMENU_NB:-#181321}" \
     -nf "${DMENU_NF:-#FF92D0}" \
     -sb "${DMENU_SB:-#FF92D0}" \

@@ -7,7 +7,8 @@ doomatom() {
 }
 
 doomatom sync &&
-# doomatom sync -u &&
+printf "\033[0;31m ========== doom sync -u ========== \033[0m \n" &&
+doom sync -u &&
 doomatom upgrade &&
 doomatom gc &&
 echo "" > "$HOME/.local/doom-upgrade"

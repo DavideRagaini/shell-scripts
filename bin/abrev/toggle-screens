@@ -1,12 +1,22 @@
 #!/bin/sh
 
-M1=HDMI-0
-M2=DVI-D-0
-
-if [ "$(xrandr | grep "*" | wc -l)" = 1 ] ; then
-    xrandr \
-        --output "$M1"  --rotate normal --pos 0x0    --mode 1920x1080 --primary \
-        --output "$M2" --rotate right  --pos 1920x15 --mode 1920x1080 # main hdmi + vert right
-else
-    xrandr --output "$M1" --auto --output "$M2" --off
-fi
+case "$(printenv XDG_SESSION_TYPE)" in
+    wayland)
+        if [ "$(wlr-randr | grep -c 'Enabled: yes')" = 1 ]; then
+            wlr-randr --output HDMI-A-1 --preferred --scale 1 --on --output DVI-D-1 --on --transform 90
+        else
+            wlr-randr --output HDMI-A-1 --preferred --scale 1 --on --output DVI-D-1 --off
+        fi
+        ;;
+    tty | x11)
+        XR="$(xrandr)"
+        if [ "$(echo "$XR" | grep -c "\*")" = 1 ]; then
+            xpos="$(echo "$XR" | awk '/HDMI-0/ {print $4}' | cut -f1 -d'x')"
+            xrandr \
+                --output HDMI-0 --rotate normal --pos 0x0 --auto --primary \
+                --output DVI-D-0 --rotate right --pos "$xpos"x30 --auto # main hdmi + vert right
+        else
+            xrandr --output HDMI-0 --auto --output DVI-D-0 --off
+        fi
+        ;;
+esac
