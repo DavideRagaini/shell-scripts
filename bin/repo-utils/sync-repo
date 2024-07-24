@@ -3,22 +3,10 @@
 RED='\033[0;31m'
 YELLOW='\033[0;33m'
 NC='\033[0m' # No Color
-MAINS=0
 
 SRC_PATH="$HOME/.local/src"
-[ "$(hostname)" = 'Apollo' ] && SRC_PATH="$HOME/sources"
-
-SRC_REPO_MAINS="dotfiles
-shell-scripts
-dwm
-startpage"
-
-SRC_REPO_OTHERS="st
-dwmblocks
-dwmblocks-async
-dmenu"
-
-ORG="$HOME/org"
+[ "$(hostname)" = 'Apollo' ] &&
+    SRC_PATH="$HOME/sources"
 
 push() {
     [ -d "$1" ] &&
@@ -38,27 +26,27 @@ eval "$(ssh-agent -s)"
 ssh-add ~/.ssh/id_ed25519
 
 case "$1" in
-    pull) OPR='pull'; MAINS=145 ;;
+    pull) OPR='pull' ;;
     push) OPR='push' ;;
     *) echo "Operation?" ;;
 esac
 
 case "$2" in
-    all)
-        $OPR "$ORG"
-        for i in $SRC_REPO_MAINS; do
-            $OPR "$SRC_PATH/$i"
-        done
-        if [ $MAINS -eq 145 ]; then
-            for i in $SRC_REPO_OTHERS; do
-                $OPR "$SRC_PATH/$i"
-            done
-        fi
-        ;;
     mains)
         $OPR "$SRC_PATH/dotfiles"
         $OPR "$SRC_PATH/shell-scripts"
-        $OPR "$ORG"
+        $OPR "$HOME/org"
+        ;;
+    nix)
+        $OPR "$XDG_CONFIG_HOME/nixos-config"
+        $OPR "$XDG_CONFIG_HOME/home-manager"
+        ;;
+    all)
+        $OPR "$SRC_PATH/dotfiles"
+        $OPR "$SRC_PATH/shell-scripts"
+        $OPR "$HOME/org"
+        $OPR "$XDG_CONFIG_HOME/nixos-config"
+        $OPR "$XDG_CONFIG_HOME/home-manager"
         ;;
     dir)
         find "$3" -type d -exec test -e '{}/.git' ';' -print0 |
