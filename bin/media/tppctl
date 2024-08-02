@@ -30,7 +30,7 @@ choose_instance() {
       [ "$STATUS" = 'true' ] && STATUS='' || STATUS=''
       LIST="${LIST}${STATUS} ${TITLES} (${i})\n"
     done
-    CHOSEN="$(echo "${LIST}" | ddmenu -i -l 5 -p "$1")"
+    CHOSEN="$(echo "${LIST%%\\n}" | bemenu -i -l 5 -p "$1")"
   fi
   CHOSEN="${CHOSEN##*(}"
   CHOSEN="${CHOSEN%%)*}"
@@ -47,7 +47,7 @@ case "$1" in
     ;;
   pause)
     choose_instance "Pause:"
-    com set_property pause true
+    com set_property pause yes
     ;;
   pauseall)
     com_all '{ "command": ["set_property", "pause", true] }'
@@ -100,7 +100,7 @@ case "$1" in
     if [ -n "$2" ]; then
       VALUE="$2"
     else
-      VALUE="$(printf "on\noff" | ddmenu -i)"
+      VALUE="$(printf "on\noff" | bemenu -i)"
     fi
     choose_instance "Set video:"
     case "$VALUE" in
@@ -123,7 +123,7 @@ case "$1" in
         CHOSEN="$i"
         ERROR="$(com get_property media-title | jq -r '.error')"
         if [ "$ERROR" != "success" ]; then
-        rm "$CHOSEN"
+          rm "$CHOSEN"
         fi
       done
     fi
@@ -141,13 +141,21 @@ tppctl Options [property]
 
 OPTIONS:
   toggle / play / pause
+  play
+  pause
   pause all / invert
-  prev /next
+  volume
+  invert
+  info [property]
+  prev / next
+  seek [property]
   get [property]
   set [property]
+  subtitle [path]
+  vid / video [yes/no]
   direct [string]
-  info [property]
-  seek [property]
+  clean
+  add [video]
   help"
     exit
     ;;

@@ -13,7 +13,7 @@ get_title() {
 }
 
 add_to_queue() {
-	PLAYLIST="$(cut -f2 "$PATH_QUEUE" | cut -f1 -d':' | tr -d ' ' | sort -u -f | ddmenu -i -p "Name of the playlist?")"
+	PLAYLIST="$(cut -f2 "$PATH_QUEUE" | cut -f1 -d':' | tr -d ' ' | sort -u -f | bemenu -i -p "Name of the playlist?")"
 	[ -z "$PLAYLIST" ] && PLAYLIST="1shot"
 	get_title
 	notify-send "$PLAYLIST: $(echo "$INFO" | tr -s ' ')" "$URL"
@@ -37,7 +37,7 @@ fplay() {
 }
 
 get_from_last() {
-	CHOSEN="$(sed 's/\t/    |  /g' "$1" | ddmenu -i -l 15)" || exit
+	CHOSEN="$(sed 's/\t/    |  /g' "$1" | bemenu -i -l 15)" || exit
 	CHOSEN_P="$(echo "$CHOSEN" | sed 's/    |  /\t/g')"
 	LINE="$(grep -m1 -w -F "$CHOSEN_P" "$1")"
 	TITLE="$(echo "$LINE" | cut -f2-3)"
@@ -45,7 +45,7 @@ get_from_last() {
 }
 
 get_from_file() {
-	CHOSEN="$(cut -f2 "$1" | ddmenu -i -l 15)" || exit
+	CHOSEN="$(cut -f2 "$1" | bemenu -i -l 15)" || exit
 	LINE="$(grep -m1 -w "$CHOSEN" "$1")"
 	TITLE="$(echo "$LINE" | cut -f2)"
 	URL="$(echo "$LINE" | cut -f3)"
@@ -70,7 +70,7 @@ select_socket() {
 			[ "$STATUS" = 'true' ] && STATUS='' || STATUS=''
 			LIST="${LIST}${STATUS} ${TITLE}\t${PID}\n"
 		done
-		SOCKET="$(echo "$LIST" | ddmenu -i -l 5 -p "Choose a socket" | cut -f2)" ||
+		SOCKET="$(echo "${LIST%%\\n}" | bemenu -i -l 5 -p "Choose a socket" | cut -f2)" ||
 			exit
 	else
 		SOCKET=$SOCKETS
@@ -107,7 +107,7 @@ queue
 save_m3u
 save_music
 search"
-	CHOSEN="$(echo "$CMDS" | ddmenu -i)" || exit
+	CHOSEN="$(echo "$CMDS" | bemenu -i)" || exit
 	URL="$(pclip)" >/dev/null
 else
 	CHOSEN="$1"
@@ -130,7 +130,7 @@ case "$CHOSEN" in
 	queue)
 		QUEUE="$(cut -f2 "$PATH_QUEUE")"
 		LIST="$(find "$DIR/playlists" -type f)"
-		CHOSEN="$(printf "%s\n%s" "$QUEUE" "$LIST" | ddmenu -i -l 15)" || exit
+		CHOSEN="$(printf "%s\n%s" "$QUEUE" "$LIST" | bemenu -i -l 15)" || exit
 		if grep -q "$CHOSEN" "$PATH_QUEUE" ; then
 			LINE="$(grep -m1 -w "$CHOSEN" "$PATH_QUEUE")"
 			# TITLE="$(echo "$LINE" | cut -f2)"
@@ -175,21 +175,22 @@ case "$CHOSEN" in
 		# VIDEOS="${XDG_VIDEOS_DIR:-$HOME/Storage/Videos}"
 		# VIDEOS="/media/data/davide/Storage/Videos"
 		VIDEOS="/media/d25l1tb"
-		CHOSEN="$(find "$VIDEOS/Lectures" -mindepth 1 -maxdepth 1 | ddmenu -i -l 15)" ||
+		CHOSEN="$(find "$VIDEOS/Lectures" -mindepth 1 -maxdepth 1 | bemenu -i -l 15)" ||
 			exit
 		mpv "$CHOSEN"
 		;;
 	movie)
 		VIDEOS1="$(find "/media/data/tmedia/media/movies" -mindepth 1 -maxdepth 1)"
 		VIDEOS2="$(find "/media/data/tmedia/torrents/import" -mindepth 1 -maxdepth 1)"
-		CHOSEN="$(printf "%s\n%s" "$VIDEOS1" "$VIDEOS2" | ddmenu -i -l 15)" ||
+		VIDEOS3="$(find "${XDG_VIDEOS_DIR:-$HOME/vid}/Films" -mindepth 1 -maxdepth 1)"
+		CHOSEN="$(printf "%s\n%s\n%s" "$VIDEOS1" "$VIDEOS2" "$VIDEOS3" | bemenu -i -l 15)" ||
 			exit
 		mpv --profile=movie "$CHOSEN"
 		;;
 	'local')
 		VIDEOS1="$(find "${XDG_VIDEOS_DIR:-$HOME/Storage/Videos}" -maxdepth 2)"
 		VIDEOS2="$(find "$HOME/Storage/Archive/Torrents/Complete" -maxdepth 2)"
-		CHOSEN="$(printf "%s\n%s" "$VIDEOS1" "$VIDEOS2" | ddmenu -i -l 15)" ||
+		CHOSEN="$(printf "%s\n%s" "$VIDEOS1" "$VIDEOS2" | bemenu -i -l 15)" ||
 			exit
 		mpv "$CHOSEN"
 		;;
@@ -201,11 +202,11 @@ case "$CHOSEN" in
 	append_playlist)
 		FORMAT="#EXTINF: %(duration)s, %(upload_date>%d/%m/%Y)s %(title)s\nhttps://yewtu.be/watch?v=%(id)s\n\n"
 		VID="$(yt-dlp -O "$FORMAT" "$URL")"
-		PLAYLIST="$(find "$DIR/playlists" -type f | ddmenu -i -l 15 -p "Append to which playlist?")"
+		PLAYLIST="$(find "$DIR/playlists" -type f | bemenu -i -l 15 -p "Append to which playlist?")"
 		echo "$VID" >> "$PLAYLIST"
 		;;
 	save_m3u)
-		PLAYLIST="$(printf '' | ddmenu -i -l 15 -p "Name of the playlist? (Defaults to playlist's name)")"
+		PLAYLIST="$(printf '' | bemenu -i -l 15 -p "Name of the playlist? (Defaults to playlist's name)")"
 		[ -z "$PLAYLIST" ] && PLAYLIST="$(yt-dlp --playlist-end=1 -O "%(playlist_title)s" "$URL")"
 		PLAYLIST_PATH="$DIR/playlists/$PLAYLIST.m3u"
 		printf '#EXTM3U\n\n' >"$PLAYLIST_PATH"
@@ -216,17 +217,17 @@ case "$CHOSEN" in
 	# 	shift
 	# 	S1="$(grep "$@" "$DIR/queue")"
 	# 	S2="$(rg -i "$@" "$DIR/playlists/")"
-	# 	C="$(printf "%s\n%s" "$S1" "$S2" | ddmenu -i -l 10)"
+	# 	C="$(printf "%s\n%s" "$S1" "$S2" | bemenu -i -l 10)"
 	# 	echo "$C"
 		# ;;
 	playlist)
 		find "$HOME/.config/mpv/playlists" -type f |
-			ddmenu -i -l 10 |
+			bemenu -i -l 10 |
 			xargs -r mpv
 		;;
 	delete_playlist)
 		find "$HOME/.config/mpv/playlists" -type f |
-			ddmenu -i -l 10 |
+			bemenu -i -l 10 |
 			xargs -r rm
 		;;
 	music)

@@ -27,7 +27,7 @@ epoch() {
 }
 
 dmenu_prompt() {
-    echo | ddmenu -p "$1"
+    echo | bemenu -p "$1"
 }
 
 check_args() {

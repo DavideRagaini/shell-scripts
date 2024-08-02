@@ -2,16 +2,16 @@
 
 if [ -z "$1" ]; then
 	cmds="\
-	Lock
-	dwm
-	dwmblocks
-	Leave
-	Reboot
-	Suspend
-	Hibernate
-	Display
-	Shutdown"
-	choice="$(printf "%s" "$cmds" | cut -d'	' -f 2 | ddmenu -i -p 'Choose an action:')"
+Lock
+dwm
+dwmblocks
+Leave
+Reboot
+Suspend
+Hibernate
+Display
+Shutdown"
+	choice="$(printf "%s" "$cmds" | bemenu -i -p 'Choose an action:')"
 else
 	choice="$1"
 fi
@@ -44,7 +44,7 @@ log() {
 }
 
 confirm() {
-	[ "$(printf "No\\nYes" | dmenu -i -p "$choice" -fn 'IosevkaTerm Nerd Font:style=bold:size=14' -nb darkred -sb red -sf white -nf gray)" = "Yes" ] ||
+	[ "$(printf "No\\nYes" | bemenu -i --fn 'IosevkaTerm Nerd Font bold 20' --nb '#ff5555' --sb '#ff2222' --sf '#ffffff' --nf '#333333' -p "$choice")" = "Yes" ] ||
 		exit 1
 }
 
@@ -56,7 +56,7 @@ pause_players() {
 }
 
 lock() {
-	i3lock -eft -c 1d2021 -i "$HOME/Storage/Pictures/lockscreen.png"
+	swaylock -eft -c 1d2021 -i "$XDG_PICTURES_DIR/lockscreen.png"
 }
 
 case "$choice" in

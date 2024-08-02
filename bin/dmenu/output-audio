@@ -23,10 +23,11 @@ list_sinks() {
 }
 
 SINKS_LIST="$(list_sinks)"
+SINKS_LIST="${SINKS_LIST%%\\n}"
 if [ "$(echo "$SINKS_LIST" | wc -l)" -lt 3 ]; then
 	ID_CHOSEN="$(echo "$SINKS_LIST" | grep -v '\*' | sed 's/^.* \([[:digit:]]*\)\. \(.*\) \[.*$/\1\t\2/' | cut -f1)"
 else
-	CHOSEN=$(echo "$SINKS_LIST" | ddmenu -i -l 5 -p "Sink:") ||
+	CHOSEN=$(echo "$SINKS_LIST" | bemenu -i -l 5 -p "Sink:") ||
 		exit
 	ID_CHOSEN=$(echo "$CHOSEN" | sed 's/^.* \([[:digit:]]*\)\. \(.*\) \[.*$/\1\t\2/' | cut -f1)
 fi

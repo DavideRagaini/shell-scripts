@@ -2,11 +2,11 @@
 
 [ -d "$HOME/scs/" ] && default="$HOME/scs/"
 directory="$(fd -td -E octave -E pkg -E perl5 -E mus -E bok -E pic -E MATLAB -E mnt -E vid -E sources -E str "^[0-9a-zA-Z]*" "$HOME")"
-directory="$(printf '%s\n%s' "$default" "$directory" | ddmenu -i -l 5 -p "Save to which location")" || exit
+directory="$(printf '%s\n%s' "$default" "$directory" | bemenu -i -l 5 -p "Save to which location")" || exit
 default_name="$(date '+%y_%m_%d-%H_%M_%S').png"
-name="$(ddmenu -i -l 5 -p "File Name? default = $default_name")" || name="$default_name"
+name="$(bemenu -i -l 5 -p "File Name? default = $default_name")" || name="$default_name"
 
-CHOICE="$(printf "a selected area\\ncurrent window\\nfull screen\\na selected area (copy)\\ncurrent window (copy)\\nfull screen (copy)" | ddmenu -l 6 -i -p "Screenshot which area?")"
+CHOICE="$(printf "a selected area\\ncurrent window\\nfull screen\\na selected area (copy)\\ncurrent window (copy)\\nfull screen (copy)" | bemenu -l 6 -i -p "Screenshot which area?")"
 case "$(printenv XDG_SESSION_TYPE)" in
     wayland)
         case "$CHOICE" in

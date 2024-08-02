@@ -12,13 +12,13 @@ case "$1" in
 
   S | Save)
     content="$(pclip)"
-    title="$(ddmenu -p 'Title: ')" || exit
+    title="$(bemenu -p 'Title: ')" || exit
     grep -q "^$content$" "$bookmarks_file" ||
       echo "$content $title" >>"$bookmarks_file"
     ;;
 
   d | dmenu)
-    description="$(ddmenu -i -l 10 -p 'Bookmarks:' <"$bookmarks_file")" || exit
+    description="$(bemenu -i -l 10 -p 'Bookmarks:' <"$bookmarks_file")" || exit
     link="$(grep "$description" "$bookmarks_file" | cut -d ' ' -f1)"
     setsid -f "$BROWSER" "$link" &
     ;;

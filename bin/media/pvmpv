@@ -10,7 +10,7 @@ select_socket() {
 			[ "$STATUS" = 'true' ] && STATUS='' || STATUS=''
 			LIST="${LIST}${STATUS} ${TITLE}\t${PID}\n"
 		done
-		SOCKET="$(echo "$LIST" | ddmenu -i -l 5 -p "Choose a socket" | cut -f2)" ||
+		SOCKET="$(echo "$LIST" | bemenu -i -l 5 -p "Choose a socket" | cut -f2)" ||
 			exit
 	else
 		SOCKET=$SOCKETS

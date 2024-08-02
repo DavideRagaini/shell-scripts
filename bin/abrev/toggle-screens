@@ -2,10 +2,12 @@
 
 case "$(printenv XDG_SESSION_TYPE)" in
     wayland)
-        if [ "$(wlr-randr | grep -c 'Enabled: yes')" = 1 ]; then
-            wlr-randr --output HDMI-A-1 --preferred --scale 1 --on --output DVI-D-1 --on --transform 90
+        XR="$(wlr-randr)"
+        if [ "$(echo "$XR" | grep -c 'Enabled: yes')" = 1 ]; then
+            xpos="$(echo "$XR" | awk -F x '/current/ {print $1}' | tr -d ' ')"
+            wlr-randr --output HDMI-A-1 --on --output DVI-D-1 --on --transform 90 --pos "$xpos",30
         else
-            wlr-randr --output HDMI-A-1 --preferred --scale 1 --on --output DVI-D-1 --off
+            wlr-randr --output HDMI-A-1 --on --output DVI-D-1 --off
         fi
         ;;
     tty | x11)

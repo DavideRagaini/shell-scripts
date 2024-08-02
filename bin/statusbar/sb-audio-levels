@@ -15,4 +15,4 @@ else
 fi
 
 MPD_VOL="$(mpc status '%volume%' | sed 's/%//; s/ //')"
-echo "m$MPD_VOL M${MPV_VOLUMES%% }"
+echo "$MPD_VOL ${MPV_VOLUMES%% }"
