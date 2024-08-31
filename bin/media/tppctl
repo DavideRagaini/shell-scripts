@@ -1,9 +1,5 @@
 #!/bin/sh
 
-[ -z "$1" ] && echo "Missing arguments" && exit
-SOCKETS="$(find "/tmp/mpv" -type s)"
-CHOSEN=''
-
 com() {
   ARGS="$(echo "$@" | sed 's/ /\", \"/g')"
   echo "{ \"command\": [\"$ARGS\"] }" |
@@ -36,7 +32,29 @@ choose_instance() {
   CHOSEN="${CHOSEN%%)*}"
 }
 
-case "$1" in
+if [ -z "$1" ]; then
+  CMDS="toggle
+play
+pause
+pauseall
+volume
+invert
+prev
+next
+seek
+vid-video
+kill
+clean
+"
+  CMD="$(echo "$CMDS" | bemenu -i)" || exit
+else
+  CMD="$1"
+fi
+
+SOCKETS="$(find "/tmp/mpv" -type s)"
+CHOSEN=''
+
+case "$CMD" in
   toggle)
     choose_instance "Toggle:"
     com cycle pause
@@ -110,6 +128,11 @@ case "$1" in
     notify-send "Set Property" "vid: $VALUE"
     com set_property vid "$VALUE"
     ;;
+  kill)
+    choose_instance "Kill which instance:"
+    kill "${CHOSEN##*/}"
+    rm "$CHOSEN"
+    ;;
   direct)
     choose_instance "Direct Com:"
     com "$2"
@@ -153,6 +176,7 @@ OPTIONS:
   set [property]
   subtitle [path]
   vid / video [yes/no]
+  kill
   direct [string]
   clean
   add [video]

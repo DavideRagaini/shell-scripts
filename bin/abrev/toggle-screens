@@ -1,24 +1,51 @@
 #!/bin/sh
 
+wvert() {
+    if [ "$(echo "$1" | grep -c 'Enabled: yes')" = 1 ]; then
+        xpos="$(echo "$1" | awk -F x '/current/ {print $1}' | tr -d ' ')"
+        wlr-randr \
+            --output HDMI-A-1 --on \
+            --output DVI-D-1 --on --transform 90 --pos "$xpos",30
+    else
+        wlr-randr --output HDMI-A-1 --on --output DVI-D-1 --off
+    fi
+}
+
+whor() {
+    if [ "$(echo "$1" | grep -c 'Enabled: yes')" = 1 ]; then
+        xpos="$(echo "$1" | awk -F x '/current/ {print $1}' | tr -d ' ')"
+        wlr-randr \
+            --output HDMI-A-1 --off \
+            --output DVI-D-1 --on
+    else
+        wlr-randr \
+            --output HDMI-A-1 --on \
+            --output DVI-D-1 --off
+    fi
+}
+
+xvert() {
+    if [ "$(echo "$1" | grep -c "\*")" = 1 ]; then
+        xpos="$(echo "$1" | awk '/HDMI-0/ {print $4}' | cut -f1 -d'x')"
+        xrandr \
+            --output HDMI-0 --rotate normal --pos 0x0 --auto --primary \
+            --output DVI-D-0 --rotate right --pos "$xpos"x30 --auto # main hdmi + vert right
+    else
+        xrandr --output HDMI-0 --auto --output DVI-D-0 --off
+    fi
+}
+
 case "$(printenv XDG_SESSION_TYPE)" in
-    wayland)
-        XR="$(wlr-randr)"
-        if [ "$(echo "$XR" | grep -c 'Enabled: yes')" = 1 ]; then
-            xpos="$(echo "$XR" | awk -F x '/current/ {print $1}' | tr -d ' ')"
-            wlr-randr --output HDMI-A-1 --on --output DVI-D-1 --on --transform 90 --pos "$xpos",30
-        else
-            wlr-randr --output HDMI-A-1 --on --output DVI-D-1 --off
-        fi
-        ;;
-    tty | x11)
-        XR="$(xrandr)"
-        if [ "$(echo "$XR" | grep -c "\*")" = 1 ]; then
-            xpos="$(echo "$XR" | awk '/HDMI-0/ {print $4}' | cut -f1 -d'x')"
-            xrandr \
-                --output HDMI-0 --rotate normal --pos 0x0 --auto --primary \
-                --output DVI-D-0 --rotate right --pos "$xpos"x30 --auto # main hdmi + vert right
-        else
-            xrandr --output HDMI-0 --auto --output DVI-D-0 --off
-        fi
-        ;;
+wayland)
+    mons="$(wlr-randr --json | jq '.[].model' | tr -d '\"')"
+    if echo "$mons" | grep -iq benq; then
+        whor "$XR"
+    else
+        wvert "$XR"
+    fi
+    ;;
+tty | x11)
+    XR="$(xrandr)"
+    xvert "$XR"
+    ;;
 esac

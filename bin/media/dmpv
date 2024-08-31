@@ -120,149 +120,149 @@ else
 	fi
 fi
 
-if echo "$URL" | grep -q piped ;then
+if echo "$URL" | grep -q piped; then
 	URL="$(echo "$URL" | awk -F'/' 'sub($3,"yewtu.be",$0)')"
-elif echo "$URL" | grep -q safetwitch ;then
+elif echo "$URL" | grep -q safetwitch; then
 	URL="$(echo "$URL" | awk -F'/' 'sub($3,"twitch.tv",$0)')"
 fi
 
 case "$CHOSEN" in
-	queue)
-		QUEUE="$(cut -f2 "$PATH_QUEUE")"
-		LIST="$(find "$DIR/playlists" -type f)"
-		CHOSEN="$(printf "%s\n%s" "$QUEUE" "$LIST" | bemenu -i -l 15)" || exit
-		if grep -q "$CHOSEN" "$PATH_QUEUE" ; then
-			LINE="$(grep -m1 -w "$CHOSEN" "$PATH_QUEUE")"
-			# TITLE="$(echo "$LINE" | cut -f2)"
-			URL="$(echo "$LINE" | cut -f3)"
-		else
-			URL="$CHOSEN"
-		fi
-		fplay
+queue)
+	QUEUE="$(cut -f2 "$PATH_QUEUE")"
+	LIST="$(find "$DIR/playlists" -type f)"
+	CHOSEN="$(printf "%s\n%s" "$QUEUE" "$LIST" | bemenu -i -l 15)" || exit
+	if grep -q "$CHOSEN" "$PATH_QUEUE"; then
+		LINE="$(grep -m1 -w "$CHOSEN" "$PATH_QUEUE")"
+		# TITLE="$(echo "$LINE" | cut -f2)"
+		URL="$(echo "$LINE" | cut -f3)"
+	else
+		URL="$CHOSEN"
+	fi
+	fplay
 	# 	get_from_file "$PATH_QUEUE"
 	# 	# save_to_last
 	# 	fplay
-		;;
-	delete_queue)
-		get_from_file "$PATH_QUEUE"
-		grep -v "$URL" "$PATH_QUEUE" >"$DIR/queue.tmp" &&
-			mv "$DIR/queue.tmp" "$PATH_QUEUE"
-		;;
-	append)
-		select_socket
-		if [ -S "$SOCKET" ]; then
-			echo "{ \"command\": [ \"loadfile\", \"$URL\", \"append-play\" ] }" |
-				socat -d - "$SOCKET" >>/tmp/mpv/log 2>&1
-			echo "show-text \"added $URL\" 5000" |
-				socat -d - "$SOCKET" >>/tmp/mpv/log 2>&1
-		else
-			shift "$SHIFT"
-			fplay --input-ipc-server="$SOCKET"
-		fi
-		;;
-	eplay)
-		# save_to_last
-		fplay &
-		add_to_queue
-		;;
-	enqueue) add_to_queue ;;
-	aplay)
-		# get_title
-		# save_to_last
-		fplay
-		;;
-	lectures)
-		# VIDEOS="${XDG_VIDEOS_DIR:-$HOME/Storage/Videos}"
-		# VIDEOS="/media/data/davide/Storage/Videos"
-		VIDEOS="/media/d25l1tb"
-		CHOSEN="$(find "$VIDEOS/Lectures" -mindepth 1 -maxdepth 1 | bemenu -i -l 15)" ||
-			exit
-		mpv "$CHOSEN"
-		;;
-	movie)
-		VIDEOS1="$(find "/media/data/tmedia/media/movies" -mindepth 1 -maxdepth 1)"
-		VIDEOS2="$(find "/media/data/tmedia/torrents/import" -mindepth 1 -maxdepth 1)"
-		VIDEOS3="$(find "${XDG_VIDEOS_DIR:-$HOME/vid}/Films" -mindepth 1 -maxdepth 1)"
-		CHOSEN="$(printf "%s\n%s\n%s" "$VIDEOS1" "$VIDEOS2" "$VIDEOS3" | bemenu -i -l 15)" ||
-			exit
-		mpv --profile=movie "$CHOSEN"
-		;;
-	'local')
-		VIDEOS1="$(find "${XDG_VIDEOS_DIR:-$HOME/Storage/Videos}" -maxdepth 2)"
-		VIDEOS2="$(find "$HOME/Storage/Archive/Torrents/Complete" -maxdepth 2)"
-		CHOSEN="$(printf "%s\n%s" "$VIDEOS1" "$VIDEOS2" | bemenu -i -l 15)" ||
-			exit
-		mpv "$CHOSEN"
-		;;
-	last)
-		get_from_last "$PATH_LAST"
-		# notify-send "Working on:" "$(echo "$INFO" | tr -s ' ')\\n$URL" -a "$APPNAME"
-		fplay
-		;;
-	append_playlist)
-		FORMAT="#EXTINF: %(duration)s, %(upload_date>%d/%m/%Y)s %(title)s\nhttps://yewtu.be/watch?v=%(id)s\n\n"
-		VID="$(yt-dlp -O "$FORMAT" "$URL")"
-		PLAYLIST="$(find "$DIR/playlists" -type f | bemenu -i -l 15 -p "Append to which playlist?")"
-		echo "$VID" >> "$PLAYLIST"
-		;;
-	save_m3u)
-		PLAYLIST="$(printf '' | bemenu -i -l 15 -p "Name of the playlist? (Defaults to playlist's name)")"
-		[ -z "$PLAYLIST" ] && PLAYLIST="$(yt-dlp --playlist-end=1 -O "%(playlist_title)s" "$URL")"
-		PLAYLIST_PATH="$DIR/playlists/$PLAYLIST.m3u"
-		printf '#EXTM3U\n\n' >"$PLAYLIST_PATH"
-		FORMAT="#EXTINF: %(duration)s, %(upload_date>%d/%m/%Y)s %(title)s\nhttps://yewtu.be/watch?v=%(id)s\n\n"
-		yt-dlp -O "$FORMAT" "$URL" >>"$PLAYLIST_PATH"
-		;;
+	;;
+delete_queue)
+	get_from_file "$PATH_QUEUE"
+	grep -v "$URL" "$PATH_QUEUE" >"$DIR/queue.tmp" &&
+		mv "$DIR/queue.tmp" "$PATH_QUEUE"
+	;;
+append)
+	select_socket
+	if [ -S "$SOCKET" ]; then
+		echo "{ \"command\": [ \"loadfile\", \"$URL\", \"append-play\" ] }" |
+			socat -d - "$SOCKET" >>/tmp/mpv/log 2>&1
+		echo "show-text \"added $URL\" 5000" |
+			socat -d - "$SOCKET" >>/tmp/mpv/log 2>&1
+	else
+		shift "$SHIFT"
+		fplay --input-ipc-server="$SOCKET"
+	fi
+	;;
+eplay)
+	# save_to_last
+	fplay &
+	add_to_queue
+	;;
+enqueue) add_to_queue ;;
+aplay)
+	# get_title
+	# save_to_last
+	fplay
+	;;
+lectures)
+	# VIDEOS="${XDG_VIDEOS_DIR:-$HOME/Storage/Videos}"
+	# VIDEOS="/media/data/davide/Storage/Videos"
+	VIDEOS="/media/d25l1tb"
+	CHOSEN="$(find "$VIDEOS/Lectures" -mindepth 1 -maxdepth 1 | bemenu -i -l 15)" ||
+		exit
+	mpv "$CHOSEN"
+	;;
+movie)
+	VIDEOS1="$(find "/media/data/tmedia/torrents/complete" -mindepth 1 -maxdepth 1)"
+	VIDEOS2="$(find "/media/data/tmedia/torrents/import" -mindepth 1 -maxdepth 1)"
+	VIDEOS3="$(find "${XDG_VIDEOS_DIR:-$HOME/vid}/Films" -mindepth 1 -maxdepth 1)"
+	CHOSEN="$(printf "%s\n%s\n%s" "$VIDEOS1" "$VIDEOS2" "$VIDEOS3" | bemenu -i -l 15)" ||
+		exit
+	mpv --profile=movie "$CHOSEN"
+	;;
+'local')
+	VIDEOS1="$(find "${XDG_VIDEOS_DIR:-$HOME/Storage/Videos}" -maxdepth 2)"
+	VIDEOS2="$(find "$HOME/Storage/Archive/Torrents/Complete" -maxdepth 2)"
+	CHOSEN="$(printf "%s\n%s" "$VIDEOS1" "$VIDEOS2" | bemenu -i -l 15)" ||
+		exit
+	mpv "$CHOSEN"
+	;;
+last)
+	get_from_last "$PATH_LAST"
+	# notify-send "Working on:" "$(echo "$INFO" | tr -s ' ')\\n$URL" -a "$APPNAME"
+	fplay
+	;;
+append_playlist)
+	FORMAT="#EXTINF: %(duration)s, %(upload_date>%d/%m/%Y)s %(title)s\nhttps://yewtu.be/watch?v=%(id)s\n\n"
+	VID="$(yt-dlp -O "$FORMAT" "$URL")"
+	PLAYLIST="$(find "$DIR/playlists" -type f | bemenu -i -l 15 -p "Append to which playlist?")"
+	echo "$VID" >>"$PLAYLIST"
+	;;
+save_m3u)
+	PLAYLIST="$(printf '' | bemenu -i -l 15 -p "Name of the playlist? (Defaults to playlist's name)")"
+	[ -z "$PLAYLIST" ] && PLAYLIST="$(yt-dlp --playlist-end=1 -O "%(playlist_title)s" "$URL")"
+	PLAYLIST_PATH="$DIR/playlists/$PLAYLIST.m3u"
+	printf '#EXTM3U\n\n' >"$PLAYLIST_PATH"
+	FORMAT="#EXTINF: %(duration)s, %(upload_date>%d/%m/%Y)s %(title)s\nhttps://yewtu.be/watch?v=%(id)s\n\n"
+	yt-dlp -O "$FORMAT" "$URL" >>"$PLAYLIST_PATH"
+	;;
 	# search)
 	# 	shift
 	# 	S1="$(grep "$@" "$DIR/queue")"
 	# 	S2="$(rg -i "$@" "$DIR/playlists/")"
 	# 	C="$(printf "%s\n%s" "$S1" "$S2" | bemenu -i -l 10)"
 	# 	echo "$C"
-		# ;;
-	playlist)
-		find "$HOME/.config/mpv/playlists" -type f |
-			bemenu -i -l 10 |
-			xargs -r mpv
-		;;
-	delete_playlist)
-		find "$HOME/.config/mpv/playlists" -type f |
-			bemenu -i -l 10 |
-			xargs -r rm
-		;;
-	music)
-		save_music
-		music_play
-		;;
-	save_music) save_music ;;
-	music_queue)
-		get_from_file "$PATH_MUSIC"
-		# notify-send "Working on:" "$(echo "$INFO" | tr -s ' ')\\n$URL"
-		music_play
-		;;
-	title)
-		get_title
-		# notify-send "Working on:" "[[$URL][$(echo "$INFO" | tr -s ' ')]]"
-		printf "[[%s][%s]]" "$URL" "$INFO" | cclip
-		;;
-	last_lecture) mpv "$VIDEOS/Lectures/doing" ;;
-	edit_queue) "$VISUAL" "$PATH_QUEUE" ;;
-	edit_last) "$VISUAL" "$PATH_LAST" ;;
-	info_queue)
-		get_from_file "$PATH_QUEUE"
-		TITLE="$(echo "$TITLE" | cut -f2)"
-		URL="$(echo "$TITLE" | cut -f3)"
-		notify-send "Yanked:" "$(echo "$INFO" | tr -s ' ')\\n$URL"
-		printf "[[%s][%s]]" "$URL" "$INFO" | cclip
-		;;
-	clean_history)
-		CLEAR="$(sort -k 3,3 -u "$PATH_LAST" | sort -k 1,1 -r)"
-		printf '%s' "$CLEAR" >"$PATH_LAST"
-		;;
-	info_last)
-		get_from_file "$PATH_LAST"
-		notify-send "Yanked:" "$(echo "$INFO" | tr -s ' ')\\n$URL"
-		printf "[[%s][%s]]" "$URL" "$INFO" | cclip
-		;;
-	*) notify-send "Something wrong..." ;;
+	# ;;
+playlist)
+	find "$HOME/.config/mpv/playlists" -type f |
+		bemenu -i -l 10 |
+		xargs -r mpv
+	;;
+delete_playlist)
+	find "$HOME/.config/mpv/playlists" -type f |
+		bemenu -i -l 10 |
+		xargs -r rm
+	;;
+music)
+	save_music
+	music_play
+	;;
+save_music) save_music ;;
+music_queue)
+	get_from_file "$PATH_MUSIC"
+	# notify-send "Working on:" "$(echo "$INFO" | tr -s ' ')\\n$URL"
+	music_play
+	;;
+title)
+	get_title
+	# notify-send "Working on:" "[[$URL][$(echo "$INFO" | tr -s ' ')]]"
+	printf "[[%s][%s]]" "$URL" "$INFO" | cclip
+	;;
+last_lecture) mpv "$VIDEOS/Lectures/doing" ;;
+edit_queue) "$VISUAL" "$PATH_QUEUE" ;;
+edit_last) "$VISUAL" "$PATH_LAST" ;;
+info_queue)
+	get_from_file "$PATH_QUEUE"
+	TITLE="$(echo "$TITLE" | cut -f2)"
+	URL="$(echo "$TITLE" | cut -f3)"
+	notify-send "Yanked:" "$(echo "$INFO" | tr -s ' ')\\n$URL"
+	printf "[[%s][%s]]" "$URL" "$INFO" | cclip
+	;;
+clean_history)
+	CLEAR="$(sort -k 3,3 -u "$PATH_LAST" | sort -k 1,1 -r)"
+	printf '%s' "$CLEAR" >"$PATH_LAST"
+	;;
+info_last)
+	get_from_file "$PATH_LAST"
+	notify-send "Yanked:" "$(echo "$INFO" | tr -s ' ')\\n$URL"
+	printf "[[%s][%s]]" "$URL" "$INFO" | cclip
+	;;
+*) notify-send "Something wrong..." ;;
 esac

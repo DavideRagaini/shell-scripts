@@ -1,6 +1,6 @@
 #!/bin/sh
 
-DIR="$HOME/.cache/via"
+DIR="${XDG_CACHE_HOME:-$HOME/.cache}/via"
 CACHE="$DIR/database"
 LAST="$DIR/history"
 # MENU="ddmenu -i -l 15"
@@ -44,8 +44,7 @@ open_docs() {
         file="$(printf "%s" "$cache" | $MENU)" || exit
     fi
 
-    grep -q "$file" "$LAST-docs" ||
-        printf "%s\n" "$file" >>"$LAST-docs"
+    printf "%s\n%s" "$file" "$(grep -v "$file" "$LAST-docs")" >"$LAST-docs"
 
     exec zathura --fork "$file"
     # exec setsid -f sioyek --new-window "${HOME}/${file#"~/"}"

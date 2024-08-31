@@ -1,7 +1,10 @@
 #!/usr/bin/env sh
 
 DOTFILES="$(find . -maxdepth 1 -mindepth 1 -type d -iwholename "\./\.*" | sed 's/\.\// \/home\/davide\//' | tr -d '\n')"
-EXCLUDE="Packages MATLAB sources Org Archive Pictures Music Videos Screenshots Storage/Archive Storage/Videos Storage/Pictures Storage/Music Storage/Screenshots Storage/Books/Comics"
+EXCLUDE_LEGACY="Packages MATLAB sources Org Archive Pictures Music Videos Screenshots Storage/Archive Storage/Videos Storage/Pictures Storage/Music Storage/Screenshots Books/Comics Storage/Books/Comics"
+EXCLUDE_NEW="pkg org ark pic mus vid scs str/Archive str/Videos str/Pictures str/Music str/Screenshots str/bks/Comics"
+EXCLUDE="$EXCLUDE_LEGACY $EXCLUDE_NEW"
+
 for i in $EXCLUDE; do
     EX="$(printf "%s $HOME/%s" "$EX" "$i")"
 done
