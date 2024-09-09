@@ -1,5 +1,6 @@
 #!/bin/sh
 
+set -x
 RED='\033[0;31m'
 YELLOW='\033[0;33m'
 NC='\033[0m' # No Color
@@ -17,9 +18,9 @@ GOVERNOR=""
 
 dmenu_selector() {
     FRQS="$(echo "$FRQS_RAW" | tr ' ' '\n')"
-    MIN_SPEED="$(echo "$FRQS" | dmenu -p "Select minimum CPU speed")"
-    MAX_SPEED="$(echo "$FRQS" | dmenu -p "Select maximum CPU speed")"
-    GOVERNOR="$(echo "$GOVS_RAW" | sed 's/ /\n/g' | dmenu -p "Select CPU Governor")"
+    MIN_SPEED="$(echo "$FRQS" | bemenu -p "Select minimum CPU speed")"
+    MAX_SPEED="$(echo "$FRQS" | bemenu -p "Select maximum CPU speed")"
+    GOVERNOR="$(echo "$GOVS_RAW" | sed 's/ /\n/g' | bemenu -p "Select CPU Governor")"
 }
 
 fzf_selector() {
@@ -56,10 +57,10 @@ print_changes() {
 
 change_settings() {
     if [ -n "$1" ] && [ -n "$2" ] && [ -n "$3" ]; then
-        sudo -A sed -i "s/MIN_SPEED=.*/MIN_SPEED=$MIN_SPEED/" /etc/default/cpufrequtils
-        sudo -A sed -i "s/MAX_SPEED=.*/MAX_SPEED=$MAX_SPEED/" /etc/default/cpufrequtils
-        sudo -A sed -i "s/GOVERNOR=.*/GOVERNOR=$GOVERNOR/"    /etc/default/cpufrequtils
-        sudo -A systemctl restart cpufrequtils
+        sudo sed -i "s/MIN_SPEED=.*/MIN_SPEED=$MIN_SPEED/" /etc/default/cpufrequtils
+        sudo sed -i "s/MAX_SPEED=.*/MAX_SPEED=$MAX_SPEED/" /etc/default/cpufrequtils
+        sudo sed -i "s/GOVERNOR=.*/GOVERNOR=$GOVERNOR/"    /etc/default/cpufrequtils
+        sudo systemctl restart cpufrequtils
         sync
         print_changes
         # pkill -RTMIN+8 dwmblocks
@@ -67,7 +68,7 @@ change_settings() {
 }
 
 default_profiles(){
-    SELECTED="$(printf "Low\nNormal\nPerformance" | dmenu -i -p "Select default profile")"
+    SELECTED="$(printf "Low\nNormal\nPerformance" | bemenu -i -p "Select default profile")"
     case $SELECTED in
         Low)
             MIN_SPEED="126000"
@@ -95,8 +96,8 @@ $YELLOW Modes:$NC
 	-N: Normal Performance Mode
 	-P: High Performance Mode
 $YELLOW Guided selection:$NC
-	-d: DMENU Selector
-	-D: DMENU Selector Default Profiles
+	-d: BEMENU Selector
+	-D: BEMENU Selector Default Profiles
 	-f: FZF Selector
 $YELLOW List:$NC
 	-c: Current Settings
