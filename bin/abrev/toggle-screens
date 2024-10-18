@@ -11,13 +11,17 @@ wvert() {
     fi
 }
 
-whor() {
-    if [ "$(echo "$1" | grep -c 'Enabled: yes')" = 1 ]; then
-        xpos="$(echo "$1" | awk -F x '/current/ {print $1}' | tr -d ' ')"
+wmono() {
+    M="$(echo "$1" | jq -r '[ .[] | { "name": .name, "model": .model, "enable": .enabled } ]')"
+    if [ "$(echo "$M" | grep -c 'true')" -gt 1 ]; then
+        wlr-randr \
+            --output HDMI-A-1 --on \
+            --output DVI-D-1 --off
+    elif [ "$(echo "$M" | jq -r '.[] | select(.name=="HDMI-A-1")' | jq -r '.enable')" = 'true' ]; then
         wlr-randr \
             --output HDMI-A-1 --off \
             --output DVI-D-1 --on
-    else
+    elif [ "$(echo "$M" | jq -r '.[] | select(.name=="DVI-D-1")' | jq -r '.enable')" = 'true' ]; then
         wlr-randr \
             --output HDMI-A-1 --on \
             --output DVI-D-1 --off
@@ -25,8 +29,9 @@ whor() {
 }
 
 xvert() {
-    if [ "$(echo "$1" | grep -c "\*")" = 1 ]; then
-        xpos="$(echo "$1" | awk '/HDMI-0/ {print $4}' | cut -f1 -d'x')"
+    XR="$(xrandr)"
+    if [ "$(echo "$XR" | grep -c "\*")" = 1 ]; then
+        xpos="$(echo "$XR" | awk '/HDMI-0/ {print $4}' | cut -f1 -d'x')"
         xrandr \
             --output HDMI-0 --rotate normal --pos 0x0 --auto --primary \
             --output DVI-D-0 --rotate right --pos "$xpos"x30 --auto # main hdmi + vert right
@@ -35,17 +40,27 @@ xvert() {
     fi
 }
 
-case "$(printenv XDG_SESSION_TYPE)" in
-wayland)
-    mons="$(wlr-randr --json | jq '.[].model' | tr -d '\"')"
-    if echo "$mons" | grep -iq benq; then
-        whor "$XR"
-    else
-        wvert "$XR"
-    fi
+WLR="$(wlr-randr --json)"
+case "$1" in
+dual)
+    wvert "$WLR"
     ;;
-tty | x11)
-    XR="$(xrandr)"
-    xvert "$XR"
+mono)
+    wmono "$WLR"
+    ;;
+*)
+    case "$(printenv XDG_SESSION_TYPE)" in
+    wayland)
+        MODELS="$(echo "$WLR" | jq -r '.[].model')"
+        if echo "$MODELS" | grep -q 'BenQ'; then
+            wmono "$WLR"
+        else
+            wvert "$WLR"
+        fi
+        ;;
+    tty | x11)
+        xvert
+        ;;
+    esac
     ;;
 esac

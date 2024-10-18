@@ -9,7 +9,7 @@ LAST_UPDATE="$(date +%s -r "$DIR"/flake.lock)"
 
 case "$1" in
     'shell')
-        nix-shell "$DIR"/shell.nix --run "$(printf "%s" "$(nix-build)/bin/matlab -desktop -nosplash -sd $HOME/uni/Tirocinio/Appunti/Matlab -logfile=$HOME/MATLAB/LogFiles/matlab.log -nosoftwareopengl")"
+        nix-shell "$DIR"/shell.nix --run "$(printf "%s" "$(nix-build)/bin/matlab  -r 's = settings;s.matlab.desktop.DisplayScaleFactor.PersonalValue=$2;quit' -desktop -nosplash -sd $HOME/uni/Tirocinio/Appunti/Matlab -logfile=$HOME/MATLAB/LogFiles/matlab.log -nosoftwareopengl")"
         ;;
     '-desktop' | 'run' | *)
         cd "$DIR" &&

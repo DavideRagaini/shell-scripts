@@ -21,34 +21,22 @@ add_to_queue() {
 	sort -u -f "$PATH_QUEUE" -o "$PATH_QUEUE"
 }
 
-save_to_last() {
-	# INFO="$(yt-dlp --playlist-end=1 --print "«%(uploader,channel)-25s» %(playlist_title,title)-100s" "$URL")"
-	grep -q "$INFO" "$PATH_LAST" ||
-		printf "%-14s\t%-30s\t%-100s\n%s" \
-			"$(date '+%d/%m/%y %k:%M')" \
-			"$INFO" \
-			"$URL" \
-			"$(cat "$PATH_LAST")" >"$PATH_LAST"
-}
+# save_to_last() {
+# 	grep -q "$INFO" "$PATH_LAST" ||
+# 		printf "%-14s\t%-30s\t%-100s\n%s" \
+# 			"$(date '+%d/%m/%y %k:%M')" \
+# 			"$INFO" \
+# 			"$URL" \
+# 			"$(cat "$PATH_LAST")" >"$PATH_LAST"
+# }
 
 fplay() {
-	# notify-send "Working on:" "$(echo "$INFO" | tr -s ' ')\\n$URL"
 	setsid -f mpv --no-terminal --player-operation-mode=pseudo-gui "$@" "$URL"
 }
 
-get_from_last() {
-	CHOSEN="$(sed 's/\t/    |  /g' "$1" | bemenu -i -l 15)" || exit
-	CHOSEN_P="$(echo "$CHOSEN" | sed 's/    |  /\t/g')"
-	LINE="$(grep -m1 -w -F "$CHOSEN_P" "$1")"
-	TITLE="$(echo "$LINE" | cut -f2-3)"
-	URL="$(echo "$LINE" | cut -f4)"
-}
-
 get_from_file() {
-	CHOSEN="$(cut -f2 "$1" | bemenu -i -l 15)" || exit
-	LINE="$(grep -m1 -w "$CHOSEN" "$1")"
-	TITLE="$(echo "$LINE" | cut -f2)"
-	URL="$(echo "$LINE" | cut -f3)"
+	CHOSEN="$(cut -f2-3 "$1" | bemenu -i --accept-single -l 15)" || exit
+	URL="$(echo "$CHOSEN" | cut -f2)"
 }
 
 save_music() {
@@ -70,7 +58,7 @@ select_socket() {
 			[ "$STATUS" = 'true' ] && STATUS='' || STATUS=''
 			LIST="${LIST}${STATUS} ${TITLE}\t${PID}\n"
 		done
-		SOCKET="$(echo "${LIST%%\\n}" | bemenu -i -l 5 -p "Choose a socket" | cut -f2)" ||
+		SOCKET="$(echo "${LIST%%\\n}" | sort -r | bemenu -i --accept-single -l 5 -p "Sockets:" | cut -f2)" ||
 			exit
 	else
 		SOCKET=$SOCKETS
@@ -107,7 +95,7 @@ queue
 save_m3u
 save_music
 search"
-	CHOSEN="$(echo "$CMDS" | bemenu -i)" || exit
+	CHOSEN="$(echo "$CMDS" | bemenu -i --accept-single)" || exit
 	URL="$(pclip)" >/dev/null
 else
 	CHOSEN="$1"
@@ -128,20 +116,8 @@ fi
 
 case "$CHOSEN" in
 queue)
-	QUEUE="$(cut -f2 "$PATH_QUEUE")"
-	LIST="$(find "$DIR/playlists" -type f)"
-	CHOSEN="$(printf "%s\n%s" "$QUEUE" "$LIST" | bemenu -i -l 15)" || exit
-	if grep -q "$CHOSEN" "$PATH_QUEUE"; then
-		LINE="$(grep -m1 -w "$CHOSEN" "$PATH_QUEUE")"
-		# TITLE="$(echo "$LINE" | cut -f2)"
-		URL="$(echo "$LINE" | cut -f3)"
-	else
-		URL="$CHOSEN"
-	fi
+	get_from_file "$PATH_QUEUE"
 	fplay
-	# 	get_from_file "$PATH_QUEUE"
-	# 	# save_to_last
-	# 	fplay
 	;;
 delete_queue)
 	get_from_file "$PATH_QUEUE"
@@ -161,21 +137,18 @@ append)
 	fi
 	;;
 eplay)
-	# save_to_last
 	fplay &
 	add_to_queue
 	;;
 enqueue) add_to_queue ;;
 aplay)
-	# get_title
-	# save_to_last
 	fplay
 	;;
 lectures)
 	# VIDEOS="${XDG_VIDEOS_DIR:-$HOME/Storage/Videos}"
 	# VIDEOS="/media/data/davide/Storage/Videos"
 	VIDEOS="/media/d25l1tb"
-	CHOSEN="$(find "$VIDEOS/Lectures" -mindepth 1 -maxdepth 1 | bemenu -i -l 15)" ||
+	CHOSEN="$(find "$VIDEOS/Lectures" -mindepth 1 -maxdepth 1 | bemenu -i --accept-single -l 15)" ||
 		exit
 	mpv "$CHOSEN"
 	;;
@@ -183,26 +156,26 @@ movie)
 	VIDEOS1="$(find "/media/data/tmedia/torrents/complete" -mindepth 1 -maxdepth 1)"
 	VIDEOS2="$(find "/media/data/tmedia/torrents/import" -mindepth 1 -maxdepth 1)"
 	VIDEOS3="$(find "${XDG_VIDEOS_DIR:-$HOME/vid}/Films" -mindepth 1 -maxdepth 1)"
-	CHOSEN="$(printf "%s\n%s\n%s" "$VIDEOS1" "$VIDEOS2" "$VIDEOS3" | bemenu -i -l 15)" ||
+	CHOSEN="$(printf "%s\n%s\n%s" "$VIDEOS1" "$VIDEOS2" "$VIDEOS3" | bemenu -i --accept-single -l 15)" ||
 		exit
 	mpv --profile=movie "$CHOSEN"
 	;;
 'local')
 	VIDEOS1="$(find "${XDG_VIDEOS_DIR:-$HOME/Storage/Videos}" -maxdepth 2)"
 	VIDEOS2="$(find "$HOME/Storage/Archive/Torrents/Complete" -maxdepth 2)"
-	CHOSEN="$(printf "%s\n%s" "$VIDEOS1" "$VIDEOS2" | bemenu -i -l 15)" ||
+	CHOSEN="$(printf "%s\n%s" "$VIDEOS1" "$VIDEOS2" | bemenu -i --accept-single -l 15)" ||
 		exit
 	mpv "$CHOSEN"
 	;;
 last)
-	get_from_last "$PATH_LAST"
-	# notify-send "Working on:" "$(echo "$INFO" | tr -s ' ')\\n$URL" -a "$APPNAME"
+	CHOSEN="$(bemenu -i --accept-single -l 15 < "$PATH_LAST")" || exit
+	URL="$(echo "$CHOSEN" | cut -f4)"
 	fplay
 	;;
 append_playlist)
 	FORMAT="#EXTINF: %(duration)s, %(upload_date>%d/%m/%Y)s %(title)s\nhttps://yewtu.be/watch?v=%(id)s\n\n"
 	VID="$(yt-dlp -O "$FORMAT" "$URL")"
-	PLAYLIST="$(find "$DIR/playlists" -type f | bemenu -i -l 15 -p "Append to which playlist?")"
+	PLAYLIST="$(find "$DIR/playlists" -type f | bemenu -i --accept-single -l 15 -p "Append to which playlist?")"
 	echo "$VID" >>"$PLAYLIST"
 	;;
 save_m3u)
@@ -222,12 +195,12 @@ save_m3u)
 	# ;;
 playlist)
 	find "$HOME/.config/mpv/playlists" -type f |
-		bemenu -i -l 10 |
+		bemenu -i --accept-single -l 10 |
 		xargs -r mpv
 	;;
 delete_playlist)
 	find "$HOME/.config/mpv/playlists" -type f |
-		bemenu -i -l 10 |
+		bemenu -i --accept-single -l 10 |
 		xargs -r rm
 	;;
 music)
@@ -237,12 +210,10 @@ music)
 save_music) save_music ;;
 music_queue)
 	get_from_file "$PATH_MUSIC"
-	# notify-send "Working on:" "$(echo "$INFO" | tr -s ' ')\\n$URL"
 	music_play
 	;;
 title)
 	get_title
-	# notify-send "Working on:" "[[$URL][$(echo "$INFO" | tr -s ' ')]]"
 	printf "[[%s][%s]]" "$URL" "$INFO" | cclip
 	;;
 last_lecture) mpv "$VIDEOS/Lectures/doing" ;;

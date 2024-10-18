@@ -26,10 +26,10 @@ choose_instance() {
       [ "$STATUS" = 'true' ] && STATUS='' || STATUS=''
       LIST="${LIST}${STATUS} ${TITLES} (${i})\n"
     done
-    CHOSEN="$(echo "${LIST%%\\n}" | bemenu -i -l 5 -p "$1")"
+    CHOSEN="$(echo "${LIST%%\\n}" | sort -r | bemenu -i -l 5 -p "$1")"
+    CHOSEN="${CHOSEN##*(}"
+    CHOSEN="${CHOSEN%%)*}"
   fi
-  CHOSEN="${CHOSEN##*(}"
-  CHOSEN="${CHOSEN%%)*}"
 }
 
 if [ -z "$1" ]; then
