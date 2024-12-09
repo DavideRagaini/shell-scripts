@@ -1,2 +1,2 @@
 #!/bin/sh
-wpctl status | awk '/Sinks:/{flag=1;next}/Sink/{flag=0}flag' | awk '/*/ {print $4}'
+wpctl status | awk '/Sinks:/{flag=1;next}/Sink/{flag=0}flag' | awk '/*/ {print $4}' | head -n1

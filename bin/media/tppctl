@@ -37,6 +37,7 @@ if [ -z "$1" ]; then
 play
 pause
 pauseall
+setvol
 volume
 invert
 prev
@@ -69,6 +70,10 @@ case "$CMD" in
     ;;
   pauseall)
     com_all '{ "command": ["set_property", "pause", true] }'
+    ;;
+  setvol)
+    choose_instance "Set volume to:"
+    com set_property "volume $2"
     ;;
   volume)
     choose_instance "Set volume to:"

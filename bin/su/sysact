@@ -11,7 +11,7 @@ Suspend
 Hibernate
 Display
 Shutdown"
-	choice="$(printf "%s" "$cmds" | bemenu -i -p 'Choose an action:')"
+	choice="$(printf "%s" "$cmds" | bemenu -i --accept-single -p 'Choose an action:')"
 else
 	choice="$1"
 fi
@@ -44,7 +44,7 @@ log() {
 }
 
 confirm() {
-	[ "$(printf "No\\nYes" | bemenu -i --fn 'IosevkaTerm Nerd Font bold 20' --nb '#ff5555' --sb '#ff2222' --sf '#ffffff' --nf '#333333' -p "$choice")" = "Yes" ] ||
+	[ "$(printf "No\\nYes" | bemenu -i --accept-single --fn 'IosevkaTerm Nerd Font bold 20' --nb '#ff5555' --sb '#ff2222' --sf '#ffffff' --nf '#333333' -p "$choice")" = "Yes" ] ||
 		exit 1
 }
 
