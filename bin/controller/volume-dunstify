@@ -1,0 +1,27 @@
+#!/usr/bin/env sh
+
+volume_notify() {
+    dunstify \
+        -t 3000 \
+        -a "changeVolume" \
+        -u low -i audio-volume-high \
+        -h string:x-dunst-stack-tag:"Volume" \
+        -h int:value:"$1" "Volume: $1%"
+}
+
+volume_mute() {
+    dunstify \
+        -t 3000 \
+        -a "changeVolume" \
+        -u low -i audio-volume-muted \
+        -h string:x-dunst-stack-tag:"Volume" "Volume Muted"
+}
+
+volume="$(wpctl get-volume @DEFAULT_AUDIO_SINK@ | cut -f2- -d' ')"
+if echo "$volume" | grep -q "MUTED"; then
+    volume_mute
+elif [ "$(echo "$volume" | cut -f1 -d' ')" = "1.00" ]; then
+    volume_notify 100
+else
+    volume_notify "$(wpctl get-volume @DEFAULT_AUDIO_SINK@ | cut -f2 -d'.')"
+fi

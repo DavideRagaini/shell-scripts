@@ -135,6 +135,7 @@ case "$CMD" in
     ;;
   kill)
     choose_instance "Kill which instance:"
+    [ -z "${CHOSEN##*/}" ] && echo "Nothing to kill" && exit 1
     kill "${CHOSEN##*/}"
     rm "$CHOSEN"
     ;;

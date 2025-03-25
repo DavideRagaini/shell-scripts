@@ -31,6 +31,7 @@ add_to_queue() {
 # }
 
 fplay() {
+	URL="$(echo "$URL" | sed 's/invidious\.nerdvpn\.de/yewtu\.be/')"
 	setsid -f mpv --no-terminal --player-operation-mode=pseudo-gui "$@" "$URL"
 }
 
