@@ -1,0 +1,29 @@
+#!/usr/bin/env sh
+
+set -x
+DIR="/usr/vpn"
+# TODO args handling
+
+if [ -z "$1" ]; then
+    VPN="$(printf "%s\n%s\n%s" "openvpn" "fortissl" "wireguard" | fzf)"
+fi
+
+if [ "$VPN" = "openvpn" ]; then
+    CONFIG="$(find $DIR/ovpn/ -type f -iname "*.ovpn" | fzf)"
+    printf "Selected: %s\n" "$(echo "$CONFIG" | cut -d '/' -f5)"
+    sudo openvpn --config "$CONFIG"
+
+elif [ "$VPN" = "fortissl" ]; then
+    CONFIG="$(find /etc/openfortivpn -type f -iname "*.conf" | fzf)"
+    # CONFIG="$(echo "$CONFIG" | cut -d '/' -f4)"
+    printf "Selected: %s\n" "$CONFIG"
+    sudo openfortivpn -c "$CONFIG"
+
+elif [ "$VPN" = "wireguard" ]; then
+    # TODO /usr/wireguard config file
+    echo "Working on it!"
+
+else
+    echo "Nothing selected"
+fi
+

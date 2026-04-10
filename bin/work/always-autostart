@@ -1,0 +1,18 @@
+#!/usr/bin/env sh
+
+sleep 5
+wlsunset -t 2400 -T 6500 -S 06:30 -s 20:00 -d 1800 &
+nm-applet &
+# swayidle -w timeout 290 'swaymsg "output * dpms off"' resume 'swaymsg "output * dpms on"' timeout 300 'swaylock -f -c 000000' before-sleep 'swaylock' &
+swayidle -w \
+    timeout 180 'brightnessctl s 10%' resume 'brightnessctl s 35%' \
+    timeout 290 'swaymsg "output * dpms off"' resume 'swaymsg "output * dpms on"'
+    timeout 300 'swaylock -f -c 000000' before-sleep 'swaylock' \
+    timeout 1800 'systemctl suspend' before-sleep 'swaylock -f' &
+
+sleep "$1"
+
+# $term -T 'term-emacs' -e emacsclient -e '(doom/load-session t)' -nw &
+emacsclient -e '(doom/quickload-session t)' -c &
+kanshi &
+firefox &

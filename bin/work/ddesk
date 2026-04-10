@@ -1,0 +1,73 @@
+#!/usr/bin/env bash
+
+# Directory dei file .desktop
+DIRS=(
+    "$HOME/.local/share/applications"
+    "/usr/share/applications"
+)
+
+# File temporaneo
+TMP=$(mktemp)
+
+# Estrai Nome e Exec
+for dir in "${DIRS[@]}"; do
+    [ -d "$dir" ] || continue
+    for file in "$dir"/*.desktop; do
+        [ -f "$file" ] || continue
+
+        name=$(grep -m1 '^Name=' "$file" | cut -d'=' -f2-)
+        exec=$(grep -m1 '^Exec=' "$file" | cut -d'=' -f2-)
+
+        # Rimuove placeholder tipo %U %f ecc.
+        # exec_clean="${exec//*%[fFuUdDnNickvm]/}"
+        # exec_clean=$(echo "$exec" | sed 's/ *%[fFuUdDnNickvm]//g')
+        exec_clean=${exec//%?/}
+        exec_clean=${exec_clean//  / }
+        exec_clean=${exec_clean## }
+        exec_clean=${exec_clean%% }
+
+        if [ -n "$name" ] && [ -n "$exec_clean" ]; then
+            echo "$name|$exec_clean" >> "$TMP"
+        fi
+    done
+done
+
+# Menu con bemenu
+choice=$(cut -d'|' -f1 "$TMP" | sort -u | bemenu -i -p "Run:")
+
+# Trova comando associato
+cmd=$(grep "^$choice|" "$TMP" | head -n1 | cut -d'|' -f2-)
+
+# Esegui
+if [ -n "$cmd" ]; then
+    setsid bash -c "$cmd" >/dev/null 2>&1 &
+fi
+
+rm "$TMP"
+
+#!/usr/bin/env sh
+
+# set -x
+# TODO add name 
+
+# ENTRIES="$(find "${XDG_DATA_HOME:-$HOME/.local/share}/applications" -type f -iname "*.desktop")"
+# OPT=""
+# for line in $ENTRIES; do
+#     # echo "$line"
+#     EXEC="$(grep Exec "$line" | cut -f2- -d'=')"
+#     echo "$EXEC"
+#     OPT="$(printf "$OPT%s - %s<+|+>" "$EXEC" " $line")"
+#     # echo "$OPT"
+# done
+
+# RUN="$(echo "$OPT" | tr '<+|+>' '\n' )"
+
+# if [ "$1" = "launch" ]; then
+#     echo "cli"
+#     PRG="$(echo "$RUN" | fzf)"
+# else
+#     echo "bemenu"
+#     PRG="$(echo "$RUN" | bemenu)"
+# fi
+
+# setsid -f "$PRG"

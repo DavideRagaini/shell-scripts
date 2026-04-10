@@ -1,7 +1,11 @@
 #!/usr/bin/env sh
 MACHINE="$1"
 ACTION="$2"
+printf "\033[0;31m ========== Updating channels ========== \033[0m \n"
+sudo nix-channel --list
+echo ""
 sudo nix-channel --update
+printf "\033[0;31m ========== Rebuilding %s: %s ========== \033[0m \n" "$MACHINE" "$ACTION"
 shift 2
 exec sudo nixos-rebuild "$ACTION" -I nixos-config="$XDG_CONFIG_HOME/nixos-config/$MACHINE/configuration.nix" "$@" 2>&1 |
     tee "$HOME/.local/nixos_last.log"

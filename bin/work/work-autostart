@@ -1,0 +1,17 @@
+#!/usr/bin/env sh
+
+
+DAY="$(date +%a)"
+HOUR="$(date +%H)"
+# MIN="$(date +%M)"
+
+if [ "$HOUR" -ge 8 ] && [ "$HOUR" -le 18 ]; then
+    if [ ! "$DAY" = "Sun" ] || [ ! "$DAY" = "Sat" ]; then
+        sleep "$1"
+        # grep Exec brave-mdhklhaglcijaohkkndgcmnphmnnfkdk-Default.desktop | cut -d'=' -f2- | xargs setsid -f
+        setsid -f footclient tmux
+        setsid -f thunderbird
+        setsid -f easyeffects --hide-window
+        setsid -f ferdium --ozone-platform=wayland --enable-features=UseOzonePlatform,WebRTCPipeWireCapturer
+    fi
+fi

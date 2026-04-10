@@ -1,0 +1,10 @@
+#!/usr/bin/env sh
+
+volume_notify() {
+    dunstify \
+        -t 3000 \
+        -u low -i audio-volume-high \
+        -h int:value:"$1" "Brightness: $1"
+}
+
+volume_notify "$(brightnessctl i | grep -o "(.*)" | tr -d '(|)')"
